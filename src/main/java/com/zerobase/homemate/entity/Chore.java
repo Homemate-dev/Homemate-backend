@@ -16,13 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "chores")
+@Table(name = "chore")
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class Chores {
+public class Chore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -80,7 +80,7 @@ public class Chores {
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<ChoreInstances> choreInstances = new ArrayList<>();
+    private List<ChoreInstance> choreInstances = new ArrayList<>();
 
     public enum RepeatType {
         NONE, DAILY, WEEKLY, MONTHLY, YEARLY

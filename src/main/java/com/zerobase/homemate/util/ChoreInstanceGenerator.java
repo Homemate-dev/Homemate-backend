@@ -1,7 +1,7 @@
 package com.zerobase.homemate.util;
 
-import com.zerobase.homemate.entity.Chores;
-import com.zerobase.homemate.entity.ChoreInstances;
+import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import org.springframework.stereotype.Component;
@@ -15,26 +15,24 @@ public class ChoreInstanceGenerator {
 
     private static final int MAX_INSTANCES = 1000; // 최대 인스턴스 수 제한
 
-    public List<ChoreInstances> generateInstances(Chores chores) {
-        List<ChoreInstances> instances = new ArrayList<>();
+    public List<ChoreInstance> generateInstances(Chore chore) {
+        List<ChoreInstance> instances = new ArrayList<>();
 
-        if (chores.getRepeatType() == Chores.RepeatType.NONE) {
-            instances.add(createInstance(chores, chores.getStartDate()));
+        if (chore.getRepeatType() == Chore.RepeatType.NONE) {
+            instances.add(createInstance(chore, chore.getStartDate()));
         } else {
-            LocalDate currentDate = chores.getStartDate();
-            LocalDate endDate = chores.getEndDate();
+            LocalDate currentDate = chore.getStartDate();
+            LocalDate endDate = chore.getEndDate();
 
-            int instanceCount = 0;
             while (!currentDate.isAfter(endDate)) {
-                instances.add(createInstance(chores, currentDate));
+                instances.add(createInstance(chore, currentDate));
                 currentDate = getNextDate(
                     currentDate,
-                    chores.getRepeatType(),
-                    chores.getRepeatInterval());
-                instanceCount++;
+                    chore.getRepeatType(),
+                    chore.getRepeatInterval());
             }
 
-            if (instanceCount >= MAX_INSTANCES) {
+            if (instances.size() >= MAX_INSTANCES) {
                 throw new CustomException(ErrorCode.TOO_MANY_INSTANCES);
             }
         }
@@ -42,16 +40,16 @@ public class ChoreInstanceGenerator {
         return instances;
     }
 
-    private ChoreInstances createInstance(Chores chores, LocalDate dueDate) {
-        return ChoreInstances.builder()
-                .choreId(chores.getId())
+    private ChoreInstance createInstance(Chore chore, LocalDate dueDate) {
+        return ChoreInstance.builder()
+                .choreId(chore.getId())
                 .dueDate(dueDate)
-                .status(ChoreInstances.Status.PENDING)
+                .choreStatus(ChoreInstance.ChoreStatus.PENDING)
                 .build();
     }
 
     private LocalDate getNextDate(LocalDate currentDate,
-        Chores.RepeatType repeatType, Integer repeatInterval) {
+        Chore.RepeatType repeatType, Integer repeatInterval) {
         return switch (repeatType) {
             case DAILY -> currentDate.plusDays(repeatInterval);
             case WEEKLY -> currentDate.plusWeeks(repeatInterval);

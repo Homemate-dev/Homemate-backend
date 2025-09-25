@@ -13,13 +13,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chore_instances")
+@Table(name = "chore_instance")
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class ChoreInstances {
+public class ChoreInstance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,9 +33,9 @@ public class ChoreInstances {
     private LocalDate dueDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "chore_status", nullable = false)
     @Builder.Default
-    private Status status = Status.PENDING;
+    private ChoreStatus choreStatus = ChoreStatus.PENDING;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
@@ -50,9 +50,9 @@ public class ChoreInstances {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chore_id", insertable = false, updatable = false)
-    private Chores chore;
+    private Chore chore;
 
-    public enum Status {
+    public enum ChoreStatus {
         PENDING, COMPLETED
     }
 }
