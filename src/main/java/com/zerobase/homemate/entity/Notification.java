@@ -1,5 +1,7 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.enums.NotificationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,8 +49,8 @@ public class Notification {
     private LocalDateTime scheduledAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private Status status;
+    @Column(name = "notification_status", nullable = false)
+    private NotificationStatus notificationStatus;
 
     @Column(name = "is_read", nullable = false, columnDefinition = "BOOLEAN")
     private Boolean isRead;
@@ -64,14 +66,4 @@ public class Notification {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public enum Category {
-        CHORE,
-        NOTICE
-    }
-
-    public enum Status {
-        SCHEDULED,
-        SENT,
-        CANCELLED
-    }
 }
