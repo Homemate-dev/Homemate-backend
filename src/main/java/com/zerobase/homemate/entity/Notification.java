@@ -1,6 +1,6 @@
 package com.zerobase.homemate.entity;
 
-import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.enums.NotificationCategory;
 import com.zerobase.homemate.entity.enums.NotificationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,8 +36,8 @@ public class Notification {
     private Long choreInstanceId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "category", nullable = false)
-    private Category category;
+    @Column(name = "notification_category", nullable = false)
+    private NotificationCategory notificationCategory;
 
     @Column(name = "title", nullable = false, length = 30)
     private String title;

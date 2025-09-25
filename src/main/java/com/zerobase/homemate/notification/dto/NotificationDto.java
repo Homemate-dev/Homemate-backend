@@ -1,7 +1,7 @@
 package com.zerobase.homemate.notification.dto;
 
 import com.zerobase.homemate.entity.Notification;
-import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.enums.NotificationCategory;
 import com.zerobase.homemate.entity.enums.NotificationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +19,7 @@ public class NotificationDto {
     private Long id;
     private Long choreId;
     private Long choreInstanceId;
-    private Category category;
+    private NotificationCategory notificationCategory;
     private String title;
     private String message;
     private LocalDateTime scheduledAt;
@@ -34,7 +34,7 @@ public class NotificationDto {
                 .id(notification.getId())
                 .choreId(notification.getChoreId())
                 .choreInstanceId(notification.getChoreInstanceId())
-                .category(notification.getCategory())
+                .notificationCategory(notification.getNotificationCategory())
                 .title(notification.getTitle())
                 .message(notification.getMessage())
                 .scheduledAt(notification.getScheduledAt())
