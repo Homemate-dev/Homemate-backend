@@ -28,23 +28,6 @@ public class GlobalExceptionHandler {
 
     // 유효성 검증 예외 처리 (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException2(MethodArgumentNotValidException e) {
-        log.error("유효성 검증 실패: {}", e.getMessage());
-
-        List<ErrorResponse.ValidationError> details =
-            e.getBindingResult().getFieldErrors().stream().map(
-                fieldError -> ErrorResponse.ValidationError.builder().field(
-                    fieldError.getField())
-                    .message(fieldError.getDefaultMessage())
-                    .build()
-            ).toList();
-        ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.VALIDATION_ERROR, details);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
-
-    // 유효성 검증 예외 처리 (@Valid)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
         log.error("유효성 검증 실패: {}", e.getMessage());
         
