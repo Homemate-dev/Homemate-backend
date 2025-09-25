@@ -3,6 +3,7 @@ package com.zerobase.homemate.chores.dto;
 import com.zerobase.homemate.entity.Chores;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,7 +27,7 @@ public class ChoresDto {
         @NotNull(message = "알림 여부는 필수입니다")
         private Boolean notificationYn;
 
-        private String notificationTime;
+        private LocalTime notificationTime;
 
         private String space;
 
@@ -51,7 +52,7 @@ public class ChoresDto {
         private Long id;
         private String title;
         private Boolean notificationYn;
-        private String notificationTime;
+        private LocalTime notificationTime;
         private String space;
         private Chores.RepeatType repeatType;
         private Integer repeatInterval;
@@ -67,7 +68,7 @@ public class ChoresDto {
                 .id(chores.getId())
                 .title(chores.getTitle())
                 .notificationYn(chores.getNotificationYn())
-                .notificationTime(String.valueOf(chores.getNotificationTime()))
+                .notificationTime(chores.getNotificationTime())
                 .space(chores.getSpace())
                 .repeatType(chores.getRepeatType())
                 .repeatInterval(chores.getRepeatInterval())
