@@ -1,10 +1,10 @@
 package com.zerobase.homemate.repository;
 
-import com.zerobase.homemate.entity.Chores;
+import com.zerobase.homemate.entity.Chore;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ChoresRepository extends JpaRepository<Chores, Long> {
+public interface ChoreRepository extends JpaRepository<Chore, Long> {
 
 }

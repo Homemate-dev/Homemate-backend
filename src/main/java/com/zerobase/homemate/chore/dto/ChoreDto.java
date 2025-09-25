@@ -1,6 +1,6 @@
-package com.zerobase.homemate.chores.dto;
+package com.zerobase.homemate.chore.dto;
 
-import com.zerobase.homemate.entity.Chores;
+import com.zerobase.homemate.entity.Chore;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
@@ -13,7 +13,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class ChoresDto {
+public class ChoreDto {
 
     @AllArgsConstructor
     @NoArgsConstructor
@@ -32,7 +32,7 @@ public class ChoresDto {
         private String space;
 
         @NotNull(message = "반복 타입은 필수입니다")
-        private Chores.RepeatType repeatType;
+        private Chore.RepeatType repeatType;
 
         private Integer repeatInterval;
 
@@ -54,7 +54,7 @@ public class ChoresDto {
         private Boolean notificationYn;
         private LocalTime notificationTime;
         private String space;
-        private Chores.RepeatType repeatType;
+        private Chore.RepeatType repeatType;
         private Integer repeatInterval;
         private LocalDate startDate;
         private LocalDate endDate;
@@ -63,21 +63,21 @@ public class ChoresDto {
         private LocalDateTime updatedAt;
         private LocalDateTime deletedAt;
 
-        public static Response fromEntity(Chores chores) {
+        public static Response fromEntity(Chore chore) {
             return Response.builder()
-                .id(chores.getId())
-                .title(chores.getTitle())
-                .notificationYn(chores.getNotificationYn())
-                .notificationTime(chores.getNotificationTime())
-                .space(chores.getSpace())
-                .repeatType(chores.getRepeatType())
-                .repeatInterval(chores.getRepeatInterval())
-                .startDate(chores.getStartDate())
-                .endDate(chores.getEndDate())
-                .isDeleted(chores.getIsDeleted())
-                .createdAt(chores.getCreatedAt())
-                .updatedAt(chores.getUpdatedAt())
-                .deletedAt(chores.getDeletedAt())
+                .id(chore.getId())
+                .title(chore.getTitle())
+                .notificationYn(chore.getNotificationYn())
+                .notificationTime(chore.getNotificationTime())
+                .space(chore.getSpace())
+                .repeatType(chore.getRepeatType())
+                .repeatInterval(chore.getRepeatInterval())
+                .startDate(chore.getStartDate())
+                .endDate(chore.getEndDate())
+                .isDeleted(chore.getIsDeleted())
+                .createdAt(chore.getCreatedAt())
+                .updatedAt(chore.getUpdatedAt())
+                .deletedAt(chore.getDeletedAt())
                 .build();
         }
     }
