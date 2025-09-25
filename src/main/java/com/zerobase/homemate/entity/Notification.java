@@ -44,7 +44,7 @@ public class Notification {
     @Column(name = "status", nullable = false)
     private Status status;
 
-    @Column(name = "is_read", nullable = false)
+    @Column(name = "is_read", nullable = false, columnDefinition = "BOOLEAN")
     private Boolean isRead;
 
     @Column(name = "read_at")
