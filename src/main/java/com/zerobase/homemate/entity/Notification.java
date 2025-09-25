@@ -26,6 +26,12 @@ public class Notification {
     private Long id;
 
     // TODO: User, Chore, ChoreInstance 연관관계 추가
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+    @Column(name = "chore_id", nullable = false)
+    private Long choreId;
+    @Column(name = "chore_instance_id", nullable = false)
+    private Long choreInstanceId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
