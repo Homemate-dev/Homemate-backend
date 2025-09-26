@@ -1,11 +1,13 @@
 package com.zerobase.homemate.notification.controller;
 
-import com.zerobase.homemate.entity.enums.NotificationCategory;
 import com.zerobase.homemate.entity.enums.NotificationStatus;
 import com.zerobase.homemate.exception.GlobalExceptionHandler;
 import com.zerobase.homemate.notification.dto.NotificationDto;
 import com.zerobase.homemate.notification.service.NotificationService;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -17,12 +19,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.zerobase.homemate.entity.enums.NotificationCategory.*;
+import static com.zerobase.homemate.entity.enums.NotificationCategory.CHORE;
+import static com.zerobase.homemate.entity.enums.NotificationCategory.NOTICE;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(NotificationController.class)
 @Import(GlobalExceptionHandler.class)

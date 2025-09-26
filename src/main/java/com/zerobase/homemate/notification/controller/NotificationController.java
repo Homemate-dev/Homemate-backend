@@ -25,7 +25,7 @@ public class NotificationController {
     ) {
         Long userId = 1L; // TODO: 인증에서 userId 가져오기
 
-        if ("ALL".equals(category)) {
+        if ("ALL".equalsIgnoreCase(category)) {
             List<NotificationDto> result = notificationService.getNotifications(userId);
 
             return ResponseEntity.ok(result);

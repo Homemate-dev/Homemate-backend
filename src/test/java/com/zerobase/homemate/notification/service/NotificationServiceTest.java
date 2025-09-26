@@ -1,8 +1,6 @@
 package com.zerobase.homemate.notification.service;
 
 import com.zerobase.homemate.entity.Notification;
-import com.zerobase.homemate.entity.enums.NotificationCategory;
-import com.zerobase.homemate.entity.enums.NotificationStatus;
 import com.zerobase.homemate.notification.dto.NotificationDto;
 import com.zerobase.homemate.repository.NotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +14,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.zerobase.homemate.entity.enums.NotificationCategory.CHORE;
+import static com.zerobase.homemate.entity.enums.NotificationStatus.SCHEDULED;
+import static com.zerobase.homemate.entity.enums.NotificationStatus.SENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -40,10 +41,10 @@ class NotificationServiceTest {
                 .userId(1L)
                 .choreId(1L)
                 .choreInstanceId(1L)
-                .notificationCategory(NotificationCategory.CHORE)
+                .notificationCategory(CHORE)
                 .title("화장실 청소")
                 .scheduledAt(baseDateTime.plusDays(1))
-                .notificationStatus(NotificationStatus.SCHEDULED)
+                .notificationStatus(SCHEDULED)
                 .isRead(false)
                 .readAt(null)
                 .build();
@@ -53,10 +54,10 @@ class NotificationServiceTest {
                 .userId(1L)
                 .choreId(2L)
                 .choreInstanceId(2L)
-                .notificationCategory(NotificationCategory.CHORE)
+                .notificationCategory(CHORE)
                 .title("쓰레기 버리기")
                 .scheduledAt(baseDateTime.minusDays(1))
-                .notificationStatus(NotificationStatus.SENT)
+                .notificationStatus(SENT)
                 .isRead(true)
                 .readAt(baseDateTime.minusDays(1).plusHours(1))
                 .build();
@@ -85,12 +86,12 @@ class NotificationServiceTest {
         Long userId = 1L;
 
         List<Notification> choreList = notifications.stream()
-                .filter(e -> NotificationCategory.CHORE.equals(e.getNotificationCategory()))
+                .filter(e -> CHORE.equals(e.getNotificationCategory()))
                 .toList();
-        when(notificationRepository.findAllByUserIdAndNotificationCategory(userId, NotificationCategory.CHORE)).thenReturn(choreList);
+        when(notificationRepository.findAllByUserIdAndNotificationCategory(userId, CHORE)).thenReturn(choreList);
 
         // when
-        List<NotificationDto> result = notificationService.getNotificationsByCategory(userId, NotificationCategory.CHORE);
+        List<NotificationDto> result = notificationService.getNotificationsByCategory(userId, CHORE);
 
         // then
         assertThat(result.size()).isEqualTo(choreList.size());
