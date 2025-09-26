@@ -3,6 +3,8 @@ package com.zerobase.homemate.chore.service;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
@@ -24,6 +26,10 @@ public class ChoreService {
     @Transactional
     public ChoreDto.Response createChores(Long userId,
         ChoreDto.CreateRequest request) {
+
+        if (request.getNotificationYn() && request.getNotificationTime() == null) {
+            throw new CustomException(ErrorCode.VALIDATION_ERROR);
+        }
 
         Chore chore = Chore.builder()
             .userId(userId)

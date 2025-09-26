@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -18,6 +19,7 @@ import java.util.List;
 @Entity
 @Table(name = "chore")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,7 +40,7 @@ public class Chore {
     @Column(name = "notification_yn", nullable = false)
     private Boolean notificationYn;
 
-    @Column(name = "notification_time", nullable = false)
+    @Column(name = "notification_time")
     private LocalTime notificationTime;
 
     @Column(name = "space", length = 10)
@@ -71,6 +73,10 @@ public class Chore {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 
     // Users 테이블 완성되면 추가
     /* @ManyToOne(fetch = FetchType.LAZY)

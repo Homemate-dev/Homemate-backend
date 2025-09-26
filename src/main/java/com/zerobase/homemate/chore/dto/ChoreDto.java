@@ -62,6 +62,7 @@ public class ChoreDto {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private LocalDateTime deletedAt;
+        private Long version;
 
         public static Response fromEntity(Chore chore) {
             return Response.builder()
@@ -78,6 +79,7 @@ public class ChoreDto {
                 .createdAt(chore.getCreatedAt())
                 .updatedAt(chore.getUpdatedAt())
                 .deletedAt(chore.getDeletedAt())
+                .version(chore.getVersion())
                 .build();
         }
     }
