@@ -2,7 +2,7 @@ package com.zerobase.homemate.auth.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.zerobase.homemate.entity.Users;
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
 import io.jsonwebtoken.Claims;
@@ -22,7 +22,7 @@ class JwtServiceTest {
     long refreshExp = 3600; // 1h
     var jwt = new JwtService(secret, accessExp, refreshExp);
 
-    var user = Users.builder()
+    var user = User.builder()
         .id(1L).profileName("test")
         .userRole(UserRole.USER).userStatus(UserStatus.ACTIVE)
         .build();
