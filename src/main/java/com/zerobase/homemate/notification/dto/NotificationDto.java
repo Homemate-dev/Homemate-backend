@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class NotificationDto {
 
     private Long id;
+    private Long userId;
     private Long choreId;
     private Long choreInstanceId;
     private NotificationCategory notificationCategory;
@@ -32,6 +33,7 @@ public class NotificationDto {
     public static NotificationDto fromEntity(Notification notification) {
         return NotificationDto.builder()
                 .id(notification.getId())
+                .userId(notification.getUserId())
                 .choreId(notification.getChoreId())
                 .choreInstanceId(notification.getChoreInstanceId())
                 .notificationCategory(notification.getNotificationCategory())
