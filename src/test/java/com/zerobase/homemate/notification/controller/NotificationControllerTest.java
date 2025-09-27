@@ -47,7 +47,7 @@ class NotificationControllerTest {
     @MockitoBean
     NotificationService notificationService;
 
-    private List<NotificationDto> notificationDtos = new ArrayList<>();
+    private List<NotificationDto> notificationDtos;
 
     @BeforeEach
     void setUp() {
