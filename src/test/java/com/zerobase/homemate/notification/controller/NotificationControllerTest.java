@@ -1,7 +1,6 @@
 package com.zerobase.homemate.notification.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
-import com.zerobase.homemate.entity.enums.NotificationStatus;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.GlobalExceptionHandler;
 import com.zerobase.homemate.notification.dto.NotificationDto;
@@ -21,11 +20,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.zerobase.homemate.entity.enums.NotificationCategory.CHORE;
 import static com.zerobase.homemate.entity.enums.NotificationCategory.NOTICE;
+import static com.zerobase.homemate.entity.enums.NotificationStatus.SCHEDULED;
+import static com.zerobase.homemate.entity.enums.NotificationStatus.SENT;
 import static com.zerobase.homemate.exception.ErrorCode.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -62,11 +62,11 @@ class NotificationControllerTest {
         LocalDateTime baseDateTime = LocalDateTime.now().withHour(12).withMinute(0).withSecond(0);
 
         notificationDtos = List.of(
-                new NotificationDto(1L, 1L, 1L, 1L, CHORE, "화장실 청소", "", baseDateTime.plusDays(1), NotificationStatus.SCHEDULED, false, null, null, null),
-                new NotificationDto(2L, 1L, 2L, 2L, CHORE, "쓰레기 버리기", "", baseDateTime.minusDays(1), NotificationStatus.SENT, true, baseDateTime.minusDays(1).plusHours(6), null, null),
-                new NotificationDto(3L, null, null, null, NOTICE, "공지 사항", "", baseDateTime, NotificationStatus.SENT, false, null, null, null),
-                new NotificationDto(4L, 1L, 2L, 3L, CHORE, "쓰레기 버리기", "", baseDateTime.plusDays(3), NotificationStatus.SCHEDULED, false, null, null, null),
-                new NotificationDto(5L, 2L, 3L, 4L, CHORE, "창문 닦기", "", baseDateTime.plusDays(3), NotificationStatus.SCHEDULED, false, null, null, null)
+                new NotificationDto(1L, 1L, 1L, 1L, CHORE, "화장실 청소", "", baseDateTime.plusDays(1), SCHEDULED, false, null, null, null),
+                new NotificationDto(2L, 1L, 2L, 2L, CHORE, "쓰레기 버리기", "", baseDateTime.minusDays(1), SENT, true, baseDateTime.minusDays(1).plusHours(6), null, null),
+                new NotificationDto(3L, null, null, null, NOTICE, "공지 사항", "", baseDateTime, SENT, false, null, null, null),
+                new NotificationDto(4L, 1L, 2L, 3L, CHORE, "쓰레기 버리기", "", baseDateTime.plusDays(3), SCHEDULED, false, null, null, null),
+                new NotificationDto(5L, 2L, 3L, 4L, CHORE, "창문 닦기", "", baseDateTime.plusDays(3), SCHEDULED, false, null, null, null)
         );
     }
 
@@ -79,14 +79,14 @@ class NotificationControllerTest {
         void success_WithNoCategory() throws Exception {
             // given
             Long userId = 1L;
-            when(notificationService.getNotifications(userId)).thenReturn(notificationDtos);
+            List<NotificationDto> allList = notificationDtos.stream().filter(e -> userId.equals(e.getUserId())).toList();
+            when(notificationService.getNotifications(userId)).thenReturn(allList);
 
             // when & then
             mockMvc.perform(get("/notifications"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(notificationDtos.size())))
-                    .andExpect(jsonPath("$[*].notificationCategory", hasItem(CHORE.toString())))
-                    .andExpect(jsonPath("$[*].notificationCategory", hasItem(NOTICE.toString())));
+                    .andExpect(jsonPath("$", hasSize(allList.size())))
+                    .andExpect(jsonPath("$[*].notificationCategory", hasItem(CHORE.toString())));
         }
 
         @Test
@@ -94,14 +94,14 @@ class NotificationControllerTest {
         void success_WithCategoryAll() throws Exception {
             // given
             Long userId = 1L;
-            when(notificationService.getNotifications(userId)).thenReturn(notificationDtos);
+            List<NotificationDto> allList = notificationDtos.stream().filter(e -> userId.equals(e.getUserId())).toList();
+            when(notificationService.getNotifications(userId)).thenReturn(allList);
 
             // when & then
             mockMvc.perform(get("/notifications?category=ALL"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(notificationDtos.size())))
-                    .andExpect(jsonPath("$[*].notificationCategory", hasItem(CHORE.toString())))
-                    .andExpect(jsonPath("$[*].notificationCategory", hasItem(NOTICE.toString())));
+                    .andExpect(jsonPath("$", hasSize(allList.size())))
+                    .andExpect(jsonPath("$[*].notificationCategory", hasItem(CHORE.toString())));
         }
 
         @Test
@@ -109,7 +109,7 @@ class NotificationControllerTest {
         void success_WithCategoryChore() throws Exception {
             // given
             Long userId = 1L;
-            List<NotificationDto> choreList = notificationDtos.stream().filter(e -> CHORE.equals(e.getNotificationCategory())).toList();
+            List<NotificationDto> choreList = notificationDtos.stream().filter(e -> userId.equals(e.getUserId()) && CHORE.equals(e.getNotificationCategory())).toList();
             when(notificationService.getNotificationsByCategory(userId, CHORE)).thenReturn(choreList);
 
             // when & then
