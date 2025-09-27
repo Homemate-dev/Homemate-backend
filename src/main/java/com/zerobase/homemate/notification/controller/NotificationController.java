@@ -1,10 +1,12 @@
 package com.zerobase.homemate.notification.controller;
 
+import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.entity.enums.NotificationCategory;
 import com.zerobase.homemate.notification.dto.NotificationDto;
 import com.zerobase.homemate.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,9 +23,10 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<List<NotificationDto>> getNotifications(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam(name = "category", defaultValue = "ALL") String category
     ) {
-        Long userId = 1L; // TODO: 인증에서 userId 가져오기
+        Long userId = userPrincipal.id(); // TODO: 인증에서 userId 가져오기
 
         if ("ALL".equalsIgnoreCase(category)) {
             List<NotificationDto> result = notificationService.getNotifications(userId);

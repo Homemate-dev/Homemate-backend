@@ -1,5 +1,6 @@
 package com.zerobase.homemate.notification.controller;
 
+import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.entity.enums.NotificationStatus;
 import com.zerobase.homemate.exception.GlobalExceptionHandler;
 import com.zerobase.homemate.notification.dto.NotificationDto;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,6 +46,14 @@ class NotificationControllerTest {
 
     @BeforeEach
     void setUp() {
+        // 인증 정보 주입
+        var principal = new UserPrincipal(1L, "tester", "USER");
+        var auth = new UsernamePasswordAuthenticationToken(
+                principal, null, principal.authorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        // 테스트 데이터 생성
         LocalDateTime baseDateTime = LocalDateTime.now().withHour(12).withMinute(0).withSecond(0);
 
         notificationDtos = List.of(
