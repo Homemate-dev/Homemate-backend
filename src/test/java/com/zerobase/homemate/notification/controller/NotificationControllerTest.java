@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -138,7 +139,9 @@ class NotificationControllerTest {
 
             // when & then
             mockMvc.perform(get("/notifications?category=WRONG"))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error.code", equalTo("VALIDATION_ERROR")))
+                    .andExpect(jsonPath("$.error.message", equalTo("잘못된 카테고리 입력입니다.")));
 
             verifyNoInteractions(notificationService);
         }
