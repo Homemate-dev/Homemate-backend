@@ -2,8 +2,10 @@ package com.zerobase.homemate.notification.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.entity.enums.NotificationStatus;
+import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.GlobalExceptionHandler;
 import com.zerobase.homemate.notification.dto.NotificationDto;
+import com.zerobase.homemate.notification.dto.NotificationReadDto;
 import com.zerobase.homemate.notification.service.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,11 +26,13 @@ import java.util.List;
 
 import static com.zerobase.homemate.entity.enums.NotificationCategory.CHORE;
 import static com.zerobase.homemate.entity.enums.NotificationCategory.NOTICE;
+import static com.zerobase.homemate.exception.ErrorCode.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -61,7 +65,8 @@ class NotificationControllerTest {
                 new NotificationDto(1L, 1L, 1L, 1L, CHORE, "화장실 청소", "", baseDateTime.plusDays(1), NotificationStatus.SCHEDULED, false, null, null, null),
                 new NotificationDto(2L, 1L, 2L, 2L, CHORE, "쓰레기 버리기", "", baseDateTime.minusDays(1), NotificationStatus.SENT, true, baseDateTime.minusDays(1).plusHours(6), null, null),
                 new NotificationDto(3L, null, null, null, NOTICE, "공지 사항", "", baseDateTime, NotificationStatus.SENT, false, null, null, null),
-                new NotificationDto(4L, 1L, 2L, 3L, CHORE, "쓰레기 버리기", "", baseDateTime.plusDays(3), NotificationStatus.SCHEDULED, false, null, null, null)
+                new NotificationDto(4L, 1L, 2L, 3L, CHORE, "쓰레기 버리기", "", baseDateTime.plusDays(3), NotificationStatus.SCHEDULED, false, null, null, null),
+                new NotificationDto(5L, 2L, 3L, 4L, CHORE, "창문 닦기", "", baseDateTime.plusDays(3), NotificationStatus.SCHEDULED, false, null, null, null)
         );
     }
 
@@ -133,17 +138,72 @@ class NotificationControllerTest {
 
         @Test
         @DisplayName("?category=WRONG -> 400 Bad Request")
-        void success_WithWrongCategory() throws Exception {
+        void fail_WithWrongCategory() throws Exception {
             // given
             Long userId = 1L;
 
             // when & then
             mockMvc.perform(get("/notifications?category=WRONG"))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error.code", equalTo("VALIDATION_ERROR")))
-                    .andExpect(jsonPath("$.error.message", equalTo("잘못된 카테고리 입력입니다.")));
+                    .andExpect(jsonPath("$.error.code", equalTo(VALIDATION_ERROR.getCode())))
+                    .andExpect(jsonPath("$.error.message", equalTo("잘못된 카테고리 입력입니다."))); // NotificationCategory.from() 참고
 
             verifyNoInteractions(notificationService);
+        }
+
+        @Nested
+        @DisplayName("PATCH /notifications/{notificationId}")
+        class UpdateNotificationToRead {
+
+            @Test
+            @DisplayName(" -> 200 OK")
+            void success() throws Exception {
+                // given
+                Long userId = 1L;
+                Long notificationId = 1L;
+                NotificationReadDto notificationReadDto = new NotificationReadDto(notificationId, true, LocalDateTime.now().withNano(0));
+                when(notificationService.updateNotificationToRead(userId, notificationId)).thenReturn(notificationReadDto);
+
+                // when & then
+                mockMvc.perform(patch("/notifications/{notificationId}", notificationId).with(csrf()))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.id", equalTo(notificationId.intValue())))
+                        .andExpect(jsonPath("$.isRead", equalTo(notificationReadDto.getIsRead())))
+                        .andExpect(jsonPath("$.readAt", equalTo(notificationReadDto.getReadAt().toString())));
+            }
+
+            @Test
+            @DisplayName("(wrong notificationId) -> 404 Not Found")
+            void fail_WithWrongNotificationId() throws Exception {
+                // given
+                Long userId = 1L;
+                Long notificationId = 999L;
+                when(notificationService.updateNotificationToRead(userId, notificationId))
+                        .thenThrow(new CustomException(NOTIFICATION_NOT_FOUND));
+
+                // when & then
+                mockMvc.perform(patch("/notifications/{notificationId}", notificationId).with(csrf()))
+                        .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.error.code", equalTo(NOTIFICATION_NOT_FOUND.getCode())))
+                        .andExpect(jsonPath("$.error.message", equalTo(NOTIFICATION_NOT_FOUND.getMessage())));
+            }
+
+            @Test
+            @DisplayName("(userId - notificationId not Match) -> 403 Forbidden")
+            void fail_UserIdNotMatchesWithNotificationId() throws Exception {
+                // given
+                Long userId = 1L;
+                Long notificationId = 5L;
+                when(notificationService.updateNotificationToRead(userId, notificationId))
+                        .thenThrow(new CustomException(FORBIDDEN, "해당 알림을 수정할 권한이 없습니다."));
+
+                // when & then
+                mockMvc.perform(patch("/notifications/{notificationId}", notificationId).with(csrf()))
+                        .andExpect(status().isForbidden())
+                        .andExpect(jsonPath("$.error.code", equalTo(FORBIDDEN.getCode())))
+                        .andExpect(jsonPath("$.error.message", equalTo("해당 알림을 수정할 권한이 없습니다.")));
+            }
+
         }
     }
 }
