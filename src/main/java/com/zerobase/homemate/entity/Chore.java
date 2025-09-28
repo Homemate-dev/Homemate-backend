@@ -44,7 +44,7 @@ public class Chore {
     @Column(name = "notification_time")
     private LocalTime notificationTime;
 
-    @Column(name = "space", length = 10)
+    @Column(name = "space", length = 10, nullable = false)
     private String space;
 
     @Enumerated(EnumType.STRING)
@@ -75,11 +75,9 @@ public class Chore {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    // Users 테이블 완성되면 추가
-    /* @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private Users user;
-    */
+    private User user;
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

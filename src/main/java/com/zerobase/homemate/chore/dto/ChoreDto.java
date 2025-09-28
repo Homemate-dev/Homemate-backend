@@ -1,6 +1,7 @@
 package com.zerobase.homemate.chore.dto;
 
 import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.enums.RepeatType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
@@ -29,10 +30,11 @@ public class ChoreDto {
 
         private LocalTime notificationTime;
 
+        @NotNull(message = "공간 입력은 필수입니다")
         private String space;
 
         @NotNull(message = "반복 타입은 필수입니다")
-        private Chore.RepeatType repeatType;
+        private RepeatType repeatType;
 
         private Integer repeatInterval;
 
@@ -48,13 +50,44 @@ public class ChoreDto {
     @Builder
     @Getter
     @Setter
+    public static class UpdateRequest {
+        @NotBlank(message = "집안일 제목은 필수입니다")
+        private String title;
+
+        @NotNull(message = "알림 여부는 필수입니다")
+        private Boolean notificationYn;
+
+        private LocalTime notificationTime;
+
+        @NotNull(message = "공간 입력은 필수입니다")
+        private String space;
+
+        @NotNull(message = "반복 타입은 필수입니다")
+        private RepeatType repeatType;
+
+        private Integer repeatInterval;
+
+        @NotNull(message = "시작 일자는 필수입니다")
+        private LocalDate startDate;
+
+        @NotNull(message = "종료 일자는 필수입니다")
+        private LocalDate endDate;
+
+        private Boolean applyToFuture;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Getter
+    @Setter
     public static class Response {
         private Long id;
         private String title;
         private Boolean notificationYn;
         private LocalTime notificationTime;
         private String space;
-        private Chore.RepeatType repeatType;
+        private RepeatType repeatType;
         private Integer repeatInterval;
         private LocalDate startDate;
         private LocalDate endDate;
@@ -62,7 +95,6 @@ public class ChoreDto {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private LocalDateTime deletedAt;
-        private Long version;
 
         public static Response fromEntity(Chore chore) {
             return Response.builder()
@@ -79,7 +111,6 @@ public class ChoreDto {
                 .createdAt(chore.getCreatedAt())
                 .updatedAt(chore.getUpdatedAt())
                 .deletedAt(chore.getDeletedAt())
-                .version(chore.getVersion())
                 .build();
         }
     }
