@@ -1,5 +1,6 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.entity.enums.RepeatType;
 import jakarta.persistence.*;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
@@ -74,10 +75,6 @@ public class Chore {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @Version
-    @Column(name = "version")
-    private Long version;
-
     // Users 테이블 완성되면 추가
     /* @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
@@ -87,8 +84,4 @@ public class Chore {
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ChoreInstance> choreInstances = new ArrayList<>();
-
-    public enum RepeatType {
-        NONE, DAILY, WEEKLY, MONTHLY, YEARLY
-    }
 }

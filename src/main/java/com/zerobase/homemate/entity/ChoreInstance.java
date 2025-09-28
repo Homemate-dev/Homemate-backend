@@ -1,11 +1,13 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.entity.enums.ChoreStatus;
 import jakarta.persistence.*;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "chore_instance")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -55,14 +58,7 @@ public class ChoreInstance {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "source_version")
-    private Long sourceVersion;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chore_id", insertable = false, updatable = false)
     private Chore chore;
-
-    public enum ChoreStatus {
-        PENDING, COMPLETED, CANCELLED
-    }
 }
