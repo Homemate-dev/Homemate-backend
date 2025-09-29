@@ -19,7 +19,6 @@ import java.util.List;
 public class CategoryService {
 
     private final ChoreRepository choreRepository;
-    private static final int DEFAULT_PAGE_SIZE = 4;
 
     @Transactional(readOnly = true)
     public List<ChoreResponse> getChoresByCategory(Category category) {
