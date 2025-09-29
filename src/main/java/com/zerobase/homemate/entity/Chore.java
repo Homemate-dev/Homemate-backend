@@ -1,6 +1,5 @@
 package com.zerobase.homemate.entity;
 
-import com.zerobase.homemate.entity.enums.Category;
 import jakarta.persistence.*;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
