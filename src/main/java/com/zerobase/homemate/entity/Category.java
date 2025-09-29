@@ -28,4 +28,7 @@ public class Category {
 
     @OneToMany(mappedBy = "category")
     private List<CategoryChore> chores;
+
+    public void updateName(String newName) {
+    }
 }
