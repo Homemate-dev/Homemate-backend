@@ -114,4 +114,9 @@ public class ChoreDto {
                 .build();
         }
     }
+
+    public static boolean isValidDateRange(
+        LocalDate startDate, LocalDate endDate) {
+        return startDate == null || endDate == null || !startDate.isAfter(endDate);
+    }
 }

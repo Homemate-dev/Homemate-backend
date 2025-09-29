@@ -28,14 +28,14 @@ public class ChoreController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/update/{choreId}")
+    @PutMapping("/update/{choreInstanceId}")
     public ResponseEntity<ChoreDto.Response> updateChore(
         @AuthenticationPrincipal UserPrincipal user,
-        @PathVariable Long choreId,
+        @PathVariable Long choreInstanceId,
         @Valid @RequestBody ChoreDto.UpdateRequest request) {
 
         ChoreDto.Response response = choreService.updateChores(user.id(),
-         choreId, request);
+            choreInstanceId, request);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
