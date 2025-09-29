@@ -21,6 +21,9 @@ public enum ErrorCode {
     
     // 403 Forbidden
     FORBIDDEN("FORBIDDEN", "권한이 일치하지 않습니다.", HttpStatus.FORBIDDEN),
+
+    // 404 Not Found
+    NOTIFICATION_NOT_FOUND("NOTIFICATION_NOT_FOUND", "해당 알림을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     
     // 500 Internal Server Error
     INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
