@@ -155,9 +155,8 @@ public class ChoreService {
                     choreInstance.getDueDate(),
                     ChoreStatus.PENDING
                 );
-            futureInstances.forEach(instance -> {
-               instance.setChoreStatus(ChoreStatus.CANCELLED);
-            });
+            futureInstances.forEach(instance ->
+                instance.setChoreStatus(ChoreStatus.CANCELLED));
             choreInstanceRepository.saveAll(futureInstances);
             choreInstanceRepository.flush();
         } else {
