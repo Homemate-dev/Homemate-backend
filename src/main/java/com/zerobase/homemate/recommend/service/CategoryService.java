@@ -3,7 +3,7 @@ package com.zerobase.homemate.recommend.service;
 
 
 
-import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.Category;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
 import com.zerobase.homemate.repository.ChoreRepository;

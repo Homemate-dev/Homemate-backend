@@ -1,7 +1,7 @@
 package com.zerobase.homemate.repository;
 
 import com.zerobase.homemate.entity.Chore;
-import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

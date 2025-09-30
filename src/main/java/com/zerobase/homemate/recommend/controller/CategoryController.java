@@ -1,6 +1,6 @@
 package com.zerobase.homemate.recommend.controller;
 
-import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.Category;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryService;
 import lombok.RequiredArgsConstructor;

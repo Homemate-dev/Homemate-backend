@@ -1,7 +1,6 @@
 package com.zerobase.homemate.entity;
 
-
-import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.Category;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,8 +16,8 @@ public class CategoryChore {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "category", nullable = false, length = 20)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
