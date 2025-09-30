@@ -45,7 +45,7 @@ public class KakaoLoginTransaction {
 
       // 비활성/정지 사용자는 로그인 불가
       if (user.getUserStatus() == UserStatus.SUSPENDED) {
-        throw new CustomException(ErrorCode.UNAUTHORIZED, "사용자 상태가 비활성입니다.");
+        throw new CustomException(ErrorCode.FORBIDDEN, "정지된 사용자입니다.");
       }
 
       // 유저 정보 최신화
