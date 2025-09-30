@@ -64,4 +64,12 @@ public class JwtService {
   public Instant getExpiry(String token) {
     return parse(token).getPayload().getExpiration().toInstant();
   }
+
+  public long getATValiditySeconds() {
+    return accessExp;
+  }
+
+  public long getRTValiditySeconds() {
+    return refreshExp;
+  }
 }
