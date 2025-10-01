@@ -21,8 +21,9 @@ import static com.zerobase.homemate.exception.ErrorCode.NOTIFICATION_NOT_FOUND;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    public static final int MAX_NOTIFICATION_SIZE = 30;
     private final ChoreNotificationRepository choreNotificationRepository;
+
+    private static final int MAX_NOTIFICATION_SIZE = 30;
 
     @Transactional(readOnly = true)
     public List<ChoreNotificationDto> getChoreNotifications(Long userId) {
