@@ -33,7 +33,7 @@ public class Chore {
     @Column(name = "title", nullable = false, length = 30)
     private String title;
 
-    @Column(name = "notification_yn", nullable = false)
+    @Column(name = "notification_yn", nullable = false, columnDefinition = "BOOLEAN")
     private Boolean notificationYn;
 
     @Column(name = "notification_time", nullable = false)
@@ -55,7 +55,7 @@ public class Chore {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "is_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN")
     @Builder.Default
     private Boolean isDeleted = false;
 
