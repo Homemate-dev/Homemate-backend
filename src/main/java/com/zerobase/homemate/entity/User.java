@@ -66,8 +66,8 @@ public class User {
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
 
-  public void loginAndProfileUpdate(String newProfileName, String newProfileImageUrl) {
-    this.lastLoginAt = LocalDateTime.now();
+  public void loginAndProfileUpdate(String newProfileName, String newProfileImageUrl, LocalDateTime now) {
+    this.lastLoginAt = now;
 
     if (newProfileName != null && !newProfileName.equals(this.profileName)) {
       this.profileName = newProfileName;
