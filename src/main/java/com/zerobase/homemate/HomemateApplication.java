@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing
-@EntityScan("com.zerobase.homemate.entity")
+@EntityScan("com.zerobase.homemate")
 public class HomemateApplication {
 
   public static void main(String[] args) {

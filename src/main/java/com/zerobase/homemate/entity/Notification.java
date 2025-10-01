@@ -24,7 +24,6 @@ public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
     // TODO: User, Chore, ChoreInstance 연관관계 추가

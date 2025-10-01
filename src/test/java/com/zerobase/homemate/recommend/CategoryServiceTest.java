@@ -27,7 +27,7 @@ public class CategoryServiceTest {
     @Test
     void 카테고리_조회_성공 (){
         // given
-        Long categoryId = 1L; // createDummyData에서 첫 번째로 저장된 카테고리 (예: 청소)
+        Long categoryId = 4L; // createDummyData에서 첫 번째로 저장된 카테고리 (예: 청소)
 
         // when
         List<ChoreResponse> chores = categoryService.getChoresByCategory(categoryId);

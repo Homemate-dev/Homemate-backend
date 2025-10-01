@@ -23,10 +23,9 @@ public class ChoreInstance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "chore_id", nullable = false)
+    @Column(name = "chore_id", nullable = false, insertable = false, updatable = false)
     private Long choreId;
 
     @Column(name = "due_date", nullable = false)

@@ -29,7 +29,7 @@ public class CategoryChore {
     public static CategoryChore of(Category category, Chore chore) {
         return CategoryChore
                 .builder()
-                .id(category.getId())
+                .category(category)
                 .chore(chore)
                 .build();
     }
