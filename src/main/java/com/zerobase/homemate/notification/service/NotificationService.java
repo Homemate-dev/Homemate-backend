@@ -7,6 +7,7 @@ import com.zerobase.homemate.notification.dto.NotificationReadDto;
 import com.zerobase.homemate.repository.ChoreNotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,7 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public List<ChoreNotificationDto> getChoreNotifications(Long userId) {
-        PageRequest pageable = PageRequest.of(
+        Pageable pageable = PageRequest.of(
                 0,
                 MAX_NOTIFICATION_SIZE,
                 Sort.by(Sort.Order.desc("createdAt"))
