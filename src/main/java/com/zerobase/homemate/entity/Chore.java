@@ -30,9 +30,6 @@ public class Chore {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
     @Column(name = "title", nullable = false, length = 30)
     private String title;
 

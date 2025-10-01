@@ -28,9 +28,6 @@ public class ChoreInstance {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "chore_id", nullable = false)
-    private Long choreId;
-
     @Column(name = "title_snapshot", nullable = false)
     private String titleSnapshot;
 
