@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -32,20 +33,24 @@ public class ChoreInstance {
     private Long choreId;
 
     @Column(name = "title_snapshot", nullable = false)
+    @Setter
     private String titleSnapshot;
 
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
 
     @Column(name = "notification_time")
+    @Setter
     private LocalTime notificationTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "chore_status", nullable = false)
     @Builder.Default
+    @Setter
     private ChoreStatus choreStatus = ChoreStatus.PENDING;
 
     @Column(name = "completed_at")
+    @Setter
     private LocalDateTime completedAt;
 
     @CreatedDate
@@ -57,6 +62,7 @@ public class ChoreInstance {
     private LocalDateTime updatedAt;
 
     @Column(name = "deleted_at")
+    @Setter
     private LocalDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)

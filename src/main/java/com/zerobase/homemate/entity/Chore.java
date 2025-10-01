@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -34,15 +35,19 @@ public class Chore {
     private Long userId;
 
     @Column(name = "title", nullable = false, length = 30)
+    @Setter
     private String title;
 
     @Column(name = "notification_yn", nullable = false)
+    @Setter
     private Boolean notificationYn;
 
     @Column(name = "notification_time", nullable = false)
+    @Setter
     private LocalTime notificationTime;
 
     @Column(name = "space", length = 10)
+    @Setter
     private String space;
 
     @Enumerated(EnumType.STRING)
