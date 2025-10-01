@@ -16,14 +16,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -67,4 +65,15 @@ public class User {
 
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
+
+  public void loginAndProfileUpdate(String newProfileName, String newProfileImageUrl) {
+    this.lastLoginAt = LocalDateTime.now();
+
+    if (newProfileName != null && !newProfileName.equals(this.profileName)) {
+      this.profileName = newProfileName;
+    }
+    if (newProfileImageUrl != null && !newProfileImageUrl.equals(this.profileImageUrl)) {
+      this.profileImageUrl = newProfileImageUrl;
+    }
+  }
 }
