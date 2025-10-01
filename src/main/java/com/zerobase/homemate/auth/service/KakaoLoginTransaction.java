@@ -27,6 +27,7 @@ public class KakaoLoginTransaction {
 
   @Transactional
   public SocialLoginDto.LoginResponse upsertAndIssue(ProfileResponse profile) {
+    LocalDateTime now = LocalDateTime.now();
 
     String kakaoUid = String.valueOf(profile.id());
     String nickname = profile.properties() != null ? profile.properties().nickname() : null;
@@ -49,33 +50,27 @@ public class KakaoLoginTransaction {
       }
 
       // 유저 정보 최신화
-      if (nickname != null && (user.getProfileName() == null || !nickname.equals(user.getProfileName()))) {
-        user.setProfileName(nickname);
-      }
-      if (profileImage != null && (user.getProfileImageUrl() == null
-          || !profileImage.equals(user.getProfileImageUrl()))) {
-        user.setProfileImageUrl(profileImage);
-      }
-
-      user.setLastLoginAt(LocalDateTime.now());
+      user.loginAndProfileUpdate(nickname, profileImage, now);
     } else {
       // 신규 유저 + 소셜 계정 생성
-      user = new User();
-      user.setProfileName(nickname);
-      user.setProfileImageUrl(profileImage);
-      user.setUserRole(UserRole.USER);
-      user.setUserStatus(UserStatus.ACTIVE);
-      user.setLastLoginAt(LocalDateTime.now());
+      user = User.builder()
+          .profileName(nickname)
+          .profileImageUrl(profileImage)
+          .userRole(UserRole.USER)
+          .userStatus(UserStatus.ACTIVE)
+          .lastLoginAt(LocalDateTime.now())
+          .build();
       userRepository.save(user);
 
-      UserSocialAccount link = new UserSocialAccount();
-      link.setUserId(user.getId());
-      link.setSocialProvider(SocialProvider.KAKAO);
-      link.setProviderUserId(kakaoUid);
-      link.setConnectedAt(LocalDateTime.now());
+      UserSocialAccount link = UserSocialAccount.builder()
+          .user(user)
+          .socialProvider(SocialProvider.KAKAO)
+          .providerUserId(kakaoUid)
+          .connectedAt(LocalDateTime.now())
+          .build();
 
       try {
-        socialAccountRepository.save(link);
+        socialAccountRepository.saveAndFlush(link);
       } catch (DataIntegrityViolationException e) {
         throw new CustomException(ErrorCode.SOCIAL_LINK_CONFLICT);
       }
