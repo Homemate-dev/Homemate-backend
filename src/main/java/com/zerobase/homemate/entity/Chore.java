@@ -73,7 +73,7 @@ public class Chore {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-     @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
