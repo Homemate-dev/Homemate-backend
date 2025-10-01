@@ -1,6 +1,6 @@
 package com.zerobase.homemate.notification.dto;
 
-import com.zerobase.homemate.entity.Notification;
+import com.zerobase.homemate.entity.ChoreNotification;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +18,7 @@ public class NotificationReadDto {
     private Boolean isRead;
     private LocalDateTime readAt;
 
-    public static NotificationReadDto from(Notification notification) {
+    public static NotificationReadDto fromChoreNotification(ChoreNotification notification) {
         return NotificationReadDto.builder()
                 .id(notification.getId())
                 .isRead(notification.getIsRead())

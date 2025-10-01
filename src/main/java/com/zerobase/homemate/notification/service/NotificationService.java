@@ -51,6 +51,6 @@ public class NotificationService {
 
         notification.read();
 
-        return NotificationReadDto.from(notification);
+        return NotificationReadDto.fromChoreNotification(notification);
     }
 }
