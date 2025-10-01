@@ -25,7 +25,6 @@ public class ChoreNotification {
     @Column(name = "id")
     private Long id;
 
-    // TODO: User, Chore, ChoreInstance 연관관계 추가
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
