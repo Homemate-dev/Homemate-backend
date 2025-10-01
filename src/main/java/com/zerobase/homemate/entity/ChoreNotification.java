@@ -42,7 +42,7 @@ public class ChoreNotification {
     @Column(name = "scheduled_at", nullable = false)
     private LocalDateTime scheduledAt;
 
-    @Column(name = "is_cancelled", nullable = false)
+    @Column(name = "is_cancelled", nullable = false, columnDefinition = "BOOLEAN")
     private Boolean isCancelled;
 
     @Column(name = "is_read", nullable = false, columnDefinition = "BOOLEAN")
