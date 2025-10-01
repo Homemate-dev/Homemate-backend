@@ -3,9 +3,12 @@ package com.zerobase.homemate.chore.service;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,12 @@ public class ChoreService {
     @Transactional
     public ChoreDto.Response createChores(Long userId,
         ChoreDto.CreateRequest request) {
+
+        if (request.getNotificationYn() && request.getNotificationTime() == null) {
+            throw new CustomException(ErrorCode.VALIDATION_ERROR);
+        } else if (!isValidDateRange(request.getStartDate(), request.getEndDate())) {
+            throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
+        }
 
         Chore chore = Chore.builder()
             .userId(userId)
@@ -44,5 +53,9 @@ public class ChoreService {
         choreInstanceRepository.saveAll(instances);
 
         return ChoreDto.Response.fromEntity(savedChore);
+    }
+
+    private boolean isValidDateRange(LocalDate startDate, LocalDate endDate) {
+        return startDate.isBefore(endDate);
     }
 }
