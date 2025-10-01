@@ -85,4 +85,7 @@ public class Chore {
     public enum RepeatType {
         NONE, DAILY, WEEKLY, MONTHLY, YEARLY
     }
+
+    @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CategoryChore> categoryChores = new ArrayList<>();
 }

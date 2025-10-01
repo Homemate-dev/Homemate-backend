@@ -1,12 +1,14 @@
 package com.zerobase.homemate.entity;
 
-import com.zerobase.homemate.entity.Category;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
 @Getter
-@Table(name = "category_chores")
+@Table(name = "category_chores",
+uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"category_id", "chore_id"})
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -23,4 +25,12 @@ public class CategoryChore {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chore_id", nullable = false)
     private Chore chore;
+
+    public static CategoryChore of(Category category, Chore chore) {
+        return CategoryChore
+                .builder()
+                .id(category.getId())
+                .chore(chore)
+                .build();
+    }
 }

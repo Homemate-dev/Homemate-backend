@@ -1,6 +1,5 @@
 package com.zerobase.homemate.recommend.controller;
 
-import com.zerobase.homemate.entity.Category;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +17,11 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @GetMapping("/category/{category}")
-    public ResponseEntity<Map<String, Object>> getChoresByCategory(@PathVariable Category category) {
-        List<ChoreResponse> responses = categoryService.getChoresByCategory(category);
+    @GetMapping("/{categoryId}/chores")
+    public ResponseEntity<Map<String, Object>> getChoresByCategory(
+            @PathVariable Long categoryId
+    ) {
+        List<ChoreResponse> responses = categoryService.getChoresByCategory(categoryId);
 
         Map<String, Object> result = new HashMap<>();
         result.put("data", responses);
