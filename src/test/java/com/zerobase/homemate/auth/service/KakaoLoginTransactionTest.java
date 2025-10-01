@@ -24,6 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class KakaoLoginTransactionTest {
@@ -46,7 +47,7 @@ class KakaoLoginTransactionTest {
     given(userRepository.save(any(User.class)))
         .willAnswer(inv -> {
           User u = inv.getArgument(0);
-          u.setId(1L);
+          ReflectionTestUtils.setField(u, "id", 1L);
           return u;
         });
     given(socialRepo.save(any(UserSocialAccount.class)))
@@ -73,7 +74,7 @@ class KakaoLoginTransactionTest {
     assertThat(res.user().isNewUser()).isTrue();
 
     then(userRepository).should().save(any(User.class));
-    then(socialRepo).should().save(any(UserSocialAccount.class));
+    then(socialRepo).should().saveAndFlush(any(UserSocialAccount.class));
     then(jwtService).should().createAccessToken(
         argThat(u -> u.getId() == 1L && "Nick".equals(u.getProfileName())));
     then(jwtService).should().createRefreshToken(eq(1L));
@@ -116,24 +117,23 @@ class KakaoLoginTransactionTest {
   }
 
   private User user(Long id, String nick, String img) {
-    var u = new User();
-    u.setId(id);
-    u.setProfileName(nick);
-    u.setProfileImageUrl(img);
-    u.setUserRole(UserRole.USER);
-    u.setUserStatus(UserStatus.ACTIVE);
-    u.setCreatedAt(LocalDateTime.now());
-    u.setUpdatedAt(LocalDateTime.now());
-    return u;
+    return User.builder()
+        .id(id)
+        .profileName(nick)
+        .profileImageUrl(img)
+        .userRole(UserRole.USER)
+        .userStatus(UserStatus.ACTIVE)
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
   }
 
   private UserSocialAccount link(User user, SocialProvider p, String providerUid) {
-    var l = new UserSocialAccount();
-    l.setUser(user);
-    l.setUserId(user.getId());
-    l.setSocialProvider(p);
-    l.setProviderUserId(providerUid);
-    l.setConnectedAt(LocalDateTime.now());
-    return l;
+    return UserSocialAccount.builder()
+        .user(user)
+        .socialProvider(p)
+        .providerUserId(providerUid)
+        .connectedAt(LocalDateTime.now())
+        .build();
   }
 }
