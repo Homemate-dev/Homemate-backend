@@ -94,9 +94,9 @@ public class KakaoLoginTransaction {
     return new SocialLoginDto.LoginResponse(
         "Bearer",
         at,
-        jwtService.getATValiditySeconds(),
+        jwtService.getAccessTokenValiditySeconds(),
         rt,
-        jwtService.getRTValiditySeconds(),
+        jwtService.getRefreshTokenValiditySeconds(),
         new SocialLoginDto.LoginResponse.UserDto(
             user.getId(),
             SocialProvider.KAKAO,

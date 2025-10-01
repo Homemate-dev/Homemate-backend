@@ -65,11 +65,11 @@ public class JwtService {
     return parse(token).getPayload().getExpiration().toInstant();
   }
 
-  public long getATValiditySeconds() {
+  public long getAccessTokenValiditySeconds() {
     return accessExp;
   }
 
-  public long getRTValiditySeconds() {
+  public long getRefreshTokenValiditySeconds() {
     return refreshExp;
   }
 }

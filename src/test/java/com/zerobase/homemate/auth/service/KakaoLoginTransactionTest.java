@@ -55,8 +55,8 @@ class KakaoLoginTransactionTest {
     // JWT 발급
     given(jwtService.createAccessToken(any(User.class))).willReturn("ourAT");
     given(jwtService.createRefreshToken(eq(1L))).willReturn("ourRT");
-    given(jwtService.getATValiditySeconds()).willReturn(900L);
-    given(jwtService.getRTValiditySeconds()).willReturn(1_209_600L);
+    given(jwtService.getAccessTokenValiditySeconds()).willReturn(900L);
+    given(jwtService.getRefreshTokenValiditySeconds()).willReturn(1_209_600L);
 
     // when
     SocialLoginDto.LoginResponse res = sut.upsertAndIssue(profile);
@@ -94,8 +94,8 @@ class KakaoLoginTransactionTest {
     // JWT
     given(jwtService.createAccessToken(existingUser)).willReturn("at");
     given(jwtService.createRefreshToken(10L)).willReturn("rt");
-    given(jwtService.getATValiditySeconds()).willReturn(900L);
-    given(jwtService.getRTValiditySeconds()).willReturn(1_209_600L);
+    given(jwtService.getAccessTokenValiditySeconds()).willReturn(900L);
+    given(jwtService.getRefreshTokenValiditySeconds()).willReturn(1_209_600L);
 
     // when
     SocialLoginDto.LoginResponse res = sut.upsertAndIssue(profile);
