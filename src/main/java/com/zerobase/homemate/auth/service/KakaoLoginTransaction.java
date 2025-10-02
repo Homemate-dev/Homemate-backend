@@ -58,7 +58,7 @@ public class KakaoLoginTransaction {
           .profileImageUrl(profileImage)
           .userRole(UserRole.USER)
           .userStatus(UserStatus.ACTIVE)
-          .lastLoginAt(LocalDateTime.now())
+          .lastLoginAt(now)
           .build();
       userRepository.save(user);
 
@@ -66,7 +66,7 @@ public class KakaoLoginTransaction {
           .user(user)
           .socialProvider(SocialProvider.KAKAO)
           .providerUserId(kakaoUid)
-          .connectedAt(LocalDateTime.now())
+          .connectedAt(now)
           .build();
 
       try {
