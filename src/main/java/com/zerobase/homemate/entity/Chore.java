@@ -1,5 +1,6 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.entity.enums.RepeatType;
 import jakarta.persistence.*;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
@@ -29,13 +30,10 @@ public class Chore {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
     @Column(name = "title", nullable = false, length = 30)
     private String title;
 
-    @Column(name = "notification_yn", nullable = false)
+    @Column(name = "notification_yn", nullable = false, columnDefinition = "BOOLEAN")
     private Boolean notificationYn;
 
     @Column(name = "notification_time", nullable = false)
@@ -57,7 +55,7 @@ public class Chore {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "is_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN")
     @Builder.Default
     private Boolean isDeleted = false;
 
@@ -72,17 +70,11 @@ public class Chore {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    // Users 테이블 완성되면 추가
-    /* @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private Users user;
-    */
+    private User user;
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ChoreInstance> choreInstances = new ArrayList<>();
-
-    public enum RepeatType {
-        NONE, DAILY, WEEKLY, MONTHLY, YEARLY
-    }
 }

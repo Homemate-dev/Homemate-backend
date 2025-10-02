@@ -66,4 +66,8 @@ public class Notification {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public void read() {
+        isRead = true;
+        readAt = LocalDateTime.now();
+    }
 }
