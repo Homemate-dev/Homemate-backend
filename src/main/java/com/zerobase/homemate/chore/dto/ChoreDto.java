@@ -13,12 +13,13 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import lombok.experimental.SuperBuilder;
 
 public class ChoreDto {
 
     @AllArgsConstructor
     @NoArgsConstructor
-    @Builder
+    @SuperBuilder
     @Getter
     @Setter
     public abstract static class Request {
@@ -47,18 +48,18 @@ public class ChoreDto {
 
     @AllArgsConstructor
     @NoArgsConstructor
-    @Builder
+    @SuperBuilder
     @Getter
     @Setter
     public static class CreateRequest extends Request { }
 
     @AllArgsConstructor
     @NoArgsConstructor
-    @Builder
+    @SuperBuilder
     @Getter
     @Setter
     public static class UpdateRequest extends Request {
-        private Boolean applyToFuture;
+        private Boolean isUpdateAll;
     }
 
     @AllArgsConstructor
