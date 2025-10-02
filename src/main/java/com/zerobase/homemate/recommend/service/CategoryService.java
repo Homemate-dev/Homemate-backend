@@ -9,6 +9,8 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
 import com.zerobase.homemate.repository.CategoryRepository;
@@ -38,6 +40,11 @@ public class CategoryService {
     private static final int DEFAULT_PAGE_SIZE = 4;
 
     public List<ChoreResponse> getChoresByCategory(Long categoryId) {
+        // 카테고리 존재 여부 확인
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CATEGORY));
+
+        // 집안일 조회 (없으면 빈 리스트 반환)
         return choreRepository.findByCategoryChores_Category_Id(
                         categoryId,
                         PageRequest.of(0, DEFAULT_PAGE_SIZE)
