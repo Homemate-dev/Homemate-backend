@@ -1,6 +1,8 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.entity.enums.ChoreStatus;
 import jakarta.persistence.*;
+import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,11 +28,14 @@ public class ChoreInstance {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "chore_id", nullable = false)
-    private Long choreId;
+    @Column(name = "title_snapshot", nullable = false)
+    private String titleSnapshot;
 
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
+
+    @Column(name = "notification_time")
+    private LocalTime notificationTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "chore_status", nullable = false)
@@ -48,11 +53,10 @@ public class ChoreInstance {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chore_id", insertable = false, updatable = false)
     private Chore chore;
-
-    public enum ChoreStatus {
-        PENDING, COMPLETED
-    }
 }
