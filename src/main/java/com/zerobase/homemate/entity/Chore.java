@@ -31,9 +31,6 @@ public class Chore {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
     @Column(name = "title", nullable = false, length = 30)
     @Setter
     private String title;
@@ -63,7 +60,7 @@ public class Chore {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "is_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN")
     @Builder.Default
     private Boolean isDeleted = false;
 

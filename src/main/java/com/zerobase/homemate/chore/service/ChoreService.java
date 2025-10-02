@@ -3,10 +3,12 @@ package com.zerobase.homemate.chore.service;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
+import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class ChoreService {
     private final ChoreRepository choreRepository;
     private final ChoreInstanceRepository choreInstanceRepository;
     private final ChoreInstanceGenerator choreInstanceGenerator;
+    private final UserRepository userRepository;
 
     @Transactional
     public ChoreDto.Response createChores(Long userId,
@@ -30,12 +33,14 @@ public class ChoreService {
 
         if (request.getNotificationYn() && request.getNotificationTime() == null) {
             throw new CustomException(ErrorCode.VALIDATION_ERROR);
-        } else if (!isValidDateRange(request.getStartDate(), request.getEndDate())) {
+        } else if (isInValidDateRange(request.getStartDate(),
+            request.getEndDate())) {
             throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
         }
 
+        User userReference = userRepository.getReferenceById(userId);
+
         Chore chore = Chore.builder()
-            .userId(userId)
             .title(request.getTitle())
             .notificationYn(request.getNotificationYn())
             .notificationTime(request.getNotificationTime())
@@ -45,6 +50,7 @@ public class ChoreService {
             .startDate(request.getStartDate())
             .endDate(request.getEndDate())
             .isDeleted(false)
+            .user(userReference)
             .build();
 
         Chore savedChore = choreRepository.save(chore);
@@ -55,7 +61,7 @@ public class ChoreService {
         return ChoreDto.Response.fromEntity(savedChore);
     }
 
-    private boolean isValidDateRange(LocalDate startDate, LocalDate endDate) {
-        return startDate.isBefore(endDate);
+    private boolean isInValidDateRange(LocalDate startDate, LocalDate endDate) {
+        return startDate.isAfter(endDate);
     }
 }

@@ -44,11 +44,11 @@ public class ChoreInstanceGenerator {
 
     private ChoreInstance createInstance(Chore chore, LocalDate dueDate) {
         return ChoreInstance.builder()
-            .choreId(chore.getId())
             .titleSnapshot(chore.getTitle())
             .dueDate(dueDate)
             .notificationTime(chore.getNotificationTime())
             .choreStatus(ChoreStatus.PENDING)
+            .chore(chore)
             .build();
     }
 

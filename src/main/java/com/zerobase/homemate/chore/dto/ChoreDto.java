@@ -30,6 +30,7 @@ public class ChoreDto {
 
         private LocalTime notificationTime;
 
+        @NotNull(message = "공간 입력은 필수입니다.")
         private String space;
 
         @NotNull(message = "반복 타입은 필수입니다")
