@@ -1,7 +1,6 @@
 package com.zerobase.homemate.entity;
 
 import jakarta.persistence.*;
-import com.zerobase.homemate.entity.enums.Frequency;
 import lombok.*;
 
 @Entity
@@ -23,7 +22,7 @@ public class SpaceChore {
     private String titleKo;
 
     @Column(name = "default_freq", nullable = false)
-    private Frequency defaultFreq;
+    private Chore.RepeatType defaultFreq;
 
     @Column(name = "is_active")
     private Boolean isActive;
