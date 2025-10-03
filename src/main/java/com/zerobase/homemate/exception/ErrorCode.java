@@ -27,6 +27,7 @@ public enum ErrorCode {
 
     // 404 Not Found
     NOTIFICATION_NOT_FOUND("NOTIFICATION_NOT_FOUND", "해당 알림을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
+    USER_NOT_FOUND("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
   
     // 409 Conflict
     SOCIAL_LINK_CONFLICT("SOCIAL_LINK_CONFLICT", "이미 연결된 소셜 계정입니다.", HttpStatus.CONFLICT),
