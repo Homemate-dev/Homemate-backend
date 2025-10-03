@@ -47,14 +47,4 @@ public class CategoryController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{categoryId}")
-    public ResponseEntity<Map<String, Object>> getChoresByCategory(@PathVariable Long categoryId) {
-        List<ChoreResponse> responses = categoryService.getChoresByCategory(categoryId);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("data", responses);
-        result.put("error", null);
-
-        return ResponseEntity.ok(result);
-    }
 }

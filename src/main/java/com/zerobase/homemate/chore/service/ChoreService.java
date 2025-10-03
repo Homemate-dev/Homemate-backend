@@ -44,7 +44,7 @@ public class ChoreService {
             .title(request.getTitle())
             .notificationYn(request.getNotificationYn())
             .notificationTime(request.getNotificationTime())
-            .space(request.getSpace())
+            .spaceChore(request.getSpaceChore())
             .repeatType(request.getRepeatType())
             .repeatInterval(request.getRepeatInterval())
             .startDate(request.getStartDate())

@@ -39,9 +39,6 @@ public class Chore {
     @Column(name = "notification_time", nullable = false)
     private LocalTime notificationTime;
 
-    @Column(name = "space", length = 10)
-    private String space;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "repeat_type", nullable = false)
     private RepeatType repeatType;
@@ -73,6 +70,11 @@ public class Chore {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "space_chore_id")
+    private SpaceChore spaceChore;
+
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

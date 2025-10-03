@@ -54,14 +54,5 @@ public class CategoryService {
         categoryRepository.deleteById(id);
     }
 
-    @Transactional(readOnly = true)
-    public List<ChoreResponse> getChoresByCategory(Long categoryId) {
-        Pageable pageable = (Pageable) PageRequest.of(0, DEFAULT_PAGE_SIZE);
-
-
-        return choreRepository.findByCategoryId(categoryId, pageable)
-                .stream()
-                .map(ChoreResponse::fromEntity)
-                .toList();
-    }
+    
 }

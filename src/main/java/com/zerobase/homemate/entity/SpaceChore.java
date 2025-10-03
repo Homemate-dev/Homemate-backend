@@ -28,6 +28,6 @@ public class SpaceChore {
     private Boolean isActive;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "space_id", nullable = false)
+    @JoinColumn(name = "space_id")
     private Space space;
 }

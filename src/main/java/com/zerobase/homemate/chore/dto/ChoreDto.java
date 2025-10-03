@@ -1,6 +1,7 @@
 package com.zerobase.homemate.chore.dto;
 
 import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,10 +32,11 @@ public class ChoreDto {
         private LocalTime notificationTime;
 
         @NotNull(message = "공간 입력은 필수입니다.")
-        private String space;
+        private SpaceChore spaceChore;
+
 
         @NotNull(message = "반복 타입은 필수입니다")
-        private RepeatType repeatType;
+        private Chore.RepeatType repeatType;
 
         private Integer repeatInterval;
 
@@ -55,8 +57,8 @@ public class ChoreDto {
         private String title;
         private Boolean notificationYn;
         private LocalTime notificationTime;
-        private String space;
-        private RepeatType repeatType;
+        private SpaceChore spaceChore;
+        private Chore.RepeatType repeatType;
         private Integer repeatInterval;
         private LocalDate startDate;
         private LocalDate endDate;
@@ -71,7 +73,7 @@ public class ChoreDto {
                 .title(chore.getTitle())
                 .notificationYn(chore.getNotificationYn())
                 .notificationTime(chore.getNotificationTime())
-                .space(chore.getSpace())
+                .spaceChore(chore.getSpaceChore())
                 .repeatType(chore.getRepeatType())
                 .repeatInterval(chore.getRepeatInterval())
                 .startDate(chore.getStartDate())
