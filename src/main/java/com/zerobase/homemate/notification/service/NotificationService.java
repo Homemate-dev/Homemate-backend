@@ -31,7 +31,7 @@ public class NotificationService {
         Pageable pageable = PageRequest.of(
                 0,
                 MAX_NOTIFICATION_SIZE,
-                Sort.by(Sort.Order.desc("createdAt"))
+                Sort.by(Sort.Order.desc("scheduledAt"))
         );
         List<ChoreNotification> list = choreNotificationRepository.findByUserIdAndIsCancelledFalseAndScheduledAtBefore(
                 userId,
