@@ -25,7 +25,7 @@ public class SecurityConfig {
     JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtService, userRepository);
 
     http
-        .csrf(csrf -> csrf.disable())
+        .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/**", "/policies/**", "/recommend/spaces/**").permitAll()

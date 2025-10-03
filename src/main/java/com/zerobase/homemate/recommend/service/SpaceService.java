@@ -1,22 +1,16 @@
 package com.zerobase.homemate.recommend.service;
 
-import com.zerobase.homemate.chore.service.ChoreService;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.Space;
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
-import com.zerobase.homemate.recommend.dto.ChoreResponse;
-import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
 import com.zerobase.homemate.repository.SpaceRepository;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = SpaceController.class)
-@WithMockUser(username = "user1", roles = {"USER"})
+@WithMockUser(username = "user1")
 class SpaceControllerTest {
 
     @Autowired

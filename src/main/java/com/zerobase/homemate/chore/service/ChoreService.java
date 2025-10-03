@@ -41,6 +41,7 @@ public class ChoreService {
         User userReference = userRepository.getReferenceById(userId);
 
         Chore chore = Chore.builder()
+            .userId(userId)
             .title(request.getTitle())
             .notificationYn(request.getNotificationYn())
             .notificationTime(request.getNotificationTime())

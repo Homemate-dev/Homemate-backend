@@ -3,15 +3,12 @@ package com.zerobase.homemate.recommend.service;
 
 
 import com.zerobase.homemate.entity.Category;
-import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.repository.CategoryRepository;
 import com.zerobase.homemate.repository.ChoreRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 @Service
@@ -54,5 +51,5 @@ public class CategoryService {
         categoryRepository.deleteById(id);
     }
 
-    
+
 }
