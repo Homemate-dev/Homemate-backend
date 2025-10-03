@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface SpaceRepository extends JpaRepository<Space, Long> {
 
-    Optional<Space> findBySpaceId(Long spaceId);
+    Optional<Space> findByCodeByTop4(String code);
 }

@@ -4,6 +4,7 @@ package com.zerobase.homemate.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -28,6 +29,6 @@ public class Space {
     private Boolean isActive;
 
     @OneToMany(mappedBy = "space")
-    private List<SpaceChore> chores;
+    private List<SpaceChore> chores = new ArrayList<>();
 }
 
