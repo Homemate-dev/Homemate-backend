@@ -5,7 +5,6 @@ import com.zerobase.homemate.entity.Space;
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
-import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.repository.ChoreRepository;
