@@ -4,7 +4,6 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.Space;
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.User;
-import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.exception.CustomException;
