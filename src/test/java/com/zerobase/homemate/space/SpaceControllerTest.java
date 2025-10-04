@@ -1,5 +1,6 @@
 package com.zerobase.homemate.space;
 
+import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.recommend.controller.SpaceController;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
@@ -50,8 +51,8 @@ class SpaceControllerTest {
     @DisplayName("특정 공간의 랜덤 집안일 조회 API 성공")
     void testGetRandomChores() throws Exception {
         List<SpaceChoreResponse> mockChores = List.of(
-                new SpaceChoreResponse(1L, "거실", 1L, "청소기 돌리기", "WEEKLY"),
-                new SpaceChoreResponse(2L, "주방", 2L, "창문 닦기", "WEEKLY")
+                new SpaceChoreResponse(1L, "거실", 1L, "청소기 돌리기", RepeatType.WEEKLY),
+                new SpaceChoreResponse(2L, "주방", 2L, "창문 닦기", RepeatType.WEEKLY)
         );
 
         when(spaceService.getRandomChoresBySpace(1L)).thenReturn(mockChores);
@@ -60,6 +61,6 @@ class SpaceControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].choreTitle").value("청소기 돌리기"))
-                .andExpect(jsonPath("$[1].frequency").value("WEEKLY"));
+                .andExpect(jsonPath("$[1].defaultFreq").value("WEEKLY"));
     }
 }

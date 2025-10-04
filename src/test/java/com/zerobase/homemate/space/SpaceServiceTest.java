@@ -4,6 +4,7 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.Space;
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.exception.CustomException;
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.zerobase.homemate.entity.enums.RepeatType.WEEKLY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -96,10 +98,10 @@ public class SpaceServiceTest {
                 .id(1L)
                 .title("청소기 돌리기")
                 .isDeleted(false)
-                .userId(user.getId())
+                .user(user)
                 .notificationYn(true)
                 .notificationTime(LocalTime.MIN)
-                .repeatType(Chore.RepeatType.WEEKLY)
+                .repeatType(WEEKLY)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(1))
                 .build();
@@ -108,10 +110,10 @@ public class SpaceServiceTest {
                 .id(2L)
                 .title("창문 닦기")
                 .isDeleted(false)
-                .userId(user.getId())
+                .user(user)
                 .notificationYn(true)
                 .notificationTime(LocalTime.MIN)
-                .repeatType(Chore.RepeatType.WEEKLY)
+                .repeatType(WEEKLY)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(1))
                 .build();
@@ -121,7 +123,7 @@ public class SpaceServiceTest {
                 .space(space)
                 .chore(chore1)
                 .isActive(true)
-                .defaultFreq(Chore.RepeatType.WEEKLY)
+                .defaultFreq(WEEKLY)
                 .build();
 
         SpaceChore sc2 = SpaceChore.builder()
@@ -129,7 +131,7 @@ public class SpaceServiceTest {
                 .space(space)
                 .chore(chore2)
                 .isActive(true)
-                .defaultFreq(Chore.RepeatType.WEEKLY)
+                .defaultFreq(WEEKLY)
                 .build();
         when(spaceRepository.findByIdAndIsActiveTrue(1L)).thenReturn(Optional.of(space));
         when(spaceChoreRepository.findBySpaceAndIsActiveTrue(space)).thenReturn(Arrays.asList(sc1, sc2));

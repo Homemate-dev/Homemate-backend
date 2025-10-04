@@ -1,6 +1,7 @@
 package com.zerobase.homemate.recommend.controller;
 
 import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
@@ -36,10 +37,10 @@ public class SpaceController {
     /**
      * 사용자별 SpaceChore 기준 실제 Chore 인스턴스 조회
      */
-    @GetMapping("/{spaceId}/chores/user/{userId}")
+    @GetMapping("/{spaceId}/chores/user/{user}")
     public ResponseEntity<List<Chore>> getUserChores(@PathVariable Long spaceId,
-                                                     @PathVariable Long userId) {
-        List<Chore> userChores = spaceService.getUserChoresForSpace(userId, spaceId);
+                                                     @PathVariable User user) {
+        List<Chore> userChores = spaceService.getUserChoresForSpace(user, spaceId);
         return ResponseEntity.ok(userChores);
     }
 

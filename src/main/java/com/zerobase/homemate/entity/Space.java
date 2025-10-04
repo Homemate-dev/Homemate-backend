@@ -29,6 +29,6 @@ public class Space {
     private Boolean isActive;
 
     @OneToMany(mappedBy = "space")
-    private List<SpaceChore> chores = new ArrayList<>();
+    private final List<SpaceChore> chores = new ArrayList<>();
 }
 

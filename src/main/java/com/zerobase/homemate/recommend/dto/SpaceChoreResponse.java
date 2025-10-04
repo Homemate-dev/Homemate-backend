@@ -1,12 +1,13 @@
 package com.zerobase.homemate.recommend.dto;
 
 import com.zerobase.homemate.entity.SpaceChore;
+import com.zerobase.homemate.entity.enums.RepeatType;
 
 public record SpaceChoreResponse (Long spaceId,
                                   String spaceTitle,
                                   Long choreId,
                                   String choreTitle,
-                                  String frequency){
+                                  RepeatType defaultFreq) {
 
     public static SpaceChoreResponse fromEntity(SpaceChore spaceChore){
         return new SpaceChoreResponse(
@@ -14,7 +15,7 @@ public record SpaceChoreResponse (Long spaceId,
                 spaceChore.getSpace().getNameKo(),
                 spaceChore.getChore().getId(),
                 spaceChore.getChore().getTitle(),
-                spaceChore.getDefaultFreq().name()
+                spaceChore.getChore().getRepeatType()
         );
     }
 }

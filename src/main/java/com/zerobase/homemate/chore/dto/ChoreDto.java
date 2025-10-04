@@ -36,7 +36,7 @@ public class ChoreDto {
 
 
         @NotNull(message = "반복 타입은 필수입니다")
-        private Chore.RepeatType repeatType;
+        private RepeatType repeatType;
 
         private Integer repeatInterval;
 
@@ -58,7 +58,7 @@ public class ChoreDto {
         private Boolean notificationYn;
         private LocalTime notificationTime;
         private SpaceChore spaceChore;
-        private Chore.RepeatType repeatType;
+        private RepeatType repeatType;
         private Integer repeatInterval;
         private LocalDate startDate;
         private LocalDate endDate;

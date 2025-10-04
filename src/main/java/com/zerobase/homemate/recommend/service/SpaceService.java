@@ -3,6 +3,7 @@ package com.zerobase.homemate.recommend.service;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.Space;
 import com.zerobase.homemate.entity.SpaceChore;
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
@@ -65,12 +66,12 @@ public class SpaceService {
     /**
      * SpaceChore 기준으로 사용자가 실제 수행할 Chore 인스턴스 조회
      */
-    public List<Chore> getUserChoresForSpace(Long userId, Long spaceId) {
+    public List<Chore> getUserChoresForSpace(User user, Long spaceId) {
         List<SpaceChore> spaceChores = getAllChoresBySpace(spaceId);
 
         return spaceChores.stream()
                 .flatMap(sc -> choreRepository.findBySpaceChoreAndIsDeletedFalse(sc).stream()
-                        .filter(chore -> chore.getUserId().equals(userId)))
+                        .filter(chore -> chore.getUser().equals(user)))
                 .collect(Collectors.toList());
     }
 

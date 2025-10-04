@@ -1,5 +1,6 @@
     package com.zerobase.homemate.entity;
 
+    import com.zerobase.homemate.entity.enums.RepeatType;
     import jakarta.persistence.*;
     import lombok.*;
 
@@ -22,7 +23,8 @@
         private String titleKo;
 
         @Column(name = "default_freq", nullable = false)
-        private Chore.RepeatType defaultFreq;
+        @Enumerated(EnumType.STRING)
+        private RepeatType defaultFreq;
 
         @Column(name = "is_active")
         private Boolean isActive;
