@@ -11,7 +11,6 @@ import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.recommend.service.SpaceService;
-import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
 import com.zerobase.homemate.repository.SpaceRepository;
 import org.junit.jupiter.api.BeforeEach;
