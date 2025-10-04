@@ -13,8 +13,5 @@ public interface SpaceRepository extends JpaRepository<Space, Long> {
     @EntityGraph(attributePaths = {"chores"})
     Optional<Space> findByIdAndIsActiveTrue(Long id);
 
-    // 전체 활성화된 공간 조회
-    List<Space> findAllByIsActiveTrue();
 
-    Optional<Space> findByCode(String code);
 }

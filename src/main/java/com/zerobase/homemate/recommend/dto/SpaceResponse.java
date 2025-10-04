@@ -2,6 +2,7 @@ package com.zerobase.homemate.recommend.dto;
 
 import com.zerobase.homemate.entity.Space;
 
+
 public record SpaceResponse(Long id,
                             String code,
                             String title,
@@ -12,6 +13,7 @@ public record SpaceResponse(Long id,
                 space.getId(),
                 space.getCode(),
                 space.getNameKo(),
-                space.getIsActive());
+                space.getIsActive()
+                );
     }
 }

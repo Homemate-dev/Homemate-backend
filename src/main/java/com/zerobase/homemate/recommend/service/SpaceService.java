@@ -5,6 +5,9 @@ import com.zerobase.homemate.entity.Space;
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.recommend.dto.ChoreResponse;
+import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
+import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
 import com.zerobase.homemate.repository.SpaceRepository;
@@ -30,6 +33,13 @@ public class SpaceService {
 
     private final Random random = new Random();
 
+    // 1. 모든 공간 조회
+    public List<SpaceResponse> getAllSpaces() {
+        return spaceRepository.findAll().stream()
+                .map(SpaceResponse::fromEntity)
+                .toList();
+    }
+
     // 공간별 집안일 전체 조회
     public List<SpaceChore> getAllChoresBySpace(Long spaceId){
         Space space = spaceRepository.findByIdAndIsActiveTrue(spaceId)
@@ -38,23 +48,19 @@ public class SpaceService {
         return spaceChoreRepository.findBySpaceAndIsActiveTrue(space);
     }
 
-    // 공간별 랜덤 집안일 추천(최대 4개)
-    public List<SpaceChore> getRandomChoresBySpace(Long spaceId){
-        int count = 4;
+    // 랜덤 추천(최대 4개)
+    public List<SpaceChoreResponse> getRandomChoresBySpace(Long spaceId){
+        List<SpaceChore> spaceChores = spaceChoreRepository.findBySpaceAndIsActiveTrue(
+                spaceRepository.findByIdAndIsActiveTrue(spaceId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.SPACE_NOT_FOUND))
+        );
 
-        List<SpaceChore> choreList = getAllChoresBySpace(spaceId);
-        if(choreList.isEmpty()){
-            return Collections.emptyList();
-        }
+        Collections.shuffle(spaceChores, random);
 
-        // choreList에서 4개 랜덤 추출
-        return choreList.stream()
-                .collect(Collectors.collectingAndThen(
-                        Collectors.toList(), list ->{
-                            Collections.shuffle(list, random);
-                            return list.stream().limit(count).collect(Collectors.toList());
-                        }
-                ));
+        return spaceChores.stream()
+                .limit(4)
+                .map(SpaceChoreResponse::fromEntity)
+                .toList();
     }
 
     /**
