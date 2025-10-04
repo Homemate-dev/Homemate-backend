@@ -42,9 +42,6 @@ public class SpaceServiceTest {
     @Mock
     private SpaceChoreRepository spaceChoreRepository;
 
-    @Mock
-    private ChoreRepository choreRepository;
-
     @InjectMocks
     private SpaceService spaceService;
 
