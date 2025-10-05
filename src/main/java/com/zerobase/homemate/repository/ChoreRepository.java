@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ChoreRepository extends JpaRepository<Chore, Long> {
@@ -17,4 +18,5 @@ public interface ChoreRepository extends JpaRepository<Chore, Long> {
     List<Chore> findBySpaceChoreAndIsDeletedFalse(SpaceChore spaceChore);
 
 
+    Optional<Chore> findByTitle(String title);
 }

@@ -13,4 +13,5 @@ public interface SpaceRepository extends JpaRepository<Space, Long> {
     Optional<Space> findByIdAndIsActiveTrue(Long id);
 
 
+    Optional<Space> findByCode(String code);
 }
