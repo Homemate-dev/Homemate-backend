@@ -63,6 +63,6 @@ public class ChoreInstance {
     private LocalDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chore_id", insertable = false, updatable = false)
+    @JoinColumn(name = "chore_id", updatable = false)
     private Chore chore;
 }

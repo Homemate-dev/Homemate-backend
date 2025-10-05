@@ -76,7 +76,7 @@ public class Chore {
     private LocalDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", updatable = false)
     private User user;
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

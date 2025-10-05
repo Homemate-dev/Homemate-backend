@@ -46,7 +46,6 @@ public class ChoreDto {
         private LocalDate endDate;
     }
 
-    @AllArgsConstructor
     @NoArgsConstructor
     @SuperBuilder
     @Getter
