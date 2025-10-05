@@ -39,7 +39,7 @@ public class Chore {
     @Setter
     private Boolean notificationYn;
 
-    @Column(name = "notification_time", nullable = false)
+    @Column(name = "notification_time")
     @Setter
     private LocalTime notificationTime;
 
