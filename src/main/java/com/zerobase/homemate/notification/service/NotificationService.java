@@ -1,50 +1,58 @@
 package com.zerobase.homemate.notification.service;
 
-import com.zerobase.homemate.entity.Notification;
-import com.zerobase.homemate.entity.enums.NotificationCategory;
+import com.zerobase.homemate.entity.ChoreNotification;
 import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.notification.dto.NotificationDto;
+import com.zerobase.homemate.notification.dto.ChoreNotificationDto;
 import com.zerobase.homemate.notification.dto.NotificationReadDto;
-import com.zerobase.homemate.repository.NotificationRepository;
+import com.zerobase.homemate.repository.ChoreNotificationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.zerobase.homemate.exception.ErrorCode.*;
+import static com.zerobase.homemate.exception.ErrorCode.FORBIDDEN;
+import static com.zerobase.homemate.exception.ErrorCode.NOTIFICATION_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final NotificationRepository notificationRepository;
+    private final ChoreNotificationRepository choreNotificationRepository;
+
+    private static final int MAX_NOTIFICATION_SIZE = 30;
 
     @Transactional(readOnly = true)
-    public List<NotificationDto> getNotifications(Long userId) {
-        List<Notification> list = notificationRepository.findAllByUserId(userId);
+    public List<ChoreNotificationDto> getChoreNotifications(Long userId) {
+        Pageable pageable = PageRequest.of(
+                0,
+                MAX_NOTIFICATION_SIZE,
+                Sort.by(Sort.Order.desc("scheduledAt"))
+        );
+        List<ChoreNotification> list = choreNotificationRepository.findByUserIdAndIsCancelledFalseAndScheduledAtBefore(
+                userId,
+                LocalDateTime.now(),
+                pageable
+        );
 
-        return list.stream().map(NotificationDto::fromEntity).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<NotificationDto> getNotificationsByCategory(Long userId, NotificationCategory category) {
-        List<Notification> list = notificationRepository.findAllByUserIdAndNotificationCategory(userId, category);
-
-        return list.stream().map(NotificationDto::fromEntity).toList();
+        return list.stream().map(ChoreNotificationDto::fromEntity).toList();
     }
 
     @Transactional
-    public NotificationReadDto updateNotificationToRead(Long userId, Long notificationId) {
-        Notification notification = notificationRepository.findById(notificationId)
+    public NotificationReadDto updateChoreNotificationToRead(Long userId, Long notificationId) {
+        ChoreNotification notification = choreNotificationRepository.findById(notificationId)
                 .orElseThrow(() -> new CustomException(NOTIFICATION_NOT_FOUND));
 
-        if (!userId.equals(notification.getUserId())) {
+        if (!userId.equals(notification.getUser().getId())) {
             throw new CustomException(FORBIDDEN, "해당 알림을 수정할 권한이 없습니다.");
         }
 
         notification.read();
 
-        return NotificationReadDto.from(notification);
+        return NotificationReadDto.fromChoreNotification(notification);
     }
 }
