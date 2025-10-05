@@ -65,4 +65,14 @@ public class ChoreInstance {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chore_id", updatable = false)
     private Chore chore;
+
+    public void completeChore() {
+        this.choreStatus = ChoreStatus.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void cancelCompleteChore() {
+        this.choreStatus = ChoreStatus.PENDING;
+        this.completedAt = null;
+    }
 }
