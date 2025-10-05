@@ -1,6 +1,7 @@
 package com.zerobase.homemate.chore.service;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
@@ -163,6 +164,29 @@ public class ChoreService {
         Chore updatedChore = choreRepository.save(chore);
 
         return ChoreDto.Response.fromEntity(updatedChore);
+    }
+
+    @Transactional
+    public ChoreInstanceDto.Response completeChore(Long userId,
+        Long choreInstanceId) {
+        ChoreInstance choreInstance =
+            choreInstanceRepository.findById(choreInstanceId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
+        Chore chore =
+            choreRepository.getReferenceById(choreInstance.getChore().getId());
+
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        } else if (choreInstance.getChoreStatus() == ChoreStatus.PENDING) {
+            choreInstance.completeChore();
+        } else if (choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
+            choreInstance.cancelCompleteChore();
+        } else if (choreInstance.getChoreStatus() == ChoreStatus.CANCELLED
+            || choreInstance.getChoreStatus() == ChoreStatus.DELETED) {
+            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        }
+
+        return ChoreInstanceDto.Response.fromEntity(choreInstance);
     }
 
     private boolean isInValidDateRange(LocalDate startDate, LocalDate endDate) {
