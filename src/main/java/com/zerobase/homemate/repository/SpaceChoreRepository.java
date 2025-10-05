@@ -13,5 +13,5 @@ public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
     // 공간별 활성화된 집안일 조회
     List<SpaceChore> findBySpaceAndIsActiveTrue(Space space);
 
-    Optional<SpaceChore> findBySpaceAndChore(Space space, Chore chore);
+//    Optional<SpaceChore> findBySpaceAndChore(Space space, Chore chore);
 }
