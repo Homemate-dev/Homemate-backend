@@ -2,7 +2,6 @@ package com.zerobase.homemate.auth.controller;
 
 import com.zerobase.homemate.auth.dto.AuthTokenResponseDto;
 import com.zerobase.homemate.auth.dto.SocialLoginDto;
-import com.zerobase.homemate.auth.dto.SocialLoginDto.LoginResponse;
 import com.zerobase.homemate.auth.service.AuthService;
 import com.zerobase.homemate.auth.service.KakaoLoginService;
 import jakarta.validation.Valid;
@@ -24,9 +23,7 @@ public class AuthController {
   @PostMapping("/login/kakao")
   public ResponseEntity<SocialLoginDto.LoginResponse> kakao(
       @Valid @RequestBody SocialLoginDto.KakaoLoginRequest request) {
-
-    LoginResponse response = kakaoLoginService.login(request);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(kakaoLoginService.login(request));
   }
 
   @PostMapping("/refresh")
