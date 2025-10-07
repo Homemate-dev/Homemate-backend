@@ -16,7 +16,4 @@ public interface ChoreRepository extends JpaRepository<Chore, Long> {
 
     // SpaceChore 기준으로 사용자 chore 조회
     List<Chore> findBySpaceChoreAndIsDeletedFalse(SpaceChore spaceChore);
-
-
-//    Optional<Chore> findByTitle(String title);
 }

@@ -27,8 +27,5 @@ public class Space {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
-
-    @OneToMany(mappedBy = "space")
-    private final List<SpaceChore> chores = new ArrayList<>();
 }
 
