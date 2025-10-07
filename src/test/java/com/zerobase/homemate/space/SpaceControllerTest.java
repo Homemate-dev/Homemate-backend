@@ -1,11 +1,11 @@
 package com.zerobase.homemate.space;
 
+import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.recommend.controller.SpaceController;
-import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
-import com.zerobase.homemate.recommend.dto.SpaceResponse;
+import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.recommend.service.SpaceService;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -15,8 +15,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -31,36 +32,39 @@ class SpaceControllerTest {
     private SpaceService spaceService;
 
     @Test
-    @DisplayName("공간 리스트 조회 API 성공")
     void testGetAllSpaces() throws Exception {
-        List<SpaceResponse> mockSpaces = List.of(
-                new SpaceResponse(1L, "LIVING", "거실", true),
-                new SpaceResponse(2L, "KITCHEN", "주방", true)
-        );
-
-        when(spaceService.getAllSpaces()).thenReturn(mockSpaces);
+        // SpaceService Mock 세팅
+        when(spaceService.getAllSpaces())
+                .thenReturn(List.of(Map.of("name", "KITCHEN", "description", "주방")));
 
         mockMvc.perform(get("/recommend/spaces")
-                        .accept(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("거실"))
-                .andExpect(jsonPath("$[1].code").value("KITCHEN"));
+                .andExpect(jsonPath("$[0].name").value("KITCHEN"))
+                .andExpect(jsonPath("$[0].description").value("주방"));
     }
 
     @Test
-    @DisplayName("특정 공간의 랜덤 집안일 조회 API 성공")
-    void testGetRandomChores() throws Exception {
-        List<SpaceChoreResponse> mockChores = List.of(
-                new SpaceChoreResponse(1L, "청소기 돌리기", RepeatType.WEEKLY),
-                new SpaceChoreResponse(2L, "창문 닦기", RepeatType.WEEKLY)
-        );
+    void testGetChoresBySpace() throws Exception {
+        // given
+        ChoreResponse chore1 = new ChoreResponse(1L, "청소", RepeatType.WEEKLY);
+        ChoreResponse chore2 = new ChoreResponse(2L, "설거지", RepeatType.DAILY);
 
-        when(spaceService.getRandomChoresBySpace(1L)).thenReturn(mockChores);
+        when(spaceService.getChoresBySpace(Space.KITCHEN))
+                .thenReturn(List.of(chore1, chore2));
 
-        mockMvc.perform(get("/recommend/spaces/1/chores")
-                        .accept(MediaType.APPLICATION_JSON))
+        // when & then
+        mockMvc.perform(get("/recommend/spaces/space/KITCHEN")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].choreTitle").value("청소기 돌리기"))
-                .andExpect(jsonPath("$[1].frequency").value("WEEKLY"));
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].choreId").value(1))
+                .andExpect(jsonPath("$[0].title").value("청소"))
+                .andExpect(jsonPath("$[0].frequency").value("WEEKLY"))
+                .andExpect(jsonPath("$[1].choreId").value(2))
+                .andExpect(jsonPath("$[1].title").value("설거지"))
+                .andExpect(jsonPath("$[1].frequency").value("DAILY"));
+
+        verify(spaceService, times(1)).getChoresBySpace(Space.KITCHEN);
     }
 }

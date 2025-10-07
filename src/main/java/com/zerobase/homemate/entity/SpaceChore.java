@@ -1,6 +1,7 @@
     package com.zerobase.homemate.entity;
 
     import com.zerobase.homemate.entity.enums.RepeatType;
+    import com.zerobase.homemate.entity.enums.Space;
     import jakarta.persistence.*;
     import lombok.*;
 
@@ -29,8 +30,8 @@
         @Column(name = "is_active")
         private Boolean isActive;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "space_id")
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false)
         private Space space;
 
         @ManyToOne(fetch = FetchType.LAZY)
