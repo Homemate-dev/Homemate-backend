@@ -13,6 +13,7 @@ public enum ErrorCode {
     INVALID_REPEAT_INTERVAL("INVALID_REPEAT_INTERVAL", "반복 주기는 1 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
     TOO_MANY_INSTANCES("TOO_MANY_INSTANCES", "생성할 인스턴스가 너무 많습니다. (최대 1000개)", HttpStatus.BAD_REQUEST),
     INVALID_NOTIFICATION_TIME("INVALID_NOTIFICATION_TIME", "알림 시간 형식이 올바르지 않습니다. (HH:mm)", HttpStatus.BAD_REQUEST),
+    CHORE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "이미 삭제되었거나 취소한 집안일 입니다.", HttpStatus.BAD_REQUEST),
     PKCE_VERIFIER_REQUIRED("PKCE_VERIFIER_REQUIRED", "code_verifier 값이 필요합니다.", HttpStatus.BAD_REQUEST),
 
     // 401 Unauthorized
@@ -27,17 +28,17 @@ public enum ErrorCode {
 
     // 404 Not Found
     NOTIFICATION_NOT_FOUND("NOTIFICATION_NOT_FOUND", "해당 알림을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
+    CHORE_NOT_FOUND("CHORE_NOT_FOUND", "해당 집안일을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    CHORE_INSTANCE_NOT_FOUND("CHORE_INSTANCE_NOT_FOUND", "해당 날짜의 집안일을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     USER_NOT_FOUND("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     SPACE_NOT_FOUND("SPACE_NOT_FOUND", "공간 카테고리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
 
     // 409 Conflict
     SOCIAL_LINK_CONFLICT("SOCIAL_LINK_CONFLICT", "이미 연결된 소셜 계정입니다.", HttpStatus.CONFLICT),
 
     // 429 Too Many Requests
     PROVIDER_RATE_LIMIT("PROVIDER_RATE_LIMIT", "소셜 제공자 호출 한도 초과입니다.", HttpStatus.TOO_MANY_REQUESTS),
-
-
-
 
     // 500 Internal Server Error
     INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),

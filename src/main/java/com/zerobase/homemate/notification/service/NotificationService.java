@@ -1,10 +1,13 @@
 package com.zerobase.homemate.notification.service;
 
 import com.zerobase.homemate.entity.ChoreNotification;
+import com.zerobase.homemate.entity.Notice;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.notification.dto.ChoreNotificationDto;
+import com.zerobase.homemate.notification.dto.NoticeDto;
 import com.zerobase.homemate.notification.dto.NotificationReadDto;
 import com.zerobase.homemate.repository.ChoreNotificationRepository;
+import com.zerobase.homemate.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +26,7 @@ import static com.zerobase.homemate.exception.ErrorCode.NOTIFICATION_NOT_FOUND;
 public class NotificationService {
 
     private final ChoreNotificationRepository choreNotificationRepository;
+    private final NoticeRepository noticeRepository;
 
     private static final int MAX_NOTIFICATION_SIZE = 30;
 
@@ -54,5 +58,18 @@ public class NotificationService {
         notification.read();
 
         return NotificationReadDto.fromChoreNotification(notification);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NoticeDto> getNotices(Long userId) { // userId는 NoticeRead 추가 후 사용 예정
+        Pageable pageable = PageRequest.of(
+                0,
+                MAX_NOTIFICATION_SIZE,
+                Sort.by(Sort.Order.desc("scheduledAt"))
+        );
+
+        List<Notice> list = noticeRepository.findByScheduledAtBefore(LocalDateTime.now(), pageable);
+
+        return list.stream().map(NoticeDto::fromEntity).toList();
     }
 }
