@@ -27,4 +27,16 @@ public class ChoreController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PutMapping("/{choreInstanceId}")
+    public ResponseEntity<ChoreDto.Response> updateChore(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable Long choreInstanceId,
+        @Valid @RequestBody ChoreDto.UpdateRequest request) {
+
+        ChoreDto.Response response = choreService.updateChores(user.id(),
+            choreInstanceId, request);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

@@ -13,15 +13,16 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import lombok.experimental.SuperBuilder;
 
 public class ChoreDto {
 
     @AllArgsConstructor
     @NoArgsConstructor
-    @Builder
+    @SuperBuilder
     @Getter
     @Setter
-    public static class CreateRequest {
+    public abstract static class Request {
         @NotBlank(message = "집안일 제목은 필수입니다")
         private String title;
 
@@ -30,7 +31,7 @@ public class ChoreDto {
 
         private LocalTime notificationTime;
 
-        @NotNull(message = "공간 입력은 필수입니다.")
+        @NotNull(message = "공간 입력은 필수입니다")
         private String space;
 
         @NotNull(message = "반복 타입은 필수입니다")
@@ -43,6 +44,21 @@ public class ChoreDto {
 
         @NotNull(message = "종료 일자는 필수입니다")
         private LocalDate endDate;
+    }
+
+    @NoArgsConstructor
+    @SuperBuilder
+    @Getter
+    @Setter
+    public static class CreateRequest extends Request { }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @SuperBuilder
+    @Getter
+    @Setter
+    public static class UpdateRequest extends Request {
+        private Boolean applyToAll;
     }
 
     @AllArgsConstructor
