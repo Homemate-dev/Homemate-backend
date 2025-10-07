@@ -1,5 +1,9 @@
 package com.zerobase.homemate.entity.enums;
 
+
+import lombok.Getter;
+
+@Getter
 public enum Space {
     KITCHEN("주방"),
     LIVING_ROOM("거실"),
@@ -11,10 +15,6 @@ public enum Space {
 
     Space(String description) {
         this.description = description;
-    }
-
-    public String getDescription() {
-        return description;
     }
 }
 

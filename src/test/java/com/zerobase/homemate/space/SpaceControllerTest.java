@@ -1,6 +1,5 @@
 package com.zerobase.homemate.space;
 
-import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.recommend.controller.SpaceController;
