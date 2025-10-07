@@ -38,7 +38,7 @@ public class AuthService {
     String jti = jwtService.getJti(refreshToken);
 
     // 재사용 탐지 : 현재 저장된 jti와 일치해야 함
-    if (!refreshTokenStore.isCurrent(userId, sid, jti)) {
+    if (!refreshTokenStore.matchesCurrentJti(userId, sid, jti)) {
       refreshTokenStore.delete(userId, sid);  // 해당 sid의 현재 RT 상태를 즉시 무효화
       throw new CustomException(ErrorCode.REFRESH_TOKEN_REUSED);
     }

@@ -24,7 +24,7 @@ public class RefreshTokenStore {
     redis.opsForValue().set(key(userId, sid), jti, Duration.ofSeconds(refreshExp));
   }
 
-  public boolean isCurrent(long userId, String sid, String jti) {
+  public boolean matchesCurrentJti(long userId, String sid, String jti) {
     return jti.equals(redis.opsForValue().get(key(userId, sid)));
   }
 

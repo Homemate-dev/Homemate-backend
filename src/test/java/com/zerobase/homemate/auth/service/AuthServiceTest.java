@@ -48,7 +48,7 @@ class AuthServiceTest {
     given(jwtService.getSubjectAsLong(rt)).willReturn(userId);
     given(jwtService.getSid(rt)).willReturn(sid);
     given(jwtService.getJti(rt)).willReturn(oldJti);
-    given(refreshTokenStore.isCurrent(userId, sid, oldJti)).willReturn(true);
+    given(refreshTokenStore.matchesCurrentJti(userId, sid, oldJti)).willReturn(true);
 
     var user = User.builder()
         .id(userId)
@@ -72,7 +72,7 @@ class AuthServiceTest {
 
     InOrder io = inOrder(jwtService, refreshTokenStore);
     io.verify(jwtService).parse(rt);
-    io.verify(refreshTokenStore).isCurrent(userId, sid, oldJti);
+    io.verify(refreshTokenStore).matchesCurrentJti(userId, sid, oldJti);
     io.verify(jwtService).createAccessToken(user, sid);
     io.verify(jwtService).createRefreshToken(userId, sid);
     io.verify(refreshTokenStore).rotate(userId, sid, oldJti, newJti);
@@ -94,7 +94,7 @@ class AuthServiceTest {
     given(jwtService.getSubjectAsLong(rt)).willReturn(userId);
     given(jwtService.getSid(rt)).willReturn(sid);
     given(jwtService.getJti(rt)).willReturn(jti);
-    given(refreshTokenStore.isCurrent(userId, sid, jti)).willReturn(false);
+    given(refreshTokenStore.matchesCurrentJti(userId, sid, jti)).willReturn(false);
 
     // when & then
     assertThatThrownBy(() -> sut.refresh(rt))
@@ -138,7 +138,7 @@ class AuthServiceTest {
     given(jwtService.getSubjectAsLong(rt)).willReturn(userId);
     given(jwtService.getSid(rt)).willReturn(sid);
     given(jwtService.getJti(rt)).willReturn(jti);
-    given(refreshTokenStore.isCurrent(userId, sid, jti)).willReturn(true);
+    given(refreshTokenStore.matchesCurrentJti(userId, sid, jti)).willReturn(true);
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
     given(jwtService.createAccessToken(user, sid)).willReturn("at");
     given(jwtService.createRefreshToken(userId, sid)).willReturn(newRT);
