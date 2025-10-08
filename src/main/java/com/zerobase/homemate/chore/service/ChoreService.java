@@ -1,7 +1,6 @@
 package com.zerobase.homemate.chore.service;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
@@ -36,9 +35,11 @@ public class ChoreService {
 
         if (request.getNotificationYn() && request.getNotificationTime() == null) {
             throw new CustomException(ErrorCode.VALIDATION_ERROR);
-        } else if (isInValidDateRange(request.getStartDate(),
+        } else if (isStartAfterEnd(request.getStartDate(),
             request.getEndDate())) {
             throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
+        } else if (!userRepository.existsById(userId)) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
 
         User userReference = userRepository.getReferenceById(userId);
@@ -71,8 +72,7 @@ public class ChoreService {
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
-        Chore chore =
-            choreRepository.getReferenceById(choreInstance.getChore().getId());
+        Chore chore = choreInstance.getChore();
 
         if (!chore.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
@@ -81,7 +81,7 @@ public class ChoreService {
         } else if (request.getNotificationYn()
             && request.getNotificationTime() == null) {
             throw new CustomException(ErrorCode.VALIDATION_ERROR);
-        } else if (isInValidDateRange(request.getStartDate(),
+        } else if (isStartAfterEnd(request.getStartDate(),
             request.getEndDate())) {
             throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
         }
@@ -105,7 +105,7 @@ public class ChoreService {
     private ChoreDto.Response updateChoreInstance(Chore chore,
         ChoreInstance choreInstance, ChoreDto.UpdateRequest request) {
 
-        if (request.getIsUpdateAll()) {
+        if (request.getApplyToAll()) {
             List<ChoreInstance> futureInstances = choreInstanceRepository
                 .findByChoreIdAndDueDateGreaterThanEqualAndChoreStatus(
                     chore.getId(),
@@ -114,10 +114,8 @@ public class ChoreService {
                 );
             futureInstances.forEach(instance ->
                 instance.setChoreStatus(ChoreStatus.CANCELLED));
-            choreInstanceRepository.saveAll(futureInstances);
         } else {
             choreInstance.setChoreStatus(ChoreStatus.CANCELLED);
-            choreInstanceRepository.save(choreInstance);
         }
 
         return createChores(chore.getUser().getId(),
@@ -156,16 +154,14 @@ public class ChoreService {
             }
         );
 
-        choreInstanceRepository.saveAll(futureInstances);
-
         chore.setTitle(request.getTitle());
         chore.setNotificationYn(request.getNotificationYn());
         chore.setSpace(request.getSpace());
-        Chore updatedChore = choreRepository.save(chore);
 
-        return ChoreDto.Response.fromEntity(updatedChore);
+        return ChoreDto.Response.fromEntity(chore);
     }
 
+    private boolean isStartAfterEnd(LocalDate startDate, LocalDate endDate) {
     @Transactional
     public ChoreInstanceDto.Response completeChore(Long userId,
         Long choreInstanceId) {
