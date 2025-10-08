@@ -168,8 +168,7 @@ public class ChoreService {
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
-        Chore chore =
-            choreRepository.getReferenceById(choreInstance.getChore().getId());
+        Chore chore = choreInstance.getChore();
 
         if (!chore.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
