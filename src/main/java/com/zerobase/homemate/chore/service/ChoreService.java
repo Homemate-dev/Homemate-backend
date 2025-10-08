@@ -184,7 +184,7 @@ public class ChoreService {
         return ChoreInstanceDto.Response.fromEntity(choreInstance);
     }
 
-    private boolean isInValidDateRange(LocalDate startDate, LocalDate endDate) {
+    private boolean isStartAfterEnd(LocalDate startDate, LocalDate endDate) {
         return startDate.isAfter(endDate);
     }
 }
