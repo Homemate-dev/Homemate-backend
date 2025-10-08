@@ -26,6 +26,7 @@ public class CategoryChore {
     @JoinColumn(name = "chore_id", nullable = false)
     private Chore chore;
 
+
     public static CategoryChore of(Category category, Chore chore) {
         return CategoryChore
                 .builder()

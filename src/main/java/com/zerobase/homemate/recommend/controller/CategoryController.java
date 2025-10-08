@@ -1,32 +1,34 @@
 package com.zerobase.homemate.recommend.controller;
 
+import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
-@RequestMapping("/reco/categories")
+@RequestMapping("/recommend/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 
     private final CategoryService categoryService;
 
     @GetMapping("/{categoryId}/chores")
-    public ResponseEntity<Map<String, Object>> getChoresByCategory(
+    public ResponseEntity<List<ChoreResponse>> getChoresByCategory(
             @PathVariable Long categoryId
     ) {
         List<ChoreResponse> responses = categoryService.getChoresByCategory(categoryId);
+        return ResponseEntity.ok(responses);
+    }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("data", responses);
-        result.put("error", null);
+    // 전체 카테고리 조회
+    @GetMapping
+    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
 
-        return ResponseEntity.ok(result);
+        List<CategoryResponse> responses = categoryService.getAllCategories();
+        return ResponseEntity.ok(responses);
     }
 }

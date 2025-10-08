@@ -23,7 +23,7 @@ public class CategoryServiceTest {
 
     @BeforeEach
     void setUp() {
-        categoryService.createDummyData();
+
     }
 
     @Test
@@ -47,6 +47,6 @@ public class CategoryServiceTest {
         CustomException exception = assertThrows(CustomException.class,
                 () -> categoryService.getChoresByCategory(invalidCategoryId));
 
-        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_CATEGORY);
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
     }
 }
