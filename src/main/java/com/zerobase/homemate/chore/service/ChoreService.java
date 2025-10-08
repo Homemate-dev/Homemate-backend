@@ -161,7 +161,6 @@ public class ChoreService {
         return ChoreDto.Response.fromEntity(chore);
     }
 
-    private boolean isStartAfterEnd(LocalDate startDate, LocalDate endDate) {
     @Transactional
     public ChoreInstanceDto.Response completeChore(Long userId,
         Long choreInstanceId) {
