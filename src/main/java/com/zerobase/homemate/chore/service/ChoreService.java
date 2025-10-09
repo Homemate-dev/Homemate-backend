@@ -191,11 +191,20 @@ public class ChoreService {
 
     public ChoreDto.Response getChore(Long userId, Long choreInstanceId) {
 
-        ChoreInstance choreInstance = choreInstanceRepository.getReferenceById(choreInstanceId);
+        ChoreInstance choreInstance =
+            choreInstanceRepository.findById(choreInstanceId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
         Chore chore = choreInstance.getChore();
 
         if (!chore.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        if (chore.getIsDeleted()) {
+            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        } else if (choreInstance.getChoreStatus() == ChoreStatus.CANCELLED ||
+        choreInstance.getChoreStatus() == ChoreStatus.DELETED) {
+            throw new CustomException(ErrorCode.CHORE_INSTANCE_ALREADY_DELETED);
         }
 
         return ChoreDto.Response.fromEntity(chore);
