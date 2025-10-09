@@ -164,7 +164,7 @@ public class ChoreService {
 
     @Transactional
     public ChoreInstanceDto.Response completeChore(Long userId,
-                                                   Long choreInstanceId) {
+        Long choreInstanceId) {
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
