@@ -1,12 +1,14 @@
 package com.zerobase.homemate.notification.service;
 
-import com.zerobase.homemate.entity.ChoreInstance;
-import com.zerobase.homemate.entity.ChoreNotification;
-import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.notification.dto.ChoreNotificationDto;
+import com.zerobase.homemate.notification.dto.NoticeDto;
 import com.zerobase.homemate.notification.dto.NotificationReadDto;
 import com.zerobase.homemate.repository.ChoreNotificationRepository;
+import com.zerobase.homemate.repository.NoticeReadRepository;
+import com.zerobase.homemate.repository.NoticeRepository;
+import com.zerobase.homemate.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +34,21 @@ import static org.mockito.Mockito.when;
 class NotificationServiceTest {
 
     private final LocalDateTime baseDateTime = LocalDateTime.now().withHour(12).withMinute(0).withSecond(0).withNano(0);
+
     @Mock
     private ChoreNotificationRepository choreNotificationRepository;
+    @Mock
+    private NoticeRepository noticeRepository;
+    @Mock
+    private NoticeReadRepository noticeReadRepository;
+    @Mock
+    private UserRepository userRepository;
     @InjectMocks
     private NotificationService notificationService;
+
     private List<ChoreNotification> choreNotifications;
+    private List<Notice> notices;
+    private List<NoticeRead> noticeReads;
 
     private static ChoreInstance buildChoreInstance(long id) {
         return ChoreInstance.builder().id(id).build();
@@ -48,13 +60,24 @@ class NotificationServiceTest {
         User user = User.builder().id(1L).build();
         User user2 = User.builder().id(2L).build();
 
-
         choreNotifications = List.of(
                 new ChoreNotification(1L, user, buildChoreInstance(1L), "화장실 청소", null, baseDateTime.minusDays(3), false, true, baseDateTime.minusDays(1).plusHours(1), null, null),
                 new ChoreNotification(2L, user, buildChoreInstance(2L), "재활용 쓰레기 버리기", null, baseDateTime.minusDays(2), false, true, baseDateTime.minusDays(1).plusHours(1), null, null),
                 new ChoreNotification(3L, user, buildChoreInstance(3L), "방 청소", null, baseDateTime.minusDays(1), true, false, null, null, null),
                 new ChoreNotification(4L, user, buildChoreInstance(4L), "재활용 쓰레기 버리기", null, baseDateTime.minusHours(1), false, false, null, null, null),
                 new ChoreNotification(5L, user2, buildChoreInstance(5L), "방 청소", null, baseDateTime.minusHours(1), false, false, null, null, null)
+        );
+
+        notices = List.of(
+                new Notice(1L, "공지 1", "첫번째 공지", baseDateTime.minusDays(2), null, null),
+                new Notice(2L, "공지 2", "두번째 공지", baseDateTime.minusDays(1), null, null),
+                new Notice(3L, "공지 3", "세번째 공지", baseDateTime, null, null)
+        );
+
+        noticeReads = List.of(
+                new NoticeRead(1L, notices.get(0), user, baseDateTime.minusDays(2).plusHours(3)),
+                new NoticeRead(2L, notices.get(1), user, baseDateTime.minusDays(1).plusHours(6)),
+                new NoticeRead(3L, notices.get(0), user2, baseDateTime.minusDays(1))
         );
     }
 
@@ -89,8 +112,7 @@ class NotificationServiceTest {
         Long userId = 1L;
         Long notificationId = 1L;
 
-        ChoreNotification notification = choreNotifications.stream().filter(e -> notificationId.equals(e.getId())).findFirst().get();
-        when(choreNotificationRepository.findById(notificationId)).thenReturn(Optional.of(notification));
+        when(choreNotificationRepository.findById(notificationId)).thenReturn(choreNotifications.stream().filter(e -> notificationId.equals(e.getId())).findFirst());
 
         // when
         NotificationReadDto result = notificationService.updateChoreNotificationToRead(userId, notificationId);
@@ -121,12 +143,98 @@ class NotificationServiceTest {
         Long userId = 999L;
         Long notificationId = 1L;
 
-        ChoreNotification notification = choreNotifications.stream().filter(e -> notificationId.equals(e.getId())).findFirst().get();
-        when(choreNotificationRepository.findById(notificationId)).thenReturn(Optional.of(notification));
+        when(choreNotificationRepository.findById(notificationId)).thenReturn(choreNotifications.stream().filter(e -> notificationId.equals(e.getId())).findFirst());
 
         // when && then
         assertThatThrownBy(() -> notificationService.updateChoreNotificationToRead(userId, notificationId))
                 .isInstanceOf(CustomException.class)
                 .hasMessage("해당 알림을 수정할 권한이 없습니다.");
+    }
+
+    @Test
+    void getNotices_Success() {
+        // given
+        Long userId = 1L;
+        int MAX_NOTIFICATION_SIZE = 30;
+
+        List<Notice> list = notices.stream()
+                .filter(e -> e.getScheduledAt().isBefore(baseDateTime)
+                )
+                .sorted(Comparator.comparing(Notice::getScheduledAt).reversed())
+                .limit(MAX_NOTIFICATION_SIZE)
+                .toList();
+        List<NoticeRead> readList = noticeReads.stream()
+                .filter(e -> userId.equals(e.getUser().getId()) && list.contains(e.getNotice()))
+                .toList();
+
+        when(noticeRepository.findByScheduledAtBefore(any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(list);
+        when(noticeReadRepository.findByUserIdAndNoticeIdIn(userId, list.stream().map(Notice::getId).toList()))
+                .thenReturn(readList);
+
+        // when
+        List<NoticeDto> result = notificationService.getNotices(userId);
+
+        // then
+        assertThat(result).hasSize(list.size());
+    }
+
+    @Test
+    void updateNoticeToRead_Success_WithNoticeReadExists() {
+        // given
+        Long userId = 1L;
+        Long notificationId = 1L;
+
+        Notice notice = notices.stream().filter(e -> notificationId.equals(e.getId())).findFirst().get();
+        when(noticeRepository.findById(notificationId)).thenReturn(Optional.of(notice));
+        User user = User.builder().id(1L).build();
+        when(userRepository.getReferenceById(userId)).thenReturn(user);
+        NoticeRead noticeRead = noticeReads.stream().filter(e -> notice.getId().equals(e.getNotice().getId()) && user.getId().equals(e.getUser().getId())).findFirst().get();
+        when(noticeReadRepository.findByNoticeAndUser(notice, user)).thenReturn(Optional.of(noticeRead));
+
+        // when
+        NotificationReadDto result = notificationService.updateNoticeToRead(userId, notificationId);
+
+        // then
+        assertThat(result.getId()).isEqualTo(notificationId);
+        assertThat(result.getIsRead()).isTrue();
+        assertThat(result.getReadAt()).isNotNull();
+    }
+
+    @Test
+    void updateNoticeToRead_Success_WithNoticeReadNotExists() {
+        // given
+        Long userId = 1L;
+        Long notificationId = 3L;
+
+        Notice notice = notices.stream().filter(e -> notificationId.equals(e.getId())).findFirst().get();
+        when(noticeRepository.findById(notificationId)).thenReturn(Optional.of(notice));
+        User user = User.builder().id(1L).build();
+        when(userRepository.getReferenceById(userId)).thenReturn(user);
+        when(noticeReadRepository.findByNoticeAndUser(notice, user)).thenReturn(Optional.empty());
+        NoticeRead noticeRead = new NoticeRead(4L, notice, user, baseDateTime);
+        when(noticeReadRepository.save(any(NoticeRead.class))).thenReturn(noticeRead);
+
+        // when
+        NotificationReadDto result = notificationService.updateNoticeToRead(userId, notificationId);
+
+        // then
+        assertThat(result.getId()).isEqualTo(notificationId);
+        assertThat(result.getIsRead()).isTrue();
+        assertThat(result.getReadAt()).isNotNull();
+    }
+
+    @Test
+    void updateNoticeToRead_ThrowsException_WhenChoreNotificationNotFound() {
+        // given
+        Long userId = 1L;
+        Long notificationId = 999L;
+
+        when(noticeRepository.findById(notificationId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> notificationService.updateNoticeToRead(userId, notificationId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(NOTIFICATION_NOT_FOUND.getMessage());
     }
 }
