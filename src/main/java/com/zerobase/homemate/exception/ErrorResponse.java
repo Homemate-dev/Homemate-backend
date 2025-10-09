@@ -52,4 +52,15 @@ public class ErrorResponse {
             .timestamp(LocalDateTime.now().toString())
             .build();
     }
+
+    public static ErrorResponse of(ErrorCode errorCode) {
+        return ErrorResponse.builder()
+            .httpStatus(errorCode.getHttpStatus().value())
+            .error(ErrorDetail.builder()
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .build())
+            .timestamp(LocalDateTime.now().toString())
+            .build();
+    }
 }

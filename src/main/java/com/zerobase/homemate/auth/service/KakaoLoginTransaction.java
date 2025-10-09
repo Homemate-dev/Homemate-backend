@@ -2,6 +2,7 @@ package com.zerobase.homemate.auth.service;
 
 import com.zerobase.homemate.auth.dto.SocialLoginDto;
 import com.zerobase.homemate.auth.kakao.KakaoDto.ProfileResponse;
+import com.zerobase.homemate.auth.token.RefreshTokenStore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.UserSocialAccount;
@@ -16,6 +17,7 @@ import com.zerobase.homemate.repository.UserSocialAccountRepository;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class KakaoLoginTransaction {
   private static final LocalTime DEFAULT_NOTIFICATION_TIME = LocalTime.of(9, 0);
 
   private final JwtService jwtService;
+  private final RefreshTokenStore refreshTokenStore;
   private final UserRepository userRepository;
   private final UserSocialAccountRepository socialAccountRepository;
   private final UserNotificationSettingRepository notificationSettingRepository;
@@ -92,11 +95,14 @@ public class KakaoLoginTransaction {
     }
 
     // 우리 서비스용 JWT 발급
+    final String sid = UUID.randomUUID().toString();
     final String at;
     final String rt;
     try {
-      at = jwtService.createAccessToken(user);
-      rt = jwtService.createRefreshToken(user.getId());
+      long userId = user.getId();
+      at = jwtService.createAccessToken(user, sid);
+      rt = jwtService.createRefreshToken(userId, sid);
+      refreshTokenStore.save(userId, sid, jwtService.getJti(rt));
     } catch (Exception e) {
       throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
