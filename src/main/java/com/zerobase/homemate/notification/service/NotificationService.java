@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -78,6 +79,11 @@ public class NotificationService {
 
         List<Notice> list = noticeRepository.findByScheduledAtBefore(LocalDateTime.now(), pageable);
 
+        // 빈 리스트인 경우 조기 반환
+        if (list.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         // 각 Notice에 해당하는 NoticeRead가 있는지 찾아서 매핑
         List<Long> noticeIds = list.stream().map(Notice::getId).toList();
         List<NoticeRead> noticeReads = noticeReadRepository.findByUserIdAndNoticeIdIn(userId, noticeIds);
@@ -96,7 +102,7 @@ public class NotificationService {
 
         User user = userRepository.getReferenceById(userId);
 
-        NoticeRead noticeRead = noticeReadRepository.findByNoticeAndUser(notice, user).orElseGet(
+        NoticeRead noticeRead = noticeReadRepository.findByUserIdAndNoticeId(user.getId(), notice.getId()).orElseGet(
                 () -> noticeReadRepository.save(NoticeRead.builder()
                         .notice(notice)
                         .user(user)

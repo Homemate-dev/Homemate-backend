@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface NoticeReadRepository extends JpaRepository<NoticeRead, Long> {
 
-    Optional<NoticeRead> findByNoticeAndUser(Notice notice, User user);
+    Optional<NoticeRead> findByUserIdAndNoticeId(Long user_id, Long notice_id);
 
     List<NoticeRead> findByUserIdAndNoticeIdIn(Long userId, Collection<Long> noticeIds);
 }

@@ -190,7 +190,7 @@ class NotificationServiceTest {
         User user = User.builder().id(1L).build();
         when(userRepository.getReferenceById(userId)).thenReturn(user);
         NoticeRead noticeRead = noticeReads.stream().filter(e -> notice.getId().equals(e.getNotice().getId()) && user.getId().equals(e.getUser().getId())).findFirst().get();
-        when(noticeReadRepository.findByNoticeAndUser(notice, user)).thenReturn(Optional.of(noticeRead));
+        when(noticeReadRepository.findByUserIdAndNoticeId(user.getId(), notice.getId())).thenReturn(Optional.of(noticeRead));
 
         // when
         NotificationReadDto result = notificationService.updateNoticeToRead(userId, notificationId);
@@ -211,7 +211,7 @@ class NotificationServiceTest {
         when(noticeRepository.findById(notificationId)).thenReturn(Optional.of(notice));
         User user = User.builder().id(1L).build();
         when(userRepository.getReferenceById(userId)).thenReturn(user);
-        when(noticeReadRepository.findByNoticeAndUser(notice, user)).thenReturn(Optional.empty());
+        when(noticeReadRepository.findByUserIdAndNoticeId(user.getId(), notice.getId())).thenReturn(Optional.empty());
         NoticeRead noticeRead = new NoticeRead(4L, notice, user, baseDateTime);
         when(noticeReadRepository.save(any(NoticeRead.class))).thenReturn(noticeRead);
 
