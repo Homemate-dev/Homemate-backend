@@ -21,6 +21,9 @@ public enum ErrorCode {
     TOKEN_NOT_FOUND("TOKEN_NOT_FOUND", "토큰을 찾을 수 없습니다.", HttpStatus.UNAUTHORIZED),
     INVALID_AUTH_CODE("INVALID_AUTH_CODE", "유효하지 않은 인가 코드입니다.", HttpStatus.UNAUTHORIZED),
     INVALID_PROVIDER_TOKEN("INVALID_PROVIDER_TOKEN", "유효하지 않은 소셜 제공자 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN("INVALID_TOKEN", "유효하지 않은 토큰입니다.",  HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN_TYPE_REFRESH("INVALID_TOKEN_TYPE_REFRESH", "리프레시 토큰이 아닙니다.", HttpStatus.UNAUTHORIZED),
+    REFRESH_TOKEN_REUSED("REFRESH_TOKEN_REUSED", "재사용된 리프레시 토큰입니다.", HttpStatus.UNAUTHORIZED),
 
     // 403 Forbidden
     FORBIDDEN("FORBIDDEN", "권한이 일치하지 않습니다.", HttpStatus.FORBIDDEN),
@@ -33,6 +36,7 @@ public enum ErrorCode {
 
     // 409 Conflict
     SOCIAL_LINK_CONFLICT("SOCIAL_LINK_CONFLICT", "이미 연결된 소셜 계정입니다.", HttpStatus.CONFLICT),
+    CONCURRENT_REFRESH("CONCURRENT_REFRESH", "동시에 토큰 갱신 요청이 감지되었습니다.", HttpStatus.CONFLICT),
     CHORE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "이미 삭제되었거나 취소한 집안일 입니다.", HttpStatus.CONFLICT),
 
     // 429 Too Many Requests
@@ -46,7 +50,8 @@ public enum ErrorCode {
     PROVIDER_RESPONSE_MALFORMED("PROVIDER_RESPONSE_MALFORMED", "소셜 제공자 응답 형식이 유효하지 않습니다.", HttpStatus.BAD_GATEWAY),
 
     // 503 Service Unavailable
-    PROVIDER_UNAVAILABLE("PROVIDER_UNAVAILABLE", "소셜 제공자가 응답하지 않습니다.", HttpStatus.SERVICE_UNAVAILABLE);
+    PROVIDER_UNAVAILABLE("PROVIDER_UNAVAILABLE", "소셜 제공자가 응답하지 않습니다.", HttpStatus.SERVICE_UNAVAILABLE),
+    REFRESH_STORE_UNAVAILABLE("REFRESH_STORE_UNAVAILABLE", "토큰 저장소에 연결할 수 없습니다.", HttpStatus.SERVICE_UNAVAILABLE);
 
     private final String code;
     private final String message;

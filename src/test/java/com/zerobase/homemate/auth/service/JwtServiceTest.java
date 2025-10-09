@@ -9,6 +9,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -29,8 +30,9 @@ class JwtServiceTest {
 
     // when
     Instant before = Instant.now();
-    String at = jwt.createAccessToken(user);
-    String rt = jwt.createRefreshToken(user.getId());
+    String sid = UUID.randomUUID().toString();
+    String at = jwt.createAccessToken(user, sid);
+    String rt = jwt.createRefreshToken(user.getId(), sid);
     Instant after = Instant.now();
 
     Instant expAt = jwt.getExpiry(at);

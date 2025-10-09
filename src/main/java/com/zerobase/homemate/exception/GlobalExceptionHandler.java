@@ -1,6 +1,7 @@
 package com.zerobase.homemate.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -42,5 +43,14 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.VALIDATION_ERROR, details);
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    // Redis 연결 실패
+    @ExceptionHandler(RedisConnectionFailureException.class)
+    public ResponseEntity<ErrorResponse> handleRedisException(RedisConnectionFailureException e) {
+        log.error("Redis 연결 실패: {}", e.getMessage(), e);
+
+        return ResponseEntity.status(ErrorCode.REFRESH_STORE_UNAVAILABLE.getHttpStatus())
+            .body(ErrorResponse.of(ErrorCode.REFRESH_STORE_UNAVAILABLE));
     }
 }
