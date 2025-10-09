@@ -1,6 +1,7 @@
 package com.zerobase.homemate.chore.service;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
@@ -163,7 +164,7 @@ public class ChoreService {
 
     @Transactional
     public ChoreInstanceDto.Response completeChore(Long userId,
-        Long choreInstanceId) {
+                                                   Long choreInstanceId) {
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
