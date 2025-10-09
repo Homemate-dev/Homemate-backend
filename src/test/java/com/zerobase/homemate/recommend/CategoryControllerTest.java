@@ -1,6 +1,7 @@
-package com.zerobase.homemate.recommend.controller;
+package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.recommend.controller.CategoryController;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryService;

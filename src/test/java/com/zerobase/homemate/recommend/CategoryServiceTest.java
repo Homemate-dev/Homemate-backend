@@ -1,4 +1,4 @@
-package com.zerobase.homemate.recommend.service;
+package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.entity.Category;
 import com.zerobase.homemate.entity.Chore;
@@ -6,6 +6,7 @@ import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
+import com.zerobase.homemate.recommend.service.CategoryService;
 import com.zerobase.homemate.repository.CategoryRepository;
 import com.zerobase.homemate.repository.ChoreRepository;
 import org.junit.jupiter.api.BeforeEach;
