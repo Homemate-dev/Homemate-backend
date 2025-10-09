@@ -1,6 +1,7 @@
 package com.zerobase.homemate.chore.service;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
@@ -159,6 +160,28 @@ public class ChoreService {
         chore.setSpace(request.getSpace());
 
         return ChoreDto.Response.fromEntity(chore);
+    }
+
+    @Transactional
+    public ChoreInstanceDto.Response completeChore(Long userId,
+        Long choreInstanceId) {
+        ChoreInstance choreInstance =
+            choreInstanceRepository.findById(choreInstanceId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
+        Chore chore = choreInstance.getChore();
+
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        switch (choreInstance.getChoreStatus()) {
+            case PENDING -> choreInstance.completeChore();
+            case COMPLETED -> choreInstance.cancelCompleteChore();
+            case CANCELLED, DELETED -> throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+            default -> throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        return ChoreInstanceDto.Response.fromEntity(choreInstance);
     }
 
     private boolean isStartAfterEnd(LocalDate startDate, LocalDate endDate) {
