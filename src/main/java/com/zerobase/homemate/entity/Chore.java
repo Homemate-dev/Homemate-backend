@@ -14,6 +14,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "chore")
@@ -76,4 +78,8 @@ public class Chore {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", updatable = false)
     private User user;
+
+    @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CategoryChore> categoryChores = new ArrayList<>();
+
 }

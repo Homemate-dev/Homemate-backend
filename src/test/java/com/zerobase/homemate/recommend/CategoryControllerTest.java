@@ -1,51 +1,71 @@
-package com.zerobase.homemate.recommend;
+package com.zerobase.homemate.recommend.controller;
 
-
+import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryService;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
-@SpringBootTest
-@Transactional
-@Rollback
+@WebMvcTest(CategoryController.class)
+@WithMockUser(username = "testUser")
 class CategoryControllerTest {
 
-
     @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
     private CategoryService categoryService;
 
-    @BeforeEach
-    void setUp() {
+    @Test
+    @DisplayName("카테고리 ID로 집안일 목록 조회 성공")
+    void getChoresByCategory_success() throws Exception {
+        // given
+        List<ChoreResponse> mockChores = List.of(
+                new ChoreResponse(1L, "거실 청소하기", RepeatType.NONE),
+                new ChoreResponse(2L, "욕실 청소하기", RepeatType.NONE)
+        );
+        Mockito.when(categoryService.getChoresByCategory(anyLong()))
+                .thenReturn(mockChores);
 
+        // when & then
+        mockMvc.perform(get("/recommend/categories/1/chores")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("거실 청소하기"))
+                .andExpect(jsonPath("$[1].title").value("욕실 청소하기"))
+                .andExpect(jsonPath("$[0].frequency").value("NONE"));
     }
 
     @Test
-    void testGetChoresByCategory() {
+    @DisplayName("전체 카테고리 조회 성공")
+    void getAllCategories_success() throws Exception {
         // given
-        Long categoryId = 1L; // DB에 넣어둔 category_id 값
+        List<CategoryResponse> mockCategories = List.of(
+                new CategoryResponse("청소"),
+                new CategoryResponse("요리")
+        );
+        Mockito.when(categoryService.getAllCategories())
+                .thenReturn(mockCategories);
 
-        // when
-        List<ChoreResponse> chores = categoryService.getChoresByCategory(categoryId);
-
-        // then
-        assertThat(chores).isNotNull();
-        assertThat(chores.size()).isLessThanOrEqualTo(4); // 페이지 사이즈 4개로 제한했으니까
-        chores.forEach(chore -> {
-            System.out.println("조회된 Chore: " + chore.title());
-        });
+        // when & then
+        mockMvc.perform(get("/recommend/categories")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("청소"))
+                .andExpect(jsonPath("$[1].name").value("요리"));
     }
-
-
-
-
 }

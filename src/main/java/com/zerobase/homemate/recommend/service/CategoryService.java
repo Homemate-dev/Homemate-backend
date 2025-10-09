@@ -24,8 +24,6 @@ public class CategoryService {
 
     private final ChoreRepository choreRepository;
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
-    private final CategoryChoreRepository categoryChoreRepository;
     private static final int DEFAULT_PAGE_SIZE = 4;
 
     public List<ChoreResponse> getChoresByCategory(Long categoryId) {
