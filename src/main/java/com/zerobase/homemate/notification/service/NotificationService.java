@@ -21,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.zerobase.homemate.exception.ErrorCode.FORBIDDEN;
 import static com.zerobase.homemate.exception.ErrorCode.NOTIFICATION_NOT_FOUND;
@@ -66,7 +69,7 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<NoticeDto> getNotices(Long userId) { // userId는 NoticeRead 추가 후 사용 예정
+    public List<NoticeDto> getNotices(Long userId) {
         Pageable pageable = PageRequest.of(
                 0,
                 MAX_NOTIFICATION_SIZE,
@@ -75,7 +78,15 @@ public class NotificationService {
 
         List<Notice> list = noticeRepository.findByScheduledAtBefore(LocalDateTime.now(), pageable);
 
-        return list.stream().map(NoticeDto::fromEntity).toList();
+        // 각 Notice에 해당하는 NoticeRead가 있는지 찾아서 매핑
+        List<Long> noticeIds = list.stream().map(Notice::getId).toList();
+        List<NoticeRead> noticeReads = noticeReadRepository.findByUserIdAndNoticeIdIn(userId, noticeIds);
+        Map<Long, NoticeRead> noticeReadMap = noticeReads.stream()
+                .collect(Collectors.toMap(e -> e.getNotice().getId(), Function.identity()));
+
+        return list.stream()
+                .map(e -> NoticeDto.fromEntity(e, noticeReadMap.get(e.getId())))
+                .toList();
     }
 
     @Transactional
