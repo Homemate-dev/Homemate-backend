@@ -13,6 +13,7 @@ import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
+import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -186,5 +187,31 @@ public class ChoreService {
 
     private boolean isStartAfterEnd(LocalDate startDate, LocalDate endDate) {
         return startDate.isAfter(endDate);
+    }
+
+    public ChoreDto.Response getChore(Long userId, Long choreInstanceId) {
+
+        ChoreInstance choreInstance = choreInstanceRepository.getReferenceById(choreInstanceId);
+        Chore chore = choreInstance.getChore();
+
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        return ChoreDto.Response.fromEntity(chore);
+    }
+
+    public List<ChoreInstanceDto.Response> getChoreInstancesByDate(Long userId,
+        LocalDate date) {
+
+        EnumSet<ChoreStatus> excludedStatuses =
+            EnumSet.of(ChoreStatus.CANCELLED, ChoreStatus.DELETED);
+
+        List<ChoreInstance> choreInstances =
+            choreInstanceRepository
+                .findAllByChore_User_IdAndDueDateAndChoreStatusNotInOrderByNotificationTimeAscIdAsc(
+                    userId, date, excludedStatuses);
+
+        return choreInstances.stream().map(ChoreInstanceDto.Response::fromEntity).toList();
     }
 }
