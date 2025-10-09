@@ -171,13 +171,13 @@ public class ChoreService {
 
         if (!chore.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
-        } else if (choreInstance.getChoreStatus() == ChoreStatus.PENDING) {
-            choreInstance.completeChore();
-        } else if (choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
-            choreInstance.cancelCompleteChore();
-        } else if (choreInstance.getChoreStatus() == ChoreStatus.CANCELLED
-            || choreInstance.getChoreStatus() == ChoreStatus.DELETED) {
-            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        }
+
+        switch (choreInstance.getChoreStatus()) {
+            case PENDING -> choreInstance.completeChore();
+            case COMPLETED -> choreInstance.cancelCompleteChore();
+            case CANCELLED, DELETED -> throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+            default -> throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
         return ChoreInstanceDto.Response.fromEntity(choreInstance);
