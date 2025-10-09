@@ -212,6 +212,10 @@ public class ChoreService {
                 .findAllByChore_User_IdAndDueDateAndChoreStatusNotInOrderByNotificationTimeAscIdAsc(
                     userId, date, excludedStatuses);
 
-        return choreInstances.stream().map(ChoreInstanceDto.Response::fromEntity).toList();
+        if (choreInstances.isEmpty()) {
+            return List.of();
+        } else {
+            return choreInstances.stream().map(ChoreInstanceDto.Response::fromEntity).toList();
+        }
     }
 }
