@@ -2,6 +2,7 @@ package com.zerobase.homemate.chore.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.chore.service.ChoreService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,17 @@ public class ChoreController {
 
         ChoreDto.Response response = choreService.updateChores(user.id(),
             choreInstanceId, request);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PatchMapping("/{choreInstanceId}")
+    public ResponseEntity<ChoreInstanceDto.Response> completeChore(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable Long choreInstanceId) {
+
+        ChoreInstanceDto.Response response =
+            choreService.completeChore(user.id(), choreInstanceId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
