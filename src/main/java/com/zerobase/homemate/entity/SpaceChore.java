@@ -34,9 +34,5 @@
         @Column(nullable = false)
         private Space space;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "chore_id")
-        private Chore chore;
-
 
     }
