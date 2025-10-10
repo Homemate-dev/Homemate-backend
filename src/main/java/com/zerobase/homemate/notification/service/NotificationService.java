@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -81,7 +80,7 @@ public class NotificationService {
 
         // 빈 리스트인 경우 조기 반환
         if (list.isEmpty()) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         // 각 Notice에 해당하는 NoticeRead가 있는지 찾아서 매핑
