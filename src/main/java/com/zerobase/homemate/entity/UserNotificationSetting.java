@@ -41,8 +41,8 @@ public class UserNotificationSetting {
   @Column(name = "master_enabled", nullable = false)
   private boolean masterEnabled;
 
-  @Column(name = "housework_enabled", nullable = false)
-  private boolean houseworkEnabled;
+  @Column(name = "chore_enabled", nullable = false)
+  private boolean choreEnabled;
 
   @Column(name = "notice_enabled", nullable = false)
   private boolean noticeEnabled;
@@ -59,7 +59,7 @@ public class UserNotificationSetting {
         .user(user)
         .firstSetupCompleted(false)
         .masterEnabled(true)
-        .houseworkEnabled(true)
+        .choreEnabled(true)
         .noticeEnabled(true)
         .notificationTime(defaultTime)
         .build();
