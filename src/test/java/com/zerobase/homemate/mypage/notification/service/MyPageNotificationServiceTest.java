@@ -36,7 +36,7 @@ class MyPageNotificationServiceTest {
         .user(User.builder().build())
         .firstSetupCompleted(false)
         .masterEnabled(true)
-        .houseworkEnabled(true)
+        .choreEnabled(true)
         .noticeEnabled(true)
         .notificationTime(LocalTime.of(9, 0))
         .build();

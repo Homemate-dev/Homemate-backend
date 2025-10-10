@@ -91,7 +91,7 @@ class KakaoLoginTransactionTest {
     assertThat(saved.getUser().getId()).isEqualTo(1L);
     assertThat(saved.isFirstSetupCompleted()).isFalse();
     assertThat(saved.isMasterEnabled()).isTrue();
-    assertThat(saved.isHouseworkEnabled()).isTrue();
+    assertThat(saved.isChoreEnabled()).isTrue();
     assertThat(saved.isNoticeEnabled()).isTrue();
     assertThat(saved.getNotificationTime()).isEqualTo(LocalTime.of(9, 0));
 

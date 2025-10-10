@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
 import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
+import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ class MyPageNotificationControllerTest {
   void getStatus_ok() throws Exception {
     // given
     long userId = 1L;
-    var resp = new FirstSetupStatusResponse(false, "09:00");
+    var resp = new FirstSetupStatusResponse(false, LocalTime.of(9, 0));
     given(myPageNotificationService.getFirstSetupStatus(userId)).willReturn(resp);
 
     UserPrincipal principal = new UserPrincipal(userId, "nick", "ROLE_USER");
