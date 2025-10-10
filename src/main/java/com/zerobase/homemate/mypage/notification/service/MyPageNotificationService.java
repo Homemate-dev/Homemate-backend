@@ -5,8 +5,6 @@ import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,8 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class MyPageNotificationService {
-  private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-
   private final UserNotificationSettingRepository userNotificationSettingRepository;
 
   @Transactional(readOnly = true)
@@ -25,10 +21,6 @@ public class MyPageNotificationService {
         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
 
     return new FirstSetupStatusResponse(
-        setting.isFirstSetupCompleted(), timeFormat(setting.getNotificationTime()));
-  }
-
-  private String timeFormat(LocalTime time) {
-    return time.truncatedTo(ChronoUnit.MINUTES).format(formatter);
+        setting.isFirstSetupCompleted(), setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES));
   }
 }
