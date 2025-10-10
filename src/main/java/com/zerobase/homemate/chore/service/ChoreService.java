@@ -13,6 +13,7 @@ import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
+import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -186,5 +187,44 @@ public class ChoreService {
 
     private boolean isStartAfterEnd(LocalDate startDate, LocalDate endDate) {
         return startDate.isAfter(endDate);
+    }
+
+    public ChoreDto.Response getChore(Long userId, Long choreInstanceId) {
+
+        ChoreInstance choreInstance =
+            choreInstanceRepository.findById(choreInstanceId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
+        Chore chore = choreInstance.getChore();
+
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        if (chore.getIsDeleted()) {
+            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        } else if (choreInstance.getChoreStatus() == ChoreStatus.CANCELLED ||
+        choreInstance.getChoreStatus() == ChoreStatus.DELETED) {
+            throw new CustomException(ErrorCode.CHORE_INSTANCE_ALREADY_DELETED);
+        }
+
+        return ChoreDto.Response.fromEntity(chore);
+    }
+
+    public List<ChoreInstanceDto.Response> getChoreInstancesByDate(Long userId,
+        LocalDate date) {
+
+        EnumSet<ChoreStatus> includedStatuses =
+            EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
+
+        List<ChoreInstance> choreInstances =
+            choreInstanceRepository
+                .findAllByChore_User_IdAndDueDateAndChoreStatusInOrderByNotificationTimeAscIdAsc(
+                    userId, date, includedStatuses);
+
+        if (choreInstances.isEmpty()) {
+            return List.of();
+        } else {
+            return choreInstances.stream().map(ChoreInstanceDto.Response::fromEntity).toList();
+        }
     }
 }
