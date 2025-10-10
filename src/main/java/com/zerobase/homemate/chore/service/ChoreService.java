@@ -227,4 +227,24 @@ public class ChoreService {
             return choreInstances.stream().map(ChoreInstanceDto.Response::fromEntity).toList();
         }
     }
+
+    public List<LocalDate> getCalendarMarkedDates(Long userId,
+        LocalDate startDate, LocalDate endDate) {
+
+        if (isStartAfterEnd(startDate, endDate)) {
+            throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
+        }
+
+        EnumSet<ChoreStatus> includedStatuses =
+            EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
+
+        List<LocalDate> dates = choreInstanceRepository.findDatesHavingInstances(userId,
+            startDate, endDate, includedStatuses);
+
+        if (dates.isEmpty()) {
+            return List.of();
+        } else {
+            return dates;
+        }
+    }
 }

@@ -75,4 +75,16 @@ public class ChoreController {
 
         return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
+
+    @GetMapping("/calendar")
+    public ResponseEntity<List<LocalDate>> getCalendarMarks(
+        @AuthenticationPrincipal UserPrincipal user,
+        @RequestParam LocalDate startDate,
+        @RequestParam LocalDate endDate) {
+
+        List<LocalDate> dates =
+            choreService.getCalendarMarkedDates(user.id(), startDate, endDate);
+
+        return ResponseEntity.status(HttpStatus.OK).body(dates);
+    }
 }
