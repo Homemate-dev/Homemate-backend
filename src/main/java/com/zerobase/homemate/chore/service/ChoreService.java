@@ -213,13 +213,13 @@ public class ChoreService {
     public List<ChoreInstanceDto.Response> getChoreInstancesByDate(Long userId,
         LocalDate date) {
 
-        EnumSet<ChoreStatus> excludedStatuses =
-            EnumSet.of(ChoreStatus.CANCELLED, ChoreStatus.DELETED);
+        EnumSet<ChoreStatus> includedStatuses =
+            EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
 
         List<ChoreInstance> choreInstances =
             choreInstanceRepository
-                .findAllByChore_User_IdAndDueDateAndChoreStatusNotInOrderByNotificationTimeAscIdAsc(
-                    userId, date, excludedStatuses);
+                .findAllByChore_User_IdAndDueDateAndChoreStatusInOrderByNotificationTimeAscIdAsc(
+                    userId, date, includedStatuses);
 
         if (choreInstances.isEmpty()) {
             return List.of();

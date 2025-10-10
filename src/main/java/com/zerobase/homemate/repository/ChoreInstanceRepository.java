@@ -19,6 +19,6 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
     );
 
     @EntityGraph(attributePaths = "chore")
-    List<ChoreInstance> findAllByChore_User_IdAndDueDateAndChoreStatusNotInOrderByNotificationTimeAscIdAsc(
-        Long userId, LocalDate date, Collection<ChoreStatus> excluded);
+    List<ChoreInstance> findAllByChore_User_IdAndDueDateAndChoreStatusInOrderByNotificationTimeAscIdAsc(
+        Long userId, LocalDate date, Collection<ChoreStatus> included);
 }
