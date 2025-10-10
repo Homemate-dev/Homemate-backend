@@ -11,10 +11,8 @@ import io.jsonwebtoken.Claims;
 import java.time.Duration;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -67,8 +65,6 @@ public class AuthService {
 
     Instant exp = claims.getExpiration().toInstant();
     Duration ttl = Duration.between(Instant.now(), exp);
-
-    log.debug("Logout userId={}, sid={}, jti={}, ttl={}", userId, sid, jti, ttl.toSeconds());
 
     // AT 블록 / RT 삭제
     accessTokenBlocklist.block(jti, ttl);
