@@ -22,8 +22,11 @@ public enum ErrorCode {
     INVALID_AUTH_CODE("INVALID_AUTH_CODE", "유효하지 않은 인가 코드입니다.", HttpStatus.UNAUTHORIZED),
     INVALID_PROVIDER_TOKEN("INVALID_PROVIDER_TOKEN", "유효하지 않은 소셜 제공자 토큰입니다.", HttpStatus.UNAUTHORIZED),
     INVALID_TOKEN("INVALID_TOKEN", "유효하지 않은 토큰입니다.",  HttpStatus.UNAUTHORIZED),
-    INVALID_TOKEN_TYPE_REFRESH("INVALID_TOKEN_TYPE_REFRESH", "리프레시 토큰이 아닙니다.", HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN_TYPE("INVALID_TOKEN_TYPE", "올바르지 않은 토큰 유형입니다.", HttpStatus.UNAUTHORIZED),
     REFRESH_TOKEN_REUSED("REFRESH_TOKEN_REUSED", "재사용된 리프레시 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    MISSING_AUTHORIZATION_HEADER("MISSING_AUTHORIZATION_HEADER", "인증 헤더가 없습니다.",  HttpStatus.UNAUTHORIZED),
+    AUTHORIZATION_MUST_BE_BEARER("AUTHORIZATION_MUST_BE_BEARER", "인증 헤더는 'Bearer <token>' 형식이어야 합니다.", HttpStatus.UNAUTHORIZED),
+    EMPTY_BEARER_TOKEN("EMPTY_BEARER_TOKEN", "Bearer 토큰 값이 비어 있습니다.", HttpStatus.UNAUTHORIZED),
 
     // 403 Forbidden
     FORBIDDEN("FORBIDDEN", "권한이 일치하지 않습니다.", HttpStatus.FORBIDDEN),
