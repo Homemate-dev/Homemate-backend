@@ -87,4 +87,15 @@ public class ChoreController {
 
         return ResponseEntity.status(HttpStatus.OK).body(dates);
     }
+
+    @DeleteMapping("/{choreInstanceId}")
+    public ResponseEntity<Void> deleteChore(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable Long choreInstanceId,
+        @RequestParam boolean applyToAll) {
+
+        choreService.deleteChore(user.id(), choreInstanceId, applyToAll);
+
+        return ResponseEntity.noContent().build();
+    }
 }
