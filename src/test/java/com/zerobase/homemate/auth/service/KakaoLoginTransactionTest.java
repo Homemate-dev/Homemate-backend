@@ -2,6 +2,7 @@ package com.zerobase.homemate.auth.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -11,32 +12,39 @@ import static org.mockito.Mockito.never;
 
 import com.zerobase.homemate.auth.dto.SocialLoginDto;
 import com.zerobase.homemate.auth.kakao.KakaoDto;
+import com.zerobase.homemate.auth.token.RefreshTokenStore;
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.UserSocialAccount;
 import com.zerobase.homemate.entity.enums.SocialProvider;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.repository.UserSocialAccountRepository;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class KakaoLoginTransactionTest {
   private final JwtService jwtService = mock(JwtService.class);
+  private final RefreshTokenStore refreshTokenStore = mock(RefreshTokenStore.class);
   private final UserRepository userRepository = mock(UserRepository.class);
   private final UserSocialAccountRepository socialRepo = mock(UserSocialAccountRepository.class);
+  private final UserNotificationSettingRepository notificationSettingRepo = mock(UserNotificationSettingRepository.class);
 
   private final KakaoLoginTransaction sut =
-      new KakaoLoginTransaction(jwtService, userRepository, socialRepo);
+      new KakaoLoginTransaction(jwtService, userRepository, socialRepo, notificationSettingRepo);
 
   @Test
-  @DisplayName("신규 가입: User + SocialAccount 생성, 토큰 발급, isNewUser=true")
+  @DisplayName("신규 가입: User + SocialAccount + NotificationSetting 생성, 토큰 발급, isNewUser=true")
   void upsert_new_user_then_issue_tokens() {
     // given
     var profile = profile("12345", "Nick", "https://img");
@@ -50,12 +58,15 @@ class KakaoLoginTransactionTest {
           ReflectionTestUtils.setField(u, "id", 1L);
           return u;
         });
+
+    given(notificationSettingRepo.save(any(UserNotificationSetting.class)))
+        .willAnswer(inv -> inv.getArgument(0));
     given(socialRepo.save(any(UserSocialAccount.class)))
         .willAnswer(inv -> inv.getArgument(0));
 
     // JWT 발급
-    given(jwtService.createAccessToken(any(User.class))).willReturn("ourAT");
-    given(jwtService.createRefreshToken(eq(1L))).willReturn("ourRT");
+    given(jwtService.createAccessToken(any(User.class), anyString())).willReturn("ourAT");
+    given(jwtService.createRefreshToken(eq(1L), anyString())).willReturn("ourRT");
     given(jwtService.getAccessTokenValiditySeconds()).willReturn(900L);
     given(jwtService.getRefreshTokenValiditySeconds()).willReturn(1_209_600L);
 
@@ -73,11 +84,25 @@ class KakaoLoginTransactionTest {
     assertThat(res.user().profileImageUrl()).isEqualTo("https://img");
     assertThat(res.user().isNewUser()).isTrue();
 
+    ArgumentCaptor<UserNotificationSetting> cap = ArgumentCaptor.forClass(UserNotificationSetting.class);
+    then(notificationSettingRepo).should().save(cap.capture());
+
+    UserNotificationSetting saved = cap.getValue();
+    assertThat(saved.getUser().getId()).isEqualTo(1L);
+    assertThat(saved.isFirstSetupCompleted()).isFalse();
+    assertThat(saved.isMasterEnabled()).isTrue();
+    assertThat(saved.isChoreEnabled()).isTrue();
+    assertThat(saved.isNoticeEnabled()).isTrue();
+    assertThat(saved.getNotificationTime()).isEqualTo(LocalTime.of(9, 0));
+
+    ArgumentCaptor<String> sidForAT = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<String> sidForRT = ArgumentCaptor.forClass(String.class);
+
     then(userRepository).should().save(any(User.class));
     then(socialRepo).should().saveAndFlush(any(UserSocialAccount.class));
     then(jwtService).should().createAccessToken(
-        argThat(u -> u.getId() == 1L && "Nick".equals(u.getProfileName())));
-    then(jwtService).should().createRefreshToken(eq(1L));
+        argThat(u -> u.getId() == 1L && "Nick".equals(u.getProfileName())), sidForAT.capture());
+    then(jwtService).should().createRefreshToken(eq(1L), sidForRT.capture());
   }
 
   @Test
@@ -93,8 +118,8 @@ class KakaoLoginTransactionTest {
     var profile = profile("12345", "NewNick", "https://new");
 
     // JWT
-    given(jwtService.createAccessToken(existingUser)).willReturn("at");
-    given(jwtService.createRefreshToken(10L)).willReturn("rt");
+    given(jwtService.createAccessToken(eq(existingUser), anyString())).willReturn("at");
+    given(jwtService.createRefreshToken(eq(10L), anyString())).willReturn("rt");
     given(jwtService.getAccessTokenValiditySeconds()).willReturn(900L);
     given(jwtService.getRefreshTokenValiditySeconds()).willReturn(1_209_600L);
 

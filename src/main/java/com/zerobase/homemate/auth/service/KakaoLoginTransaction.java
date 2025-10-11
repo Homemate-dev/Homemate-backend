@@ -2,17 +2,22 @@ package com.zerobase.homemate.auth.service;
 
 import com.zerobase.homemate.auth.dto.SocialLoginDto;
 import com.zerobase.homemate.auth.kakao.KakaoDto.ProfileResponse;
+import com.zerobase.homemate.auth.token.RefreshTokenStore;
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.UserSocialAccount;
 import com.zerobase.homemate.entity.enums.SocialProvider;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.repository.UserSocialAccountRepository;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -21,9 +26,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class KakaoLoginTransaction {
+  private static final LocalTime DEFAULT_NOTIFICATION_TIME = LocalTime.of(9, 0);
+
   private final JwtService jwtService;
+  private final RefreshTokenStore refreshTokenStore;
   private final UserRepository userRepository;
   private final UserSocialAccountRepository socialAccountRepository;
+  private final UserNotificationSettingRepository notificationSettingRepository;
 
   @Transactional
   public SocialLoginDto.LoginResponse upsertAndIssue(ProfileResponse profile) {
@@ -51,8 +60,14 @@ public class KakaoLoginTransaction {
 
       // 유저 정보 최신화
       user.loginAndProfileUpdate(nickname, profileImage, now);
+
+      // 기존 유저인데 알림 설정이 없는 경우가 있을 수 있으니 보정(개발/테스트 계정, 에러 발생 등)
+      if (!notificationSettingRepository.existsByUserId(user.getId())) {
+        notificationSettingRepository.save(
+            UserNotificationSetting.createDefault(user, DEFAULT_NOTIFICATION_TIME));
+      }
     } else {
-      // 신규 유저 + 소셜 계정 생성
+      // 신규 유저 + 유저 알림 설정(Default) + 소셜 링크 생성
       user = User.builder()
           .profileName(nickname)
           .profileImageUrl(profileImage)
@@ -61,6 +76,9 @@ public class KakaoLoginTransaction {
           .lastLoginAt(now)
           .build();
       userRepository.save(user);
+
+      notificationSettingRepository.save(
+          UserNotificationSetting.createDefault(user, DEFAULT_NOTIFICATION_TIME));
 
       UserSocialAccount link = UserSocialAccount.builder()
           .user(user)
@@ -77,11 +95,14 @@ public class KakaoLoginTransaction {
     }
 
     // 우리 서비스용 JWT 발급
+    final String sid = UUID.randomUUID().toString();
     final String at;
     final String rt;
     try {
-      at = jwtService.createAccessToken(user);
-      rt = jwtService.createRefreshToken(user.getId());
+      long userId = user.getId();
+      at = jwtService.createAccessToken(user, sid);
+      rt = jwtService.createRefreshToken(userId, sid);
+      refreshTokenStore.save(userId, sid, jwtService.getJti(rt));
     } catch (Exception e) {
       throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
