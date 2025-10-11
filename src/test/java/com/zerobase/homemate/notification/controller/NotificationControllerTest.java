@@ -188,7 +188,7 @@ class NotificationControllerTest {
             Long userId = 1L;
             Long notificationId = 1L;
             NotificationReadDto notificationReadDto = new NotificationReadDto(notificationId, true, LocalDateTime.now().withNano(0));
-            when(notificationService.updateNoticeToRead(userId, notificationId)).thenReturn(notificationReadDto);
+            when(notificationService.markNoticeAsRead(userId, notificationId)).thenReturn(notificationReadDto);
 
             // when & then
             mockMvc.perform(patch(PATH, notificationId).with(csrf()))
@@ -204,7 +204,7 @@ class NotificationControllerTest {
             // given
             Long userId = 1L;
             Long notificationId = 999L;
-            when(notificationService.updateNoticeToRead(userId, notificationId))
+            when(notificationService.markNoticeAsRead(userId, notificationId))
                     .thenThrow(new CustomException(NOTIFICATION_NOT_FOUND));
 
             // when & then

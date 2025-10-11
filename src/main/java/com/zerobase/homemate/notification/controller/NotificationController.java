@@ -60,7 +60,7 @@ public class NotificationController {
     ) {
         Long userId = userPrincipal.id();
 
-        NotificationReadDto result = notificationService.updateNoticeToRead(userId, notificationId);
+        NotificationReadDto result = notificationService.markNoticeAsRead(userId, notificationId);
 
         return ResponseEntity.ok(result);
     }

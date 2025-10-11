@@ -95,7 +95,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public NotificationReadDto updateNoticeToRead(Long userId, Long notificationId) {
+    public NotificationReadDto markNoticeAsRead(Long userId, Long notificationId) {
         Notice notice = noticeRepository.findById(notificationId)
                 .orElseThrow(() -> new CustomException(NOTIFICATION_NOT_FOUND));
 

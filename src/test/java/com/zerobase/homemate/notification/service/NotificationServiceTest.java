@@ -180,7 +180,7 @@ class NotificationServiceTest {
     }
 
     @Test
-    void updateNoticeToRead_Success_WithNoticeReadExists() {
+    void markNoticeToRead_Success_WithNoticeReadExists() {
         // given
         Long userId = 1L;
         Long notificationId = 1L;
@@ -193,7 +193,7 @@ class NotificationServiceTest {
         when(noticeReadRepository.findByUserIdAndNoticeId(user.getId(), notice.getId())).thenReturn(Optional.of(noticeRead));
 
         // when
-        NotificationReadDto result = notificationService.updateNoticeToRead(userId, notificationId);
+        NotificationReadDto result = notificationService.markNoticeAsRead(userId, notificationId);
 
         // then
         assertThat(result.getId()).isEqualTo(notificationId);
@@ -202,7 +202,7 @@ class NotificationServiceTest {
     }
 
     @Test
-    void updateNoticeToRead_Success_WithNoticeReadNotExists() {
+    void markNoticeToRead_Success_WithNoticeReadNotExists() {
         // given
         Long userId = 1L;
         Long notificationId = 3L;
@@ -216,7 +216,7 @@ class NotificationServiceTest {
         when(noticeReadRepository.save(any(NoticeRead.class))).thenReturn(noticeRead);
 
         // when
-        NotificationReadDto result = notificationService.updateNoticeToRead(userId, notificationId);
+        NotificationReadDto result = notificationService.markNoticeAsRead(userId, notificationId);
 
         // then
         assertThat(result.getId()).isEqualTo(notificationId);
@@ -225,7 +225,7 @@ class NotificationServiceTest {
     }
 
     @Test
-    void updateNoticeToRead_ThrowsException_WhenChoreNotificationNotFound() {
+    void markNoticeAsRead_ThrowsException_WhenChoreNotificationNotFound() {
         // given
         Long userId = 1L;
         Long notificationId = 999L;
@@ -233,7 +233,7 @@ class NotificationServiceTest {
         when(noticeRepository.findById(notificationId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> notificationService.updateNoticeToRead(userId, notificationId))
+        assertThatThrownBy(() -> notificationService.markNoticeAsRead(userId, notificationId))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(NOTIFICATION_NOT_FOUND.getMessage());
     }
