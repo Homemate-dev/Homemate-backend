@@ -1,6 +1,8 @@
 package com.zerobase.homemate.config;
 
 import com.zerobase.homemate.auth.security.JwtAuthenticationFilter;
+import com.zerobase.homemate.auth.security.RestAccessDeniedHandler;
+import com.zerobase.homemate.auth.security.RestAuthenticationEntryPoint;
 import com.zerobase.homemate.auth.service.JwtService;
 import com.zerobase.homemate.auth.token.AccessTokenBlocklist;
 import com.zerobase.homemate.repository.UserRepository;
@@ -23,6 +25,9 @@ public class SecurityConfig {
   private final AccessTokenBlocklist accessTokenBlocklist;
   private final UserRepository userRepository;
 
+  private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+  private final RestAccessDeniedHandler restAccessDeniedHandler;
+
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     JwtAuthenticationFilter jwtFilter =
@@ -36,7 +41,10 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
             .anyRequest().authenticated()
         )
-//        .exceptionHandling() 예외처리 추가 예정
+        .exceptionHandling(ex -> ex
+            .authenticationEntryPoint(restAuthenticationEntryPoint) // 401
+            .accessDeniedHandler(restAccessDeniedHandler) // 403
+        )
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
         .logout(AbstractHttpConfigurer::disable);
 
