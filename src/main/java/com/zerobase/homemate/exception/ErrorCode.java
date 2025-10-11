@@ -14,6 +14,7 @@ public enum ErrorCode {
     TOO_MANY_INSTANCES("TOO_MANY_INSTANCES", "생성할 인스턴스가 너무 많습니다. (최대 1000개)", HttpStatus.BAD_REQUEST),
     INVALID_NOTIFICATION_TIME("INVALID_NOTIFICATION_TIME", "알림 시간 형식이 올바르지 않습니다. (HH:mm)", HttpStatus.BAD_REQUEST),
     PKCE_VERIFIER_REQUIRED("PKCE_VERIFIER_REQUIRED", "code_verifier 값이 필요합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST_BODY("INVALID_REQUEST_BODY", "요청 본문(JSON)이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
 
     // 401 Unauthorized
     UNAUTHORIZED("UNAUTHORIZED", "인증된 토큰 값이 아닙니다.", HttpStatus.UNAUTHORIZED),

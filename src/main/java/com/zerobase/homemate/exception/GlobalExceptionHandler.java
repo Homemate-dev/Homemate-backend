@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -52,5 +53,14 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ErrorCode.REFRESH_STORE_UNAVAILABLE.getHttpStatus())
             .body(ErrorResponse.of(ErrorCode.REFRESH_STORE_UNAVAILABLE));
+    }
+
+    // 요청 본문(JSON) 파싱 실패
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.error("본문 파싱 실패: {}", e.getMessage(), e);
+
+        return ResponseEntity.status(ErrorCode.INVALID_REQUEST_BODY.getHttpStatus())
+            .body(ErrorResponse.of(ErrorCode.INVALID_REQUEST_BODY));
     }
 }
