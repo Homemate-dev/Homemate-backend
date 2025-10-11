@@ -41,7 +41,7 @@ class KakaoLoginTransactionTest {
   private final UserNotificationSettingRepository notificationSettingRepo = mock(UserNotificationSettingRepository.class);
 
   private final KakaoLoginTransaction sut =
-      new KakaoLoginTransaction(jwtService, userRepository, socialRepo, notificationSettingRepo);
+      new KakaoLoginTransaction(jwtService, refreshTokenStore, userRepository, socialRepo, notificationSettingRepo);
 
   @Test
   @DisplayName("신규 가입: User + SocialAccount + NotificationSetting 생성, 토큰 발급, isNewUser=true")
