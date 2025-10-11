@@ -22,8 +22,11 @@ public enum ErrorCode {
     INVALID_AUTH_CODE("INVALID_AUTH_CODE", "유효하지 않은 인가 코드입니다.", HttpStatus.UNAUTHORIZED),
     INVALID_PROVIDER_TOKEN("INVALID_PROVIDER_TOKEN", "유효하지 않은 소셜 제공자 토큰입니다.", HttpStatus.UNAUTHORIZED),
     INVALID_TOKEN("INVALID_TOKEN", "유효하지 않은 토큰입니다.",  HttpStatus.UNAUTHORIZED),
-    INVALID_TOKEN_TYPE_REFRESH("INVALID_TOKEN_TYPE_REFRESH", "리프레시 토큰이 아닙니다.", HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN_TYPE("INVALID_TOKEN_TYPE", "올바르지 않은 토큰 유형입니다.", HttpStatus.UNAUTHORIZED),
     REFRESH_TOKEN_REUSED("REFRESH_TOKEN_REUSED", "재사용된 리프레시 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    MISSING_AUTHORIZATION_HEADER("MISSING_AUTHORIZATION_HEADER", "인증 헤더가 없습니다.",  HttpStatus.UNAUTHORIZED),
+    AUTHORIZATION_MUST_BE_BEARER("AUTHORIZATION_MUST_BE_BEARER", "인증 헤더는 'Bearer <token>' 형식이어야 합니다.", HttpStatus.UNAUTHORIZED),
+    EMPTY_BEARER_TOKEN("EMPTY_BEARER_TOKEN", "Bearer 토큰 값이 비어 있습니다.", HttpStatus.UNAUTHORIZED),
 
     // 403 Forbidden
     FORBIDDEN("FORBIDDEN", "권한이 일치하지 않습니다.", HttpStatus.FORBIDDEN),
@@ -34,11 +37,13 @@ public enum ErrorCode {
     CHORE_INSTANCE_NOT_FOUND("CHORE_INSTANCE_NOT_FOUND", "해당 날짜의 집안일을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     USER_NOT_FOUND("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     CATEGORY_NOT_FOUND("CATEGORY_NOT_FOUND", "해당 카테고리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    USER_NOTIFICATION_SETTING_NOT_FOUND("USER_NOTIFICATION_SETTING_NOT_FOUND", "사용자 알림 설정을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
 
     // 409 Conflict
     SOCIAL_LINK_CONFLICT("SOCIAL_LINK_CONFLICT", "이미 연결된 소셜 계정입니다.", HttpStatus.CONFLICT),
     CONCURRENT_REFRESH("CONCURRENT_REFRESH", "동시에 토큰 갱신 요청이 감지되었습니다.", HttpStatus.CONFLICT),
     CHORE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "이미 삭제되었거나 취소한 집안일 입니다.", HttpStatus.CONFLICT),
+    CHORE_INSTANCE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "해당 날짜의 집안일은 이미 취소되었거나 삭제되었습니다.", HttpStatus.CONFLICT),
 
     // 429 Too Many Requests
     PROVIDER_RATE_LIMIT("PROVIDER_RATE_LIMIT", "소셜 제공자 호출 한도 초과입니다.", HttpStatus.TOO_MANY_REQUESTS),

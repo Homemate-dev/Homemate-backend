@@ -3,8 +3,11 @@ package com.zerobase.homemate.chore.controller;
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto.Response;
 import com.zerobase.homemate.chore.service.ChoreService;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,5 +53,38 @@ public class ChoreController {
             choreService.completeChore(user.id(), choreInstanceId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{choreInstanceId}")
+    public ResponseEntity<ChoreDto.Response> getChore(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable Long choreInstanceId) {
+
+        ChoreDto.Response response = choreService.getChore(user.id(), choreInstanceId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/instances")
+    public ResponseEntity<List<Response>> getChoreInstancesByDate(
+        @AuthenticationPrincipal UserPrincipal user,
+        @RequestParam LocalDate date) {
+
+        List<ChoreInstanceDto.Response> responses =
+            choreService.getChoreInstancesByDate(user.id(), date);
+
+        return ResponseEntity.status(HttpStatus.OK).body(responses);
+    }
+
+    @GetMapping("/calendar")
+    public ResponseEntity<List<LocalDate>> getCalendarMarks(
+        @AuthenticationPrincipal UserPrincipal user,
+        @RequestParam LocalDate startDate,
+        @RequestParam LocalDate endDate) {
+
+        List<LocalDate> dates =
+            choreService.getCalendarMarkedDates(user.id(), startDate, endDate);
+
+        return ResponseEntity.status(HttpStatus.OK).body(dates);
     }
 }

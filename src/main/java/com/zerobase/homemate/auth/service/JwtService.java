@@ -1,7 +1,10 @@
 package com.zerobase.homemate.auth.service;
 
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.Jwts;
 import com.zerobase.homemate.entity.User;
@@ -56,30 +59,44 @@ public class JwtService {
         .compact();
   }
 
-  public Jws<Claims> parse(String token) {
-    return Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+  // 만료/서명 검증 후 Claims 반환
+  public Claims parseOrThrow(String token) {
+    try {
+      return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+    } catch (ExpiredJwtException e) {
+      throw new CustomException(ErrorCode.TOKEN_EXPIRED);
+    } catch (JwtException e) {
+      throw new CustomException(ErrorCode.INVALID_TOKEN);
+    }
+  }
+
+  // 토큰 유형까지 검증하고 Claims 반환
+  public Claims parseAndValidateType(String token, String type) {
+    Claims claims = parseOrThrow(token);
+    if (!type.equals(claims.get("type", String.class))) {
+      throw new CustomException(ErrorCode.INVALID_TOKEN_TYPE);
+    }
+    return claims;
   }
 
   public Long getSubjectAsLong(String token) {
-    String sub = parse(token).getPayload().getSubject();
-    return Long.parseLong(sub);
+    return Long.parseLong(parseOrThrow(token).getSubject());
   }
 
-  // 만료시각 반환
   public Instant getExpiry(String token) {
-    return parse(token).getPayload().getExpiration().toInstant();
+    return parseOrThrow(token).getExpiration().toInstant();
   }
 
   public String getType(String token) {
-    return parse(token).getPayload().get("type", String.class);
+    return parseOrThrow(token).get("type", String.class);
   }
 
   public String getSid(String token) {
-    return parse(token).getPayload().get("sid", String.class);
+    return parseOrThrow(token).get("sid", String.class);
   }
 
   public String getJti(String token) {
-    return parse(token).getPayload().getId();
+    return parseOrThrow(token).getId();
   }
 
   public long getAccessTokenValiditySeconds() {

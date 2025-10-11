@@ -1,13 +1,15 @@
 package com.zerobase.homemate.auth.service;
 
 import com.zerobase.homemate.auth.dto.AuthTokenResponseDto;
+import com.zerobase.homemate.auth.token.AccessTokenBlocklist;
 import com.zerobase.homemate.auth.token.RefreshTokenStore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.UserRepository;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Claims;
+import java.time.Duration;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,27 +17,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
   private final JwtService jwtService;
+  private final AccessTokenBlocklist accessTokenBlocklist;
   private final RefreshTokenStore refreshTokenStore;
   private final UserRepository userRepository;
 
   public AuthTokenResponseDto refresh(String refreshToken) {
-    // 토큰 유효성 검증(서명/만료)
-    try {
-      jwtService.parse(refreshToken);
-    } catch (ExpiredJwtException e) {
-      throw new CustomException(ErrorCode.TOKEN_EXPIRED);
-    } catch (JwtException e) {
-      throw new CustomException(ErrorCode.INVALID_TOKEN);
-    }
+    Claims claims = jwtService.parseAndValidateType(refreshToken, "RT");
 
-    // 토큰 타입 검증
-    if(!"RT".equals(jwtService.getType(refreshToken))) {
-      throw new CustomException(ErrorCode.INVALID_TOKEN_TYPE_REFRESH);
-    }
-
-    long userId = jwtService.getSubjectAsLong(refreshToken);
-    String sid = jwtService.getSid(refreshToken);
-    String jti = jwtService.getJti(refreshToken);
+    long userId = Long.parseLong(claims.getSubject());
+    String sid = claims.get("sid", String.class);
+    String jti = claims.getId();
 
     // 재사용 탐지 : 현재 저장된 jti와 일치해야 함
     if (!refreshTokenStore.matchesCurrentJti(userId, sid, jti)) {
@@ -63,5 +54,20 @@ public class AuthService {
         jwtService.getAccessTokenValiditySeconds(),
         newRefreshToken,
         jwtService.getRefreshTokenValiditySeconds());
+  }
+
+  public void logout(String accessToken) {
+    Claims claims = jwtService.parseAndValidateType(accessToken, "AT");
+
+    long userId = Long.parseLong(claims.getSubject());
+    String sid = claims.get("sid", String.class);
+    String jti = claims.getId();
+
+    Instant exp = claims.getExpiration().toInstant();
+    Duration ttl = Duration.between(Instant.now(), exp);
+
+    // AT 블록 / RT 삭제
+    accessTokenBlocklist.block(jti, ttl);
+    refreshTokenStore.delete(userId, sid);
   }
 }
