@@ -49,6 +49,7 @@ class NotificationServiceTest {
     private List<ChoreNotification> choreNotifications;
     private List<Notice> notices;
     private List<NoticeRead> noticeReads;
+    private List<User> users;
 
     private static ChoreInstance buildChoreInstance(long id) {
         return ChoreInstance.builder().id(id).build();
@@ -59,6 +60,7 @@ class NotificationServiceTest {
         // 테스트 데이터 생성
         User user = User.builder().id(1L).build();
         User user2 = User.builder().id(2L).build();
+        users = List.of(user, user2);
 
         choreNotifications = List.of(
                 new ChoreNotification(1L, user, buildChoreInstance(1L), "화장실 청소", null, baseDateTime.minusDays(3), false, true, baseDateTime.minusDays(1).plusHours(1), null, null),
@@ -85,6 +87,7 @@ class NotificationServiceTest {
     void getChoreNotifications_Success() {
         // given
         Long userId = 1L;
+        User user = users.stream().filter(u -> userId.equals(u.getId())).findFirst().get();
         int MAX_NOTIFICATION_SIZE = 30;
 
         List<ChoreNotification> list = choreNotifications.stream()
@@ -96,7 +99,8 @@ class NotificationServiceTest {
                 .limit(MAX_NOTIFICATION_SIZE)
                 .toList();
 
-        when(choreNotificationRepository.findByUserIdAndIsCancelledFalseAndScheduledAtBefore(eq(userId), any(LocalDateTime.class), any(Pageable.class)))
+        when(userRepository.getReferenceById(userId)).thenReturn(user);
+        when(choreNotificationRepository.findByUserAndIsCancelledFalseAndScheduledAtBefore(eq(user), any(LocalDateTime.class), any(Pageable.class)))
                 .thenReturn(list);
 
         // when
@@ -155,6 +159,7 @@ class NotificationServiceTest {
     void getNotices_Success() {
         // given
         Long userId = 1L;
+        User user = users.stream().filter(u -> userId.equals(u.getId())).findFirst().get();
         int MAX_NOTIFICATION_SIZE = 30;
 
         List<Notice> list = notices.stream()
@@ -169,7 +174,8 @@ class NotificationServiceTest {
 
         when(noticeRepository.findByScheduledAtBefore(any(LocalDateTime.class), any(Pageable.class)))
                 .thenReturn(list);
-        when(noticeReadRepository.findByUserIdAndNoticeIdIn(userId, list.stream().map(Notice::getId).toList()))
+        when(userRepository.getReferenceById(userId)).thenReturn(user);
+        when(noticeReadRepository.findByUserAndNoticeIn(user, list))
                 .thenReturn(readList);
 
         // when
@@ -183,14 +189,14 @@ class NotificationServiceTest {
     void markNoticeToRead_Success_WithNoticeReadExists() {
         // given
         Long userId = 1L;
+        User user = users.stream().filter(u -> userId.equals(u.getId())).findFirst().get();
         Long notificationId = 1L;
 
         Notice notice = notices.stream().filter(e -> notificationId.equals(e.getId())).findFirst().get();
         when(noticeRepository.findById(notificationId)).thenReturn(Optional.of(notice));
-        User user = User.builder().id(1L).build();
         when(userRepository.getReferenceById(userId)).thenReturn(user);
         NoticeRead noticeRead = noticeReads.stream().filter(e -> notice.getId().equals(e.getNotice().getId()) && user.getId().equals(e.getUser().getId())).findFirst().get();
-        when(noticeReadRepository.findByUserIdAndNoticeId(user.getId(), notice.getId())).thenReturn(Optional.of(noticeRead));
+        when(noticeReadRepository.findByUserAndNotice(user, notice)).thenReturn(Optional.of(noticeRead));
 
         // when
         NotificationReadDto result = notificationService.markNoticeAsRead(userId, notificationId);
@@ -205,13 +211,13 @@ class NotificationServiceTest {
     void markNoticeToRead_Success_WithNoticeReadNotExists() {
         // given
         Long userId = 1L;
+        User user = users.stream().filter(u -> userId.equals(u.getId())).findFirst().get();
         Long notificationId = 3L;
 
         Notice notice = notices.stream().filter(e -> notificationId.equals(e.getId())).findFirst().get();
         when(noticeRepository.findById(notificationId)).thenReturn(Optional.of(notice));
-        User user = User.builder().id(1L).build();
         when(userRepository.getReferenceById(userId)).thenReturn(user);
-        when(noticeReadRepository.findByUserIdAndNoticeId(user.getId(), notice.getId())).thenReturn(Optional.empty());
+        when(noticeReadRepository.findByUserAndNotice(user, notice)).thenReturn(Optional.empty());
         NoticeRead noticeRead = new NoticeRead(4L, notice, user, baseDateTime);
         when(noticeReadRepository.save(any(NoticeRead.class))).thenReturn(noticeRead);
 

@@ -45,8 +45,10 @@ public class NotificationService {
                 MAX_NOTIFICATION_SIZE,
                 Sort.by(Sort.Order.desc("scheduledAt"))
         );
-        List<ChoreNotification> list = choreNotificationRepository.findByUserIdAndIsCancelledFalseAndScheduledAtBefore(
-                userId,
+
+        User user = userRepository.getReferenceById(userId);
+        List<ChoreNotification> list = choreNotificationRepository.findByUserAndIsCancelledFalseAndScheduledAtBefore(
+                user,
                 LocalDateTime.now(),
                 pageable
         );
@@ -76,20 +78,20 @@ public class NotificationService {
                 Sort.by(Sort.Order.desc("scheduledAt"))
         );
 
-        List<Notice> list = noticeRepository.findByScheduledAtBefore(LocalDateTime.now(), pageable);
+        List<Notice> notices = noticeRepository.findByScheduledAtBefore(LocalDateTime.now(), pageable);
 
         // 빈 리스트인 경우 조기 반환
-        if (list.isEmpty()) {
+        if (notices.isEmpty()) {
             return List.of();
         }
 
         // 각 Notice에 해당하는 NoticeRead가 있는지 찾아서 매핑
-        List<Long> noticeIds = list.stream().map(Notice::getId).toList();
-        List<NoticeRead> noticeReads = noticeReadRepository.findByUserIdAndNoticeIdIn(userId, noticeIds);
+        User user = userRepository.getReferenceById(userId);
+        List<NoticeRead> noticeReads = noticeReadRepository.findByUserAndNoticeIn(user, notices);
         Map<Long, NoticeRead> noticeReadMap = noticeReads.stream()
                 .collect(Collectors.toMap(e -> e.getNotice().getId(), Function.identity()));
 
-        return list.stream()
+        return notices.stream()
                 .map(e -> NoticeDto.fromEntity(e, noticeReadMap.get(e.getId())))
                 .toList();
     }
@@ -101,7 +103,7 @@ public class NotificationService {
 
         User user = userRepository.getReferenceById(userId);
 
-        NoticeRead noticeRead = noticeReadRepository.findByUserIdAndNoticeId(user.getId(), notice.getId()).orElseGet(
+        NoticeRead noticeRead = noticeReadRepository.findByUserAndNotice(user, notice).orElseGet(
                 () -> noticeReadRepository.save(NoticeRead.builder()
                         .notice(notice)
                         .user(user)
