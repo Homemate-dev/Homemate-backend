@@ -45,7 +45,7 @@ class MyPageNotificationControllerTest {
             .with(SecurityMockMvcRequestPostProcessors.authentication(auth)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.firstSetupCompleted").value(false))
-        .andExpect(jsonPath("$.defaultTime").value("09:00"));
+        .andExpect(jsonPath("$.notificationTime").value("09:00"));
 
     then(myPageNotificationService).should().getFirstSetupStatus(userId);
     then(myPageNotificationService).shouldHaveNoMoreInteractions();

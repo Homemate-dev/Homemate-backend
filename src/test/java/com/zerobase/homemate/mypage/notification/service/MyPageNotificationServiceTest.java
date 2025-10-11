@@ -47,7 +47,7 @@ class MyPageNotificationServiceTest {
 
     // then
     assertThat(res.firstSetupCompleted()).isFalse();
-    assertThat(res.defaultTime()).isEqualTo("09:00");
+    assertThat(res.notificationTime()).isEqualTo("09:00");
     then(settingsRepo).should().findByUserId(userId);
     then(settingsRepo).shouldHaveNoMoreInteractions();
   }
