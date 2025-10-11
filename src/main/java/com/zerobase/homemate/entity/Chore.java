@@ -1,6 +1,7 @@
 package com.zerobase.homemate.entity;
 
 import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.entity.enums.Space;
 import jakarta.persistence.*;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
@@ -43,10 +44,6 @@ public class Chore {
     @Setter
     private LocalTime notificationTime;
 
-    @Column(name = "space", length = 10)
-    @Setter
-    private String space;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "repeat_type", nullable = false)
     private RepeatType repeatType;
@@ -78,6 +75,12 @@ public class Chore {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", updatable = false)
     private User user;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Space space;
+
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

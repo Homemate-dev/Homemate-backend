@@ -63,8 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getRequestURI();
     if (path.equals("/auth/logout")) return false;
-
-    // 필터 스킵
+    
     return path.startsWith("/auth/") || path.startsWith("/policies/");
   }
 }

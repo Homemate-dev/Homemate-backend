@@ -36,6 +36,8 @@ public enum ErrorCode {
     CHORE_NOT_FOUND("CHORE_NOT_FOUND", "해당 집안일을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     CHORE_INSTANCE_NOT_FOUND("CHORE_INSTANCE_NOT_FOUND", "해당 날짜의 집안일을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     USER_NOT_FOUND("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    SPACE_NOT_FOUND("SPACE_NOT_FOUND", "공간 카테고리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
     USER_NOTIFICATION_SETTING_NOT_FOUND("USER_NOTIFICATION_SETTING_NOT_FOUND", "사용자 알림 설정을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
 
     // 409 Conflict
