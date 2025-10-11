@@ -9,7 +9,7 @@ public class FirstSetupStatusDto {
   public record FirstSetupStatusResponse(
       boolean firstSetupCompleted,
       @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-      LocalTime defaultTime
+      LocalTime notificationTime
   ) {}
 
   public record FirstSetupRequest (
