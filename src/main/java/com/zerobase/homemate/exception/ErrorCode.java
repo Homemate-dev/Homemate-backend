@@ -43,7 +43,7 @@ public enum ErrorCode {
     // 409 Conflict
     SOCIAL_LINK_CONFLICT("SOCIAL_LINK_CONFLICT", "이미 연결된 소셜 계정입니다.", HttpStatus.CONFLICT),
     CONCURRENT_REFRESH("CONCURRENT_REFRESH", "동시에 토큰 갱신 요청이 감지되었습니다.", HttpStatus.CONFLICT),
-    CHORE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "이미 삭제되었거나 취소한 집안일 입니다.", HttpStatus.CONFLICT),
+    CHORE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "이미 삭제된 집안일 입니다.", HttpStatus.CONFLICT),
     CHORE_INSTANCE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "해당 날짜의 집안일은 이미 취소되었거나 삭제되었습니다.", HttpStatus.CONFLICT),
 
     // 429 Too Many Requests
