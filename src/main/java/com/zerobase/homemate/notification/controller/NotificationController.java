@@ -52,4 +52,16 @@ public class NotificationController {
 
         return ResponseEntity.ok(result);
     }
+
+    @PatchMapping("/notices/{notificationId}")
+    public ResponseEntity<NotificationReadDto> readNoticeNotification(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long notificationId
+    ) {
+        Long userId = userPrincipal.id();
+
+        NotificationReadDto result = notificationService.markNoticeAsRead(userId, notificationId);
+
+        return ResponseEntity.ok(result);
+    }
 }

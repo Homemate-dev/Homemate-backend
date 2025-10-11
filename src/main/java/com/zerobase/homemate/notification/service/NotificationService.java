@@ -2,12 +2,16 @@ package com.zerobase.homemate.notification.service;
 
 import com.zerobase.homemate.entity.ChoreNotification;
 import com.zerobase.homemate.entity.Notice;
+import com.zerobase.homemate.entity.NoticeRead;
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.notification.dto.ChoreNotificationDto;
 import com.zerobase.homemate.notification.dto.NoticeDto;
 import com.zerobase.homemate.notification.dto.NotificationReadDto;
 import com.zerobase.homemate.repository.ChoreNotificationRepository;
+import com.zerobase.homemate.repository.NoticeReadRepository;
 import com.zerobase.homemate.repository.NoticeRepository;
+import com.zerobase.homemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.zerobase.homemate.exception.ErrorCode.FORBIDDEN;
 import static com.zerobase.homemate.exception.ErrorCode.NOTIFICATION_NOT_FOUND;
@@ -25,10 +32,11 @@ import static com.zerobase.homemate.exception.ErrorCode.NOTIFICATION_NOT_FOUND;
 @RequiredArgsConstructor
 public class NotificationService {
 
+    private static final int MAX_NOTIFICATION_SIZE = 30;
+    private final UserRepository userRepository;
     private final ChoreNotificationRepository choreNotificationRepository;
     private final NoticeRepository noticeRepository;
-
-    private static final int MAX_NOTIFICATION_SIZE = 30;
+    private final NoticeReadRepository noticeReadRepository;
 
     @Transactional(readOnly = true)
     public List<ChoreNotificationDto> getChoreNotifications(Long userId) {
@@ -37,8 +45,10 @@ public class NotificationService {
                 MAX_NOTIFICATION_SIZE,
                 Sort.by(Sort.Order.desc("scheduledAt"))
         );
-        List<ChoreNotification> list = choreNotificationRepository.findByUserIdAndIsCancelledFalseAndScheduledAtBefore(
-                userId,
+
+        User user = userRepository.getReferenceById(userId);
+        List<ChoreNotification> list = choreNotificationRepository.findByUserAndIsCancelledFalseAndScheduledAtBefore(
+                user,
                 LocalDateTime.now(),
                 pageable
         );
@@ -61,15 +71,45 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<NoticeDto> getNotices(Long userId) { // userId는 NoticeRead 추가 후 사용 예정
+    public List<NoticeDto> getNotices(Long userId) {
         Pageable pageable = PageRequest.of(
                 0,
                 MAX_NOTIFICATION_SIZE,
                 Sort.by(Sort.Order.desc("scheduledAt"))
         );
 
-        List<Notice> list = noticeRepository.findByScheduledAtBefore(LocalDateTime.now(), pageable);
+        List<Notice> notices = noticeRepository.findByScheduledAtBefore(LocalDateTime.now(), pageable);
 
-        return list.stream().map(NoticeDto::fromEntity).toList();
+        // 빈 리스트인 경우 조기 반환
+        if (notices.isEmpty()) {
+            return List.of();
+        }
+
+        // 각 Notice에 해당하는 NoticeRead가 있는지 찾아서 매핑
+        User user = userRepository.getReferenceById(userId);
+        List<NoticeRead> noticeReads = noticeReadRepository.findByUserAndNoticeIn(user, notices);
+        Map<Long, NoticeRead> noticeReadMap = noticeReads.stream()
+                .collect(Collectors.toMap(e -> e.getNotice().getId(), Function.identity()));
+
+        return notices.stream()
+                .map(e -> NoticeDto.fromEntity(e, noticeReadMap.get(e.getId())))
+                .toList();
+    }
+
+    @Transactional
+    public NotificationReadDto markNoticeAsRead(Long userId, Long notificationId) {
+        Notice notice = noticeRepository.findById(notificationId)
+                .orElseThrow(() -> new CustomException(NOTIFICATION_NOT_FOUND));
+
+        User user = userRepository.getReferenceById(userId);
+
+        NoticeRead noticeRead = noticeReadRepository.findByUserAndNotice(user, notice).orElseGet(
+                () -> noticeReadRepository.save(NoticeRead.builder()
+                        .notice(notice)
+                        .user(user)
+                        .build())
+        );
+
+        return NotificationReadDto.fromNotice(notice, noticeRead);
     }
 }
