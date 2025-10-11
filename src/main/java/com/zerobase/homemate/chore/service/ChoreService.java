@@ -47,6 +47,7 @@ public class ChoreService {
         User userReference = userRepository.getReferenceById(userId);
 
         Chore chore = Chore.builder()
+            .user(userReference)
             .title(request.getTitle())
             .notificationYn(request.getNotificationYn())
             .notificationTime(request.getNotificationTime())
@@ -56,7 +57,6 @@ public class ChoreService {
             .startDate(request.getStartDate())
             .endDate(request.getEndDate())
             .isDeleted(false)
-            .user(userReference)
             .build();
 
         Chore savedChore = choreRepository.save(chore);
