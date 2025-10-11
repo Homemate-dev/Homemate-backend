@@ -43,11 +43,9 @@ public class ChoreInstance {
     @Enumerated(EnumType.STRING)
     @Column(name = "chore_status", nullable = false)
     @Builder.Default
-    @Setter
     private ChoreStatus choreStatus = ChoreStatus.PENDING;
 
     @Column(name = "completed_at")
-    @Setter
     private LocalDateTime completedAt;
 
     @CreatedDate
@@ -59,12 +57,15 @@ public class ChoreInstance {
     private LocalDateTime updatedAt;
 
     @Column(name = "deleted_at")
-    @Setter
     private LocalDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chore_id", updatable = false)
     private Chore chore;
+
+    public void cancelChore() {
+        this.choreStatus = ChoreStatus.CANCELLED;
+    }
 
     public void completeChore() {
         this.choreStatus = ChoreStatus.COMPLETED;
@@ -74,5 +75,13 @@ public class ChoreInstance {
     public void cancelCompleteChore() {
         this.choreStatus = ChoreStatus.PENDING;
         this.completedAt = null;
+    }
+
+    public void softDelete() {
+        if (this.choreStatus == ChoreStatus.PENDING ||
+            this.choreStatus == ChoreStatus.COMPLETED) {
+            this.choreStatus = ChoreStatus.DELETED;
+            this.deletedAt = LocalDateTime.now();
+        }
     }
 }
