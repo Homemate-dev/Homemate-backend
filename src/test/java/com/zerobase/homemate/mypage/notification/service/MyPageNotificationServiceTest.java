@@ -10,6 +10,7 @@ import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -64,6 +65,29 @@ class MyPageNotificationServiceTest {
         .isInstanceOf(CustomException.class)
         .extracting("errorCode")
         .isEqualTo(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND);
+
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림 시간 조회 성공")
+  void getTime_ok() {
+    long userId = 10L;
+    var entity = UserNotificationSetting.builder()
+        .user(User.builder().id(userId).build())
+        .firstSetupCompleted(true)
+        .masterEnabled(true).choreEnabled(true).noticeEnabled(true)
+        .notificationTime(LocalTime.of(18, 0))
+        .updatedAt(LocalDateTime.now())
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(entity));
+
+    var res = sut.getNotificationTime(userId);
+
+    assertThat(res.notificationTime()).isEqualTo(LocalTime.of(18, 0));
+    assertThat(res.updatedAt()).isNotNull();
 
     then(settingsRepo).should().findByUserId(userId);
     then(settingsRepo).shouldHaveNoMoreInteractions();

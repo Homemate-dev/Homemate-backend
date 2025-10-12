@@ -8,7 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
+import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
 import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +50,27 @@ class MyPageNotificationControllerTest {
         .andExpect(jsonPath("$.defaultTime").value("09:00"));
 
     then(myPageNotificationService).should().getFirstSetupStatus(userId);
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("GET 알림 시간 조회 성공")
+  void getTime_ok() throws Exception {
+    long userId = 1L;
+    var resp = new NotiTimeResponse(LocalTime.of(18,0), LocalDateTime.now());
+
+    given(myPageNotificationService.getNotificationTime(userId)).willReturn(resp);
+
+    Authentication auth = new UsernamePasswordAuthenticationToken(
+        new UserPrincipal(userId, "nick", "ROLE_USER"), null, List.of());
+
+    mockMvc.perform(get("/users/me/notification-settings/time")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.notificationTime").value("18:00"))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should().getNotificationTime(userId);
     then(myPageNotificationService).shouldHaveNoMoreInteractions();
   }
 }
