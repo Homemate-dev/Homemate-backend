@@ -2,6 +2,7 @@ package com.zerobase.homemate.mypage.notification.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
+import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
 import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,5 +20,10 @@ public class MyPageNotificationController {
   @GetMapping("/first-setup-status")
   public ResponseEntity<FirstSetupStatusResponse> getStatus(@AuthenticationPrincipal UserPrincipal user) {
     return ResponseEntity.ok(myPageNotificationService.getFirstSetupStatus(user.id()));
+  }
+
+  @GetMapping("/time")
+  public ResponseEntity<NotiTimeResponse> getTime(@AuthenticationPrincipal UserPrincipal user) {
+    return ResponseEntity.ok(myPageNotificationService.getNotificationTime(user.id()));
   }
 }
