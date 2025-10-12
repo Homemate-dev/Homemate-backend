@@ -94,6 +94,7 @@ class MyPageNotificationServiceTest {
     assertThat(res.firstSetupCompleted()).isTrue();
     assertThat(res.notificationTime()).isEqualTo(LocalTime.of(18,0));
     then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().saveAndFlush(settings);
     then(settingsRepo).shouldHaveNoMoreInteractions();
   }
 
