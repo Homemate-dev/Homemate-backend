@@ -37,6 +37,7 @@ public class MyPageNotificationService {
     }
 
     setting.completeFirstSetup(time);
+    userNotificationSettingRepository.saveAndFlush(setting);
 
     return FirstSetupResponse.from(setting);
   }
