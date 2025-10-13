@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,6 +16,7 @@ import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupResponse;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
+import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.MasterToggleResponse;
 import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
 import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
 import java.time.LocalDateTime;
@@ -136,6 +138,40 @@ class MyPageNotificationControllerTest {
         .andExpect(jsonPath("$.updatedAt").exists());
 
     then(myPageNotificationService).should().getNotificationTime(userId);
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림(전체) ON")
+  void toggleMaster_on() throws Exception {
+    // given
+    long userId = 1L;
+    var resp = new MasterToggleResponse(
+        10L, true, true, true,
+        LocalDateTime.of(2025, 9, 19, 7, 10, 0)
+    );
+    given(myPageNotificationService.toggleMaster(userId, true))
+        .willReturn(resp);
+
+    var principal = new UserPrincipal(userId, "nick", "ROLE_USER");
+    var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+    // when & then
+    mockMvc.perform(
+            patch("/users/me/notification-settings/master")
+                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"enabled\": true}")
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(10))
+        .andExpect(jsonPath("$.masterEnabled").value(true))
+        .andExpect(jsonPath("$.choreEnabled").value(true))
+        .andExpect(jsonPath("$.noticeEnabled").value(true))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should().toggleMaster(userId, true);
     then(myPageNotificationService).shouldHaveNoMoreInteractions();
   }
 }

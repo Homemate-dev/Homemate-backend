@@ -2,6 +2,7 @@ package com.zerobase.homemate.mypage.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -138,6 +139,45 @@ class MyPageNotificationServiceTest {
     assertThat(res.updatedAt()).isNotNull();
 
     then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림(전체) ON")
+  void toggleMaster_on() {
+    // given
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().id(userId).build())
+        .firstSetupCompleted(false)
+        .masterEnabled(false)
+        .choreEnabled(false)
+        .noticeEnabled(false)
+        .notificationTime(LocalTime.of(9, 0))
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+    given(settingsRepo.saveAndFlush(any(UserNotificationSetting.class)))
+        .willAnswer(invocation -> {
+          var ent = invocation.getArgument(0, UserNotificationSetting.class);
+          org.springframework.test.util.ReflectionTestUtils.setField(ent, "id", 10L);
+          return ent;
+        });
+
+    // when
+    var res = sut.toggleMaster(userId, true);
+
+    // then
+    assertThat(settings.isMasterEnabled()).isTrue();
+    assertThat(settings.isChoreEnabled()).isTrue();
+    assertThat(settings.isNoticeEnabled()).isTrue();
+
+    assertThat(res.masterEnabled()).isTrue();
+    assertThat(res.choreEnabled()).isTrue();
+    assertThat(res.noticeEnabled()).isTrue();
+
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().saveAndFlush(settings);
     then(settingsRepo).shouldHaveNoMoreInteractions();
   }
 }
