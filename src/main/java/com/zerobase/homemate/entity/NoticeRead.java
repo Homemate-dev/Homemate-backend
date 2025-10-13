@@ -6,39 +6,37 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notices")
+@Table(
+        name = "notice_reads",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"notice_id", "user_id"})
+        }
+)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-public class Notice {
+public class NoticeRead {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "title", nullable = false)
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notice_id", nullable = false)
+    private Notice notice;
 
-    @Column(name = "message", columnDefinition = "TEXT")
-    private String message;
-
-    @Column(name = "scheduled_at", nullable = false)
-    private LocalDateTime scheduledAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @CreatedDate
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(name = "read_at")
+    private LocalDateTime readAt;
 }

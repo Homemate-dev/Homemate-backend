@@ -39,9 +39,9 @@ class JwtServiceTest {
     Instant expRt = jwt.getExpiry(rt);
 
     // then
-    Jws<Claims> parsed = jwt.parse(at);
-    assertThat(parsed.getBody().getSubject()).isEqualTo("1");
-    assertThat(parsed.getBody().get("nickname")).isEqualTo("test");
+    Claims parsed = jwt.parseOrThrow(at);
+    assertThat(parsed.getSubject()).isEqualTo("1");
+    assertThat(parsed.get("nickname")).isEqualTo("test");
     assertThat(expAt).isAfterOrEqualTo(before.truncatedTo(ChronoUnit.SECONDS).plusSeconds(accessExp));
     assertThat(expAt).isBeforeOrEqualTo(after.truncatedTo(ChronoUnit.SECONDS).plusSeconds(accessExp));
 

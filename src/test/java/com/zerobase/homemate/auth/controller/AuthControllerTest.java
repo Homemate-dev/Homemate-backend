@@ -3,6 +3,7 @@ package com.zerobase.homemate.auth.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -14,23 +15,22 @@ import com.zerobase.homemate.auth.dto.SocialLoginDto;
 import com.zerobase.homemate.auth.service.AuthService;
 import com.zerobase.homemate.auth.service.JwtService;
 import com.zerobase.homemate.auth.service.KakaoLoginService;
-import com.zerobase.homemate.config.SecurityConfig;
 import com.zerobase.homemate.entity.enums.SocialProvider;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
-import com.zerobase.homemate.exception.GlobalExceptionHandler;
 import com.zerobase.homemate.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = AuthController.class)
-@Import({GlobalExceptionHandler.class, SecurityConfig.class})
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
   @Autowired
   MockMvc mockMvc;
@@ -109,7 +109,7 @@ class AuthControllerTest {
     // when & then
     mockMvc.perform(post("/auth/refresh")
             // 규약: Bearer 없음, RT 그대로 전송
-            .header("Authorization", rt))
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + rt))
         .andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.tokenType").value("Bearer"))
@@ -117,5 +117,17 @@ class AuthControllerTest {
         .andExpect(jsonPath("$.accessTokenExpiresIn").value(900))
         .andExpect(jsonPath("$.refreshToken").value("newRT"))
         .andExpect(jsonPath("$.refreshTokenExpiresIn").value(1_209_600));
+  }
+
+  @Test
+  @DisplayName("로그아웃 성공")
+  void logout_success() throws Exception {
+    var at = "Bearer access.jwt.token";
+
+    willDoNothing().given(authService).logout(eq(at));
+
+    mockMvc.perform(post("/auth/logout")
+            .header("Authorization", at))
+        .andExpect(status().isNoContent());
   }
 }
