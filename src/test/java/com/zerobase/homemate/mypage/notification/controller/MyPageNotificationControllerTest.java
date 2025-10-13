@@ -15,6 +15,7 @@ import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupResponse;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
+import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
 import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -115,5 +116,26 @@ class MyPageNotificationControllerTest {
 
     then(myPageNotificationService).should()
         .completeFirstSetup(eq(userId), any(LocalTime.class));
+  }
+
+  @Test
+  @DisplayName("GET 알림 시간 조회 성공")
+  void getTime_ok() throws Exception {
+    long userId = 1L;
+    var resp = new NotiTimeResponse(LocalTime.of(18,0), LocalDateTime.now());
+
+    given(myPageNotificationService.getNotificationTime(userId)).willReturn(resp);
+
+    Authentication auth = new UsernamePasswordAuthenticationToken(
+        new UserPrincipal(userId, "nick", "ROLE_USER"), null, List.of());
+
+    mockMvc.perform(get("/users/me/notification-settings/time")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.notificationTime").value("18:00"))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should().getNotificationTime(userId);
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
   }
 }
