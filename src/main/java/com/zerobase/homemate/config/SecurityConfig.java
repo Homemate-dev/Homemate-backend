@@ -4,16 +4,22 @@ import com.zerobase.homemate.auth.security.JwtAuthenticationFilter;
 import com.zerobase.homemate.auth.service.JwtService;
 import com.zerobase.homemate.auth.token.AccessTokenBlocklist;
 import com.zerobase.homemate.repository.UserRepository;
+import java.time.Duration;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableMethodSecurity
@@ -31,6 +37,7 @@ public class SecurityConfig {
     http
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .cors(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/login/**", "/auth/refresh", "/auth/dev/**", "/policies/**").permitAll()
             .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
@@ -41,5 +48,26 @@ public class SecurityConfig {
         .logout(AbstractHttpConfigurer::disable);
 
     return http.build();
+  }
+
+  @Bean
+  CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of(
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ));
+
+    // 배포 후 추가(예시)
+    // config.addAllowedOrigin("https://www.homemate.com");
+
+    config.setAllowedMethods(List.of("GET",  "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(List.of("*"));
+    config.setExposedHeaders(List.of("Authorization", "Location", "Link", "X-Total-Count"));
+    config.setMaxAge(Duration.ofHours(1));
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
   }
 }
