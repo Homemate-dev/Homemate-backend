@@ -76,14 +76,17 @@ public class Chore {
     @JoinColumn(name = "user_id", updatable = false)
     private User user;
 
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Setter
     private Space space;
 
-
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ChoreInstance> choreInstances = new ArrayList<>();
+
+    public void softDelete() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
 }

@@ -13,6 +13,7 @@ import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -114,10 +115,9 @@ public class ChoreService {
                     choreInstance.getDueDate(),
                     ChoreStatus.PENDING
                 );
-            futureInstances.forEach(instance ->
-                instance.setChoreStatus(ChoreStatus.CANCELLED));
+            futureInstances.forEach(ChoreInstance::cancelChore);
         } else {
-            choreInstance.setChoreStatus(ChoreStatus.CANCELLED);
+            choreInstance.cancelChore();
         }
 
         return createChores(chore.getUser().getId(),
@@ -245,6 +245,37 @@ public class ChoreService {
             return List.of();
         } else {
             return dates;
+        }
+    }
+
+    @Transactional
+    public void deleteChore(Long userId, Long choreInstanceId,
+        boolean applyToAll) {
+
+        ChoreInstance choreInstance =
+            choreInstanceRepository.findById(choreInstanceId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
+        Chore chore = choreInstance.getChore();
+
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
+            choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
+            if (applyToAll) {
+                chore.softDelete();
+
+                EnumSet<ChoreStatus> includedStatuses =
+                    EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
+
+                choreInstanceRepository.bulkSoftDeleteByChoreIdAndStatuses(
+                    chore.getId(), includedStatuses, ChoreStatus.DELETED, LocalDateTime.now());
+            } else {
+                choreInstance.softDelete();
+            }
+        } else {
+            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
         }
     }
 }
