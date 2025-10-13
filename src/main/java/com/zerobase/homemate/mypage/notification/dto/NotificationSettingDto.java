@@ -9,7 +9,6 @@ public class NotificationSettingDto {
   ) {}
 
   public record MasterToggleResponse (
-      long id,
       boolean masterEnabled,
       boolean choreEnabled,
       boolean noticeEnabled,
@@ -17,7 +16,6 @@ public class NotificationSettingDto {
   ) {
     public static MasterToggleResponse from(UserNotificationSetting s) {
       return new MasterToggleResponse(
-          s.getId(),
           s.isMasterEnabled(),
           s.isChoreEnabled(),
           s.isNoticeEnabled(),

@@ -147,7 +147,7 @@ class MyPageNotificationControllerTest {
     // given
     long userId = 1L;
     var resp = new MasterToggleResponse(
-        10L, true, true, true,
+        true, true, true,
         LocalDateTime.of(2025, 9, 19, 7, 10, 0)
     );
     given(myPageNotificationService.toggleMaster(userId, true))
@@ -165,7 +165,6 @@ class MyPageNotificationControllerTest {
                 .content("{ \"enabled\": true}")
         )
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(10))
         .andExpect(jsonPath("$.masterEnabled").value(true))
         .andExpect(jsonPath("$.choreEnabled").value(true))
         .andExpect(jsonPath("$.noticeEnabled").value(true))
