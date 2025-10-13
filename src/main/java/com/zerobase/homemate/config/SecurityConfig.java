@@ -34,7 +34,7 @@ public class SecurityConfig {
         new JwtAuthenticationFilter(jwtService, userRepository, accessTokenBlocklist);
 
     http
-        .csrf(AbstractHttpConfigurer::disable)
+        .csrf(csrf -> csrf.disable())
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/login/**", "/auth/refresh", "/auth/dev/**", "/policies/**").permitAll()
