@@ -1,5 +1,6 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.entity.enums.DeviceType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,8 +32,9 @@ public class FcmToken {
     @Column(name = "token", nullable = false, unique = true)
     private String token;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "device_type")
-    private String deviceType;
+    private DeviceType deviceType;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
