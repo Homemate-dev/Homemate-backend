@@ -45,8 +45,8 @@ class SpaceControllerTest {
     @Test
     void testGetChoresBySpace() throws Exception {
         // given
-        ChoreResponse chore1 = new ChoreResponse(1L, "청소", "매주");
-        ChoreResponse chore2 = new ChoreResponse(2L, "설거지", "매일");
+        ChoreResponse chore1 = new ChoreResponse(1L, "청소", "매주", 101L, "주방 청소");
+        ChoreResponse chore2 = new ChoreResponse(2L, "설거지", "매일", 102L, "주방 설거지");
 
         when(spaceService.getChoresBySpace(Space.KITCHEN))
                 .thenReturn(List.of(chore1, chore2));
@@ -59,9 +59,13 @@ class SpaceControllerTest {
                 .andExpect(jsonPath("$[0].choreId").value(1))
                 .andExpect(jsonPath("$[0].title").value("청소"))
                 .andExpect(jsonPath("$[0].frequency").value("매주"))
+                .andExpect(jsonPath("$[0].spaceChoreId").value(101L))
+                .andExpect(jsonPath("$[0].spaceChoreName").value("주방 청소"))
                 .andExpect(jsonPath("$[1].choreId").value(2))
                 .andExpect(jsonPath("$[1].title").value("설거지"))
-                .andExpect(jsonPath("$[1].frequency").value("매일"));
+                .andExpect(jsonPath("$[1].frequency").value("매일"))
+                .andExpect(jsonPath("$[1].spaceChoreId").value(102L))
+                .andExpect(jsonPath("$[1].spaceChoreName").value("주방 설거지"));
 
         verify(spaceService, times(1)).getChoresBySpace(Space.KITCHEN);
     }

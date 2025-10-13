@@ -6,13 +6,17 @@ import com.zerobase.homemate.entity.enums.RepeatType;
 
 public record ChoreResponse(Long choreId,
                             String title,
-                            String frequency) {
+                             String frequency,
+                            Long spaceChoreId,
+                            String spaceChoreName) {
 
     public static ChoreResponse fromEntity(Chore chore) {
         return new ChoreResponse(
                 chore.getId(),
                 chore.getTitle(),
-                formatFrequency(chore.getRepeatType(), chore.getRepeatInterval())
+                formatFrequency(chore.getRepeatType(), chore.getRepeatInterval()),
+                chore.getSpaceChore().getId(),
+                chore.getSpaceChore().getTitleKo()
         );
     }
 

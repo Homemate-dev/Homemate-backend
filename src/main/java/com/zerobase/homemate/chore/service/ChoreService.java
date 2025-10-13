@@ -4,12 +4,14 @@ import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
+import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
+import com.zerobase.homemate.repository.SpaceChoreRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
@@ -30,6 +32,7 @@ public class ChoreService {
     private final ChoreInstanceRepository choreInstanceRepository;
     private final ChoreInstanceGenerator choreInstanceGenerator;
     private final UserRepository userRepository;
+    private final SpaceChoreRepository spaceChoreRepository;
 
     @Transactional
     public ChoreDto.Response createChores(Long userId,
@@ -46,12 +49,15 @@ public class ChoreService {
 
         User userReference = userRepository.getReferenceById(userId);
 
+        SpaceChore spaceChore = spaceChoreRepository.findBySpace(request.getSpace())
+                .orElseThrow( () -> new CustomException(ErrorCode.SPACE_NOT_FOUND));
+
         Chore chore = Chore.builder()
             .user(userReference)
             .title(request.getTitle())
             .notificationYn(request.getNotificationYn())
             .notificationTime(request.getNotificationTime())
-            .space(request.getSpace())
+            .spaceChore(spaceChore)
             .repeatType(request.getRepeatType())
             .repeatInterval(request.getRepeatInterval())
             .startDate(request.getStartDate())
@@ -158,7 +164,10 @@ public class ChoreService {
 
         chore.setTitle(request.getTitle());
         chore.setNotificationYn(request.getNotificationYn());
-        chore.setSpace(request.getSpace());
+
+        SpaceChore spaceChore = spaceChoreRepository.findBySpace(request.getSpace())
+                .orElseThrow(() -> new CustomException(ErrorCode.SPACE_NOT_FOUND));
+        chore.setSpaceChore(spaceChore);
 
         return ChoreDto.Response.fromEntity(chore);
     }
