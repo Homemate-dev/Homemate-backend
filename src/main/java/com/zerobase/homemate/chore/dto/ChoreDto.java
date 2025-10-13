@@ -1,6 +1,8 @@
 package com.zerobase.homemate.chore.dto;
 
 import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.entity.enums.Space;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
@@ -12,15 +14,16 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import lombok.experimental.SuperBuilder;
 
 public class ChoreDto {
 
     @AllArgsConstructor
     @NoArgsConstructor
-    @Builder
+    @SuperBuilder
     @Getter
     @Setter
-    public static class CreateRequest {
+    public abstract static class Request {
         @NotBlank(message = "집안일 제목은 필수입니다")
         private String title;
 
@@ -29,10 +32,11 @@ public class ChoreDto {
 
         private LocalTime notificationTime;
 
-        private String space;
+        @NotNull(message = "공간 입력은 필수입니다.")
+        private Space space;
 
         @NotNull(message = "반복 타입은 필수입니다")
-        private Chore.RepeatType repeatType;
+        private RepeatType repeatType;
 
         private Integer repeatInterval;
 
@@ -41,6 +45,21 @@ public class ChoreDto {
 
         @NotNull(message = "종료 일자는 필수입니다")
         private LocalDate endDate;
+    }
+
+    @NoArgsConstructor
+    @SuperBuilder
+    @Getter
+    @Setter
+    public static class CreateRequest extends Request { }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @SuperBuilder
+    @Getter
+    @Setter
+    public static class UpdateRequest extends Request {
+        private Boolean applyToAll;
     }
 
     @AllArgsConstructor
@@ -53,8 +72,8 @@ public class ChoreDto {
         private String title;
         private Boolean notificationYn;
         private LocalTime notificationTime;
-        private String space;
-        private Chore.RepeatType repeatType;
+        private Space space;
+        private RepeatType repeatType;
         private Integer repeatInterval;
         private LocalDate startDate;
         private LocalDate endDate;

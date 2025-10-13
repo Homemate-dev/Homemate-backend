@@ -1,8 +1,8 @@
 package com.zerobase.homemate.notification.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
-import com.zerobase.homemate.entity.enums.NotificationCategory;
-import com.zerobase.homemate.notification.dto.NotificationDto;
+import com.zerobase.homemate.notification.dto.ChoreNotificationDto;
+import com.zerobase.homemate.notification.dto.NoticeDto;
 import com.zerobase.homemate.notification.dto.NotificationReadDto;
 import com.zerobase.homemate.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -19,33 +19,48 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @GetMapping
-    public ResponseEntity<List<NotificationDto>> getNotifications(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestParam(name = "category", defaultValue = "ALL") String category
+    @GetMapping("/chores")
+    public ResponseEntity<List<ChoreNotificationDto>> getChoreNotifications(
+            @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         Long userId = userPrincipal.id();
 
-        if ("ALL".equalsIgnoreCase(category)) {
-            List<NotificationDto> result = notificationService.getNotifications(userId);
-
-            return ResponseEntity.ok(result);
-        }
-
-        NotificationCategory notificationCategory = NotificationCategory.from(category); // 유효하지 않은 카테고리 입력시 여기서 예외 발생
-        List<NotificationDto> result = notificationService.getNotificationsByCategory(userId, notificationCategory);
+        List<ChoreNotificationDto> result = notificationService.getChoreNotifications(userId);
 
         return ResponseEntity.ok(result);
     }
 
-    @PatchMapping("/{notificationId}")
-    public ResponseEntity<NotificationReadDto> readNotification(
+    @PatchMapping("/chores/{notificationId}")
+    public ResponseEntity<NotificationReadDto> readChoreNotification(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long notificationId
     ) {
         Long userId = userPrincipal.id();
 
-        NotificationReadDto result = notificationService.updateNotificationToRead(userId, notificationId);
+        NotificationReadDto result = notificationService.updateChoreNotificationToRead(userId, notificationId);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/notices")
+    public ResponseEntity<List<NoticeDto>> getNotices(
+            @AuthenticationPrincipal UserPrincipal userPrincipal
+    ) {
+        Long userId = userPrincipal.id();
+
+        List<NoticeDto> result = notificationService.getNotices(userId);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PatchMapping("/notices/{notificationId}")
+    public ResponseEntity<NotificationReadDto> readNoticeNotification(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long notificationId
+    ) {
+        Long userId = userPrincipal.id();
+
+        NotificationReadDto result = notificationService.markNoticeAsRead(userId, notificationId);
 
         return ResponseEntity.ok(result);
     }

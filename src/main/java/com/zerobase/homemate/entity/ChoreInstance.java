@@ -1,10 +1,13 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.entity.enums.ChoreStatus;
 import jakarta.persistence.*;
+import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -26,18 +29,25 @@ public class ChoreInstance {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "chore_id", nullable = false)
-    private Long choreId;
+    @Column(name = "title_snapshot", nullable = false)
+    @Setter
+    private String titleSnapshot;
 
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
 
+    @Column(name = "notification_time")
+    @Setter
+    private LocalTime notificationTime;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "chore_status", nullable = false)
     @Builder.Default
+    @Setter
     private ChoreStatus choreStatus = ChoreStatus.PENDING;
 
     @Column(name = "completed_at")
+    @Setter
     private LocalDateTime completedAt;
 
     @CreatedDate
@@ -48,11 +58,21 @@ public class ChoreInstance {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "deleted_at")
+    @Setter
+    private LocalDateTime deletedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chore_id", insertable = false, updatable = false)
+    @JoinColumn(name = "chore_id", updatable = false)
     private Chore chore;
 
-    public enum ChoreStatus {
-        PENDING, COMPLETED
+    public void completeChore() {
+        this.choreStatus = ChoreStatus.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void cancelCompleteChore() {
+        this.choreStatus = ChoreStatus.PENDING;
+        this.completedAt = null;
     }
 }

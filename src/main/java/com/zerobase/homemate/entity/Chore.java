@@ -1,11 +1,14 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.entity.enums.Space;
 import jakarta.persistence.*;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -29,20 +32,17 @@ public class Chore {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
     @Column(name = "title", nullable = false, length = 30)
+    @Setter
     private String title;
 
     @Column(name = "notification_yn", nullable = false)
+    @Setter
     private Boolean notificationYn;
 
-    @Column(name = "notification_time", nullable = false)
+    @Column(name = "notification_time")
+    @Setter
     private LocalTime notificationTime;
-
-    @Column(name = "space", length = 10)
-    private String space;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "repeat_type", nullable = false)
@@ -57,7 +57,7 @@ public class Chore {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "is_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN")
     @Builder.Default
     private Boolean isDeleted = false;
 
@@ -72,17 +72,17 @@ public class Chore {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    // Users 테이블 완성되면 추가
-    /* @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private Users user;
-    */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", updatable = false)
+    private User user;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Space space;
+
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ChoreInstance> choreInstances = new ArrayList<>();
-
-    public enum RepeatType {
-        NONE, DAILY, WEEKLY, MONTHLY, YEARLY
-    }
 }
