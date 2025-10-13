@@ -96,15 +96,15 @@ public class KakaoLoginTransaction {
 
     // 우리 서비스용 JWT 발급
     final String sid = UUID.randomUUID().toString();
+    final Long userId = user.getId();
     final String at;
     final String rt;
     try {
-      long userId = user.getId();
       at = jwtService.createAccessToken(user, sid);
       rt = jwtService.createRefreshToken(userId, sid);
       refreshTokenStore.save(userId, sid, jwtService.getJti(rt));
-    } catch (Exception e) {
-      throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+    } catch (IllegalArgumentException e) {
+      throw new CustomException(ErrorCode.REFRESH_JTI_MISSING);
     }
 
     return new SocialLoginDto.LoginResponse(

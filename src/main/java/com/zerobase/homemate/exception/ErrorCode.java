@@ -14,6 +14,7 @@ public enum ErrorCode {
     TOO_MANY_INSTANCES("TOO_MANY_INSTANCES", "생성할 인스턴스가 너무 많습니다. (최대 1000개)", HttpStatus.BAD_REQUEST),
     INVALID_NOTIFICATION_TIME("INVALID_NOTIFICATION_TIME", "알림 시간 형식이 올바르지 않습니다. (HH:mm)", HttpStatus.BAD_REQUEST),
     PKCE_VERIFIER_REQUIRED("PKCE_VERIFIER_REQUIRED", "code_verifier 값이 필요합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST_BODY("INVALID_REQUEST_BODY", "요청 본문(JSON)이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
 
     // 401 Unauthorized
     UNAUTHORIZED("UNAUTHORIZED", "인증된 토큰 값이 아닙니다.", HttpStatus.UNAUTHORIZED),
@@ -45,12 +46,16 @@ public enum ErrorCode {
     CONCURRENT_REFRESH("CONCURRENT_REFRESH", "동시에 토큰 갱신 요청이 감지되었습니다.", HttpStatus.CONFLICT),
     CHORE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "이미 삭제되었거나 취소한 집안일 입니다.", HttpStatus.CONFLICT),
     CHORE_INSTANCE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "해당 날짜의 집안일은 이미 취소되었거나 삭제되었습니다.", HttpStatus.CONFLICT),
+    FIRST_SETUP_ALREADY_COMPLETED("FIRST_SETUP_ALREADY_COMPLETED", "최초 알림 설정이 이미 완료되었습니다.",  HttpStatus.CONFLICT),
 
     // 429 Too Many Requests
     PROVIDER_RATE_LIMIT("PROVIDER_RATE_LIMIT", "소셜 제공자 호출 한도 초과입니다.", HttpStatus.TOO_MANY_REQUESTS),
 
     // 500 Internal Server Error
     INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    JWT_SIGNING_KEY_INVALID("JWT_SIGNING_KEY_INVALID", "JWT 서명 키가 유효하지 않습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    JWT_BUILD_FAILED("JWT_BUILD_FAILED", "JWT 생성에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    REFRESH_JTI_MISSING("REFRESH_JTI_MISSING", "리프레시 토큰의 JTI가 누락되었습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // 502 Bad Gateway
     PROVIDER_COMM_ERROR("PROVIDER_COMM_ERROR", "소셜 제공자와의 통신 오류입니다.", HttpStatus.BAD_GATEWAY),
