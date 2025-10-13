@@ -61,7 +61,7 @@ public class SecurityConfig {
     // 배포 후 추가(예시)
     // config.addAllowedOrigin("https://www.homemate.com");
 
-    config.setAllowedMethods(List.of("GET",  "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setExposedHeaders(List.of("Authorization", "Location", "Link", "X-Total-Count"));
     config.setMaxAge(Duration.ofHours(1));
