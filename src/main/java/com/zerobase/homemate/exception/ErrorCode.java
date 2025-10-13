@@ -51,6 +51,9 @@ public enum ErrorCode {
 
     // 500 Internal Server Error
     INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    JWT_SIGNING_KEY_INVALID("JWT_SIGNING_KEY_INVALID", "JWT 서명 키가 유효하지 않습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    JWT_BUILD_FAILED("JWT_BUILD_FAILED", "JWT 생성에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    REFRESH_JTI_MISSING("REFRESH_JTI_MISSING", "리프레시 토큰의 JTI가 누락되었습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // 502 Bad Gateway
     PROVIDER_COMM_ERROR("PROVIDER_COMM_ERROR", "소셜 제공자와의 통신 오류입니다.", HttpStatus.BAD_GATEWAY),
