@@ -5,8 +5,8 @@ import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
+import com.zerobase.homemate.repository.CategoryChoreRepository;
 import com.zerobase.homemate.repository.CategoryRepository;
-import com.zerobase.homemate.repository.ChoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class CategoryService {
 
-    private final ChoreRepository choreRepository;
+    private final CategoryChoreRepository categoryChoreRepository;
     private final CategoryRepository categoryRepository;
     private static final int DEFAULT_PAGE_SIZE = 4;
 
@@ -30,12 +30,12 @@ public class CategoryService {
                 .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
 
         // 집안일 조회 (없으면 빈 리스트 반환)
-        return choreRepository.findByCategoryChores_Category_Id(
+        return categoryChoreRepository.findByCategory_Id(
                         categoryId,
                         PageRequest.of(0, DEFAULT_PAGE_SIZE)
                 )
                 .stream()
-                .map(ChoreResponse::fromEntity)
+                .map(cc -> ChoreResponse.fromEntity(cc.getChore()))
                 .toList();
     }
 

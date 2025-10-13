@@ -1,6 +1,5 @@
 package com.zerobase.homemate.recommend;
 
-import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.recommend.controller.CategoryController;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ChoreResponse;
@@ -36,8 +35,8 @@ class CategoryControllerTest {
     void getChoresByCategory_success() throws Exception {
         // given
         List<ChoreResponse> mockChores = List.of(
-                new ChoreResponse(1L, "거실 청소하기", RepeatType.NONE),
-                new ChoreResponse(2L, "욕실 청소하기", RepeatType.NONE)
+                new ChoreResponse(1L, "거실 청소하기", "매주"),
+                new ChoreResponse(2L, "욕실 청소하기", "2주")
         );
         Mockito.when(categoryService.getChoresByCategory(anyLong()))
                 .thenReturn(mockChores);
@@ -48,7 +47,7 @@ class CategoryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("거실 청소하기"))
                 .andExpect(jsonPath("$[1].title").value("욕실 청소하기"))
-                .andExpect(jsonPath("$[0].frequency").value("NONE"));
+                .andExpect(jsonPath("$[0].frequency").value("매주"));
     }
 
     @Test
