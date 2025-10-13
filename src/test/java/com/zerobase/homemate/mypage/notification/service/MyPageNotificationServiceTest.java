@@ -9,6 +9,7 @@ import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupRequest;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
 import java.util.Optional;
@@ -47,7 +48,7 @@ class MyPageNotificationServiceTest {
 
     // then
     assertThat(res.firstSetupCompleted()).isFalse();
-    assertThat(res.defaultTime()).isEqualTo("09:00");
+    assertThat(res.notificationTime()).isEqualTo("09:00");
     then(settingsRepo).should().findByUserId(userId);
     then(settingsRepo).shouldHaveNoMoreInteractions();
   }
@@ -67,5 +68,52 @@ class MyPageNotificationServiceTest {
 
     then(settingsRepo).should().findByUserId(userId);
     then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("completeFirstSetup: 첫 설정 성공")
+  void completeFirstSetup_ok() {
+    // given
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().build())
+        .firstSetupCompleted(false)
+        .masterEnabled(true)
+        .choreEnabled(true)
+        .noticeEnabled(true)
+        .notificationTime(LocalTime.of(9,0))
+        .build();
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    var req = new FirstSetupRequest(LocalTime.of(18, 0)); // DTO 타입에 맞게
+
+    // when
+    var res = sut.completeFirstSetup(userId, req.notificationTime());
+
+    // then
+    assertThat(res.firstSetupCompleted()).isTrue();
+    assertThat(res.notificationTime()).isEqualTo(LocalTime.of(18,0));
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().saveAndFlush(settings);
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("completeFirstSetup: 이미 완료면 409 예외")
+  void completeFirstSetup_alreadyCompleted() {
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().build())
+        .firstSetupCompleted(true)
+        .notificationTime(LocalTime.of(9,0))
+        .build();
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    var req = new FirstSetupRequest(LocalTime.of(12, 30));
+
+    assertThatThrownBy(() -> sut.completeFirstSetup(userId, req.notificationTime()))
+        .isInstanceOf(CustomException.class)
+        .extracting("errorCode")
+        .isEqualTo(ErrorCode.FIRST_SETUP_ALREADY_COMPLETED);
   }
 }
