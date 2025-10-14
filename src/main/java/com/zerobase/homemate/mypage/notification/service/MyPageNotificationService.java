@@ -22,10 +22,7 @@ public class MyPageNotificationService {
 
   @Transactional(readOnly = true)
   public FirstSetupStatusResponse getFirstSetupStatus(long userId) {
-    UserNotificationSetting setting = getSettingOrThrow(userId);
-
-    return new FirstSetupStatusResponse(
-        setting.isFirstSetupCompleted(), truncateToMinutes(setting.getNotificationTime()));
+    return FirstSetupStatusResponse.from(getSettingOrThrow(userId));
   }
   
   @Transactional
@@ -44,10 +41,7 @@ public class MyPageNotificationService {
   
   @Transactional(readOnly = true)
   public NotiTimeResponse getNotificationTime(long userId) {
-    UserNotificationSetting setting = getSettingOrThrow(userId);
-
-    return new NotiTimeResponse(
-        truncateToMinutes(setting.getNotificationTime()), setting.getUpdatedAt());
+    return NotiTimeResponse.from(getSettingOrThrow(userId));
   }
 
   @Transactional
@@ -60,8 +54,7 @@ public class MyPageNotificationService {
       userNotificationSettingRepository.flush();
     }
 
-    return new NotiTimeResponse(
-        truncateToMinutes(setting.getNotificationTime()), setting.getUpdatedAt());
+    return NotiTimeResponse.from(setting);
   }
 
   @Transactional
