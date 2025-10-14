@@ -10,6 +10,7 @@ import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTim
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,7 @@ public class MyPageNotificationService {
     UserNotificationSetting setting = getSettingOrThrow(userId);
 
     return new FirstSetupStatusResponse(
-        setting.isFirstSetupCompleted(), setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES));
+        setting.isFirstSetupCompleted(), truncateToMinutes(setting.getNotificationTime()));
   }
   
   @Transactional
@@ -35,8 +36,8 @@ public class MyPageNotificationService {
       throw new CustomException(ErrorCode.FIRST_SETUP_ALREADY_COMPLETED);
     }
 
-    setting.completeFirstSetup(time);
-    userNotificationSettingRepository.saveAndFlush(setting);
+    setting.completeFirstSetup(truncateToMinutes(time));
+    userNotificationSettingRepository.flush();
 
     return FirstSetupResponse.from(setting);
   }
@@ -46,26 +47,31 @@ public class MyPageNotificationService {
     UserNotificationSetting setting = getSettingOrThrow(userId);
 
     return new NotiTimeResponse(
-        setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES), setting.getUpdatedAt());
+        truncateToMinutes(setting.getNotificationTime()), setting.getUpdatedAt());
   }
 
   @Transactional
   public NotiTimeResponse updateNotificationTime(long userId, LocalTime time) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
+    LocalTime normalizedTime = truncateToMinutes(time);
 
-    setting.changeNotificationTime(time);
-    userNotificationSettingRepository.saveAndFlush(setting);
+    if (!Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime)) {
+      setting.changeNotificationTime(normalizedTime);
+      userNotificationSettingRepository.flush();
+    }
 
     return new NotiTimeResponse(
-        setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES), setting.getUpdatedAt());
+        truncateToMinutes(setting.getNotificationTime()), setting.getUpdatedAt());
   }
 
   @Transactional
   public MasterToggleResponse toggleMaster(long userId, boolean enabled) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
 
-    setting.applyMasterEnabled(enabled);
-    userNotificationSettingRepository.saveAndFlush(setting);
+    if (setting.isMasterEnabled() != enabled) {
+      setting.applyMasterEnabled(enabled);
+      userNotificationSettingRepository.flush();
+    }
 
     return MasterToggleResponse.from(setting);
   }
@@ -73,5 +79,9 @@ public class MyPageNotificationService {
   private UserNotificationSetting getSettingOrThrow(long userId) {
     return userNotificationSettingRepository.findByUserId(userId)
         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+  }
+
+  private static LocalTime truncateToMinutes(LocalTime time) {
+    return time.truncatedTo(ChronoUnit.MINUTES);
   }
 }
