@@ -56,6 +56,7 @@ public class FcmToken {
 
     public void activate() {
         this.isActive = true;
+        this.lastUsedAt = LocalDateTime.now();
     }
 
     public void inActivate() {
