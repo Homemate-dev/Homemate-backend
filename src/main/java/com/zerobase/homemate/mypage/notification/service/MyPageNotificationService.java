@@ -53,6 +53,18 @@ public class MyPageNotificationService {
   }
 
   @Transactional
+  public NotiTimeResponse updateNotificationTime(long userId, LocalTime time) {
+    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
+        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+
+    setting.changeNotificationTime(time);
+    userNotificationSettingRepository.saveAndFlush(setting);
+
+    return new NotiTimeResponse(
+        setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES), setting.getUpdatedAt());
+  }
+
+  @Transactional
   public MasterToggleResponse toggleMaster(long userId, boolean enabled) {
     UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
