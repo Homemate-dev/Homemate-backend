@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Table(name = "chore")
 @Getter
@@ -81,8 +82,7 @@ public class Chore {
     @Setter
     private Space space;
 
-    @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @Builder.Default
+    @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL)
     private List<ChoreInstance> choreInstances = new ArrayList<>();
 
     public void softDelete() {

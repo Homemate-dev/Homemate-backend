@@ -1,13 +1,13 @@
 package com.zerobase.homemate.recommend.dto;
 
-import com.zerobase.homemate.entity.Category;
+import com.zerobase.homemate.entity.enums.Category;
 
 public record CategoryResponse(
-        String name
+        String category
 ) {
     public static CategoryResponse fromEntity(Category category) {
         return new CategoryResponse(
-                category.getNameKo()
+                category.getCategoryName()
         );
     }
 }
