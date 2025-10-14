@@ -83,6 +83,7 @@ public class Chore {
     private Space space;
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<ChoreInstance> choreInstances = new ArrayList<>();
 
     public void softDelete() {
