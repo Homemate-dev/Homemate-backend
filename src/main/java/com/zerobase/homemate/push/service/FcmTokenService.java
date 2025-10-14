@@ -1,4 +1,4 @@
-package com.zerobase.homemate.push;
+package com.zerobase.homemate.push.service;
 
 import com.zerobase.homemate.entity.FcmToken;
 import com.zerobase.homemate.entity.User;
