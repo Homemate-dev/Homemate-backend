@@ -62,4 +62,12 @@ public class FcmToken {
     public void refreshLastUsed() {
         this.lastUsedAt = LocalDateTime.now();
     }
+
+    public void changeUser(User user) {
+        this.user = user;
+    }
+
+    public void changeDeviceType(DeviceType deviceType) {
+        this.deviceType = deviceType;
+    }
 }
