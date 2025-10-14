@@ -21,8 +21,7 @@ public class MyPageNotificationService {
 
   @Transactional(readOnly = true)
   public FirstSetupStatusResponse getFirstSetupStatus(long userId) {
-    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+    UserNotificationSetting setting = getSettingOrThrow(userId);
 
     return new FirstSetupStatusResponse(
         setting.isFirstSetupCompleted(), setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES));
@@ -30,8 +29,7 @@ public class MyPageNotificationService {
   
   @Transactional
   public FirstSetupResponse completeFirstSetup(long userId, LocalTime time) {
-    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+    UserNotificationSetting setting = getSettingOrThrow(userId);
 
     if (setting.isFirstSetupCompleted()) {
       throw new CustomException(ErrorCode.FIRST_SETUP_ALREADY_COMPLETED);
@@ -45,8 +43,7 @@ public class MyPageNotificationService {
   
   @Transactional(readOnly = true)
   public NotiTimeResponse getNotificationTime(long userId) {
-    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+    UserNotificationSetting setting = getSettingOrThrow(userId);
 
     return new NotiTimeResponse(
         setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES), setting.getUpdatedAt());
@@ -54,8 +51,7 @@ public class MyPageNotificationService {
 
   @Transactional
   public NotiTimeResponse updateNotificationTime(long userId, LocalTime time) {
-    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+    UserNotificationSetting setting = getSettingOrThrow(userId);
 
     setting.changeNotificationTime(time);
     userNotificationSettingRepository.saveAndFlush(setting);
@@ -66,12 +62,16 @@ public class MyPageNotificationService {
 
   @Transactional
   public MasterToggleResponse toggleMaster(long userId, boolean enabled) {
-    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+    UserNotificationSetting setting = getSettingOrThrow(userId);
 
     setting.applyMasterEnabled(enabled);
     userNotificationSettingRepository.saveAndFlush(setting);
 
     return MasterToggleResponse.from(setting);
+  }
+
+  private UserNotificationSetting getSettingOrThrow(long userId) {
+    return userNotificationSettingRepository.findByUserId(userId)
+        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
   }
 }
