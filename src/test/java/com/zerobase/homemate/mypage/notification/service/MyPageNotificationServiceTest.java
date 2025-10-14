@@ -2,7 +2,6 @@ package com.zerobase.homemate.mypage.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -96,7 +95,7 @@ class MyPageNotificationServiceTest {
     assertThat(res.firstSetupCompleted()).isTrue();
     assertThat(res.notificationTime()).isEqualTo(LocalTime.of(18,0));
     then(settingsRepo).should().findByUserId(userId);
-    then(settingsRepo).should().saveAndFlush(settings);
+    then(settingsRepo).should().flush();
     then(settingsRepo).shouldHaveNoMoreInteractions();
   }
 
@@ -143,6 +142,29 @@ class MyPageNotificationServiceTest {
   }
 
   @Test
+  @DisplayName("알림 시간 수정 성공")
+  void updateNotificationTime_change_ok() {
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().build())
+        .firstSetupCompleted(true)
+        .masterEnabled(true)
+        .choreEnabled(true)
+        .noticeEnabled(true)
+        .notificationTime(LocalTime.of(9, 0))
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    var res = sut.updateNotificationTime(userId, LocalTime.of(18, 0));
+
+    assertThat(res.notificationTime()).isEqualTo(LocalTime.of(18, 0));
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().flush();
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
   @DisplayName("알림(전체) ON")
   void toggleMaster_on() {
     // given
@@ -157,12 +179,6 @@ class MyPageNotificationServiceTest {
         .build();
 
     given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
-    given(settingsRepo.saveAndFlush(any(UserNotificationSetting.class)))
-        .willAnswer(invocation -> {
-          var ent = invocation.getArgument(0, UserNotificationSetting.class);
-          org.springframework.test.util.ReflectionTestUtils.setField(ent, "id", 10L);
-          return ent;
-        });
 
     // when
     var res = sut.toggleMaster(userId, true);
@@ -177,7 +193,7 @@ class MyPageNotificationServiceTest {
     assertThat(res.noticeEnabled()).isTrue();
 
     then(settingsRepo).should().findByUserId(userId);
-    then(settingsRepo).should().saveAndFlush(settings);
+    then(settingsRepo).should().flush();
     then(settingsRepo).shouldHaveNoMoreInteractions();
   }
 }
