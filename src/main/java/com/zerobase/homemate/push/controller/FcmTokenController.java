@@ -35,7 +35,7 @@ public class FcmTokenController {
     public ResponseEntity<Void> unsubscribe(
             @RequestBody FcmTokenDto.Request request
     ) {
-        fcmTokenService.deActivateToken(request);
+        fcmTokenService.deactivateToken(request);
 
         return ResponseEntity.noContent().build();
     }

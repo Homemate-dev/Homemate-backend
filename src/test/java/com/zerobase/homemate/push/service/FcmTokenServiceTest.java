@@ -176,7 +176,7 @@ class FcmTokenServiceTest {
         when(fcmTokenRepository.findByToken(token)).thenReturn(Optional.of(spyExisting));
 
         // when
-        fcmTokenService.deActivateToken(request);
+        fcmTokenService.deactivateToken(request);
 
         verify(fcmTokenRepository).findByToken(token);
         verify(spyExisting).deactivate();
