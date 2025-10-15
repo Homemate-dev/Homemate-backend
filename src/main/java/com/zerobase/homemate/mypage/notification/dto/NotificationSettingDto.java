@@ -4,18 +4,18 @@ import com.zerobase.homemate.entity.UserNotificationSetting;
 import java.time.LocalDateTime;
 
 public class NotificationSettingDto {
-  public record MasterToggleRequest (
+  public record ToggleRequest(
       boolean enabled
   ) {}
 
-  public record MasterToggleResponse (
+  public record ToggleResponse(
       boolean masterEnabled,
       boolean choreEnabled,
       boolean noticeEnabled,
       LocalDateTime updatedAt
   ) {
-    public static MasterToggleResponse from(UserNotificationSetting s) {
-      return new MasterToggleResponse(
+    public static ToggleResponse from(UserNotificationSetting s) {
+      return new ToggleResponse(
           s.isMasterEnabled(),
           s.isChoreEnabled(),
           s.isNoticeEnabled(),
