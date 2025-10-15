@@ -16,7 +16,7 @@ import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupResponse;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
-import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.MasterToggleResponse;
+import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.ToggleResponse;
 import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
 import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
 import java.time.LocalDateTime;
@@ -173,11 +173,11 @@ class MyPageNotificationControllerTest {
   void toggleMaster_on() throws Exception {
     // given
     long userId = 1L;
-    var resp = new MasterToggleResponse(
+    var resp = new ToggleResponse(
         true, true, true,
         LocalDateTime.of(2025, 9, 19, 7, 10, 0)
     );
-    given(myPageNotificationService.toggleMaster(userId, true))
+    given(myPageNotificationService.toggleNotification(userId, "master", true))
         .willReturn(resp);
 
     var principal = new UserPrincipal(userId, "nick", "ROLE_USER");
@@ -197,7 +197,71 @@ class MyPageNotificationControllerTest {
         .andExpect(jsonPath("$.noticeEnabled").value(true))
         .andExpect(jsonPath("$.updatedAt").exists());
 
-    then(myPageNotificationService).should().toggleMaster(userId, true);
+    then(myPageNotificationService).should().toggleNotification(userId, "master", true);
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림(chore) ON")
+  void toggleChore_on_ok() throws Exception {
+    // given
+    long userId = 1L;
+    var resp = new ToggleResponse(
+        true, true, true,
+        LocalDateTime.of(2025, 9, 19, 7, 10, 0)
+    );
+    given(myPageNotificationService.toggleNotification(userId, "chore", true))
+        .willReturn(resp);
+
+    var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
+    var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+    // when & then
+    mockMvc.perform(patch("/users/me/notification-settings/chore")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"enabled\": true}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.masterEnabled").value(true))
+        .andExpect(jsonPath("$.choreEnabled").value(true))
+        .andExpect(jsonPath("$.noticeEnabled").value(true))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should()
+        .toggleNotification(eq(1L), eq("chore"), eq(true));
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림(notice) OFF")
+  void toggleNotice_off_ok() throws Exception {
+    // given
+    long userId = 1L;
+    var resp = new ToggleResponse(
+        true, true, false,
+        LocalDateTime.of(2025, 9, 19, 7, 10, 0)
+    );
+    given(myPageNotificationService.toggleNotification(userId, "notice", false))
+        .willReturn(resp);
+
+    var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
+    var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+    // when & then
+    mockMvc.perform(patch("/users/me/notification-settings/notice")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"enabled\": false}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.masterEnabled").value(true))
+        .andExpect(jsonPath("$.choreEnabled").value(true))
+        .andExpect(jsonPath("$.noticeEnabled").value(false))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should()
+        .toggleNotification(eq(1L), eq("notice"), eq(false));
     then(myPageNotificationService).shouldHaveNoMoreInteractions();
   }
 }
