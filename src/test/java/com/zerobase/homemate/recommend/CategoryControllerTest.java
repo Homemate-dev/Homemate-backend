@@ -58,8 +58,8 @@ class CategoryControllerTest {
     void getChoresByCategory_success() throws Exception {
         // frequency 필드에 맞춰서 Mock 데이터 생성
         List<ClassifyChoreResponse> mockResponse = List.of(
-                new ClassifyChoreResponse(1L, "설거지", "매일", "겨울철 대맞이 청소"),
-                new ClassifyChoreResponse(2L, "냉장고 청소", "매달", "겨울철 대맞이 청소")
+                new ClassifyChoreResponse(1L, "설거지", "매일", null, "겨울철 대맞이 청소"),
+                new ClassifyChoreResponse(2L, "냉장고 청소", "매달", null,"겨울철 대맞이 청소")
         );
 
         Mockito.when(categoryService.getChoresByCategory(eq(Category.WINTER)))

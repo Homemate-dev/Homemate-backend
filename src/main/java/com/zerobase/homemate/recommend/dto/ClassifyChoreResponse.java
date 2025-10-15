@@ -1,20 +1,26 @@
 package com.zerobase.homemate.recommend.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.entity.enums.Space;
 
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record ClassifyChoreResponse(Long choreId,
-                            String title,
-                            String frequency,
-                            String categoryName) {
+                                    String title,
+                                    String frequency,
+                                    Space spaceName,
+                                    String categoryName) {
 
     public static ClassifyChoreResponse fromCategory(CategoryChore categoryChore) {
         return new ClassifyChoreResponse(
                 categoryChore.getId(),
                 categoryChore.getTitle(),
                 formatFrequency(categoryChore.getRepeatType(), categoryChore.getRepeatInterval()),
+                null,
                 categoryChore.getCategory().getCategoryName()
+
         );
     }
 
@@ -41,6 +47,16 @@ public record ClassifyChoreResponse(Long choreId,
             case YEARLY -> repeatInterval + "년";
         };
 
+    }
+
+    public static ClassifyChoreResponse fromSpace(SpaceChore spaceChore) {
+        return new ClassifyChoreResponse(
+                spaceChore.getId(),
+                spaceChore.getTitleKo(),
+                formatFrequency(spaceChore.getRepeatType(), spaceChore.getRepeatInterval()),
+                spaceChore.getSpace(),
+                null
+        );
     }
 }
 

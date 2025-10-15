@@ -2,8 +2,10 @@ package com.zerobase.homemate.space;
 
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.recommend.controller.SpaceController;
-import com.zerobase.homemate.recommend.dto.ChoreResponse;
+import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
+import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.recommend.service.SpaceService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,8 +15,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
-import java.util.Map;
-
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -30,39 +30,46 @@ class SpaceControllerTest {
     private SpaceService spaceService;
 
     @Test
+    @DisplayName("모든 공간 Parameter 조회")
     void testGetAllSpaces() throws Exception {
-        // SpaceService Mock 세팅
-        when(spaceService.getAllSpaces())
-                .thenReturn(List.of(Map.of("name", "KITCHEN", "description", "주방")));
+        // given
+        List<SpaceResponse> mockList = List.of(
+                new SpaceResponse("주방", Space.KITCHEN),
+                new SpaceResponse("욕실", Space.BATHROOM),
+                new SpaceResponse("현관", Space.PORCH)
+        );
 
-        mockMvc.perform(get("/recommend/spaces")
-                        .contentType(MediaType.APPLICATION_JSON))
+        when(spaceService.getAllSpaces()).thenReturn(mockList);
+
+        // when & then
+        mockMvc.perform(get("/recommend/spaces").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("KITCHEN"))
-                .andExpect(jsonPath("$[0].description").value("주방"));
+                .andExpect(jsonPath("$.length()").value(mockList.size()))
+                .andExpect(jsonPath("$[0].spaceName").value("주방"))
+                .andExpect(jsonPath("$[1].spaceName").value("욕실"))
+                .andExpect(jsonPath("$[2].spaceName").value("현관"));
     }
 
     @Test
+    @DisplayName("특정 공간에 속한 집안일 조회")
     void testGetChoresBySpace() throws Exception {
         // given
-        ChoreResponse chore1 = new ChoreResponse(1L, "청소", "매주");
-        ChoreResponse chore2 = new ChoreResponse(2L, "설거지", "매일");
+        Space space = Space.KITCHEN;
 
-        when(spaceService.getChoresBySpace(Space.KITCHEN))
-                .thenReturn(List.of(chore1, chore2));
+        List<ClassifyChoreResponse> mockChores = List.of(
+                new ClassifyChoreResponse(1L, "청소", "매주", space, null),
+                new ClassifyChoreResponse(2L, "설거지", "매일", space, null)
+        );
+        int page = 0;
+        when(spaceService.getChoresBySpace(space, page)).thenReturn(mockChores);
 
         // when & then
-        mockMvc.perform(get("/recommend/spaces/KITCHEN/chores")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/recommend/spaces/{space}/chores", space.name())
+                .param("page",  String.valueOf(page))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].choreId").value(1))
+                .andExpect(jsonPath("$.length()").value(mockChores.size()))
                 .andExpect(jsonPath("$[0].title").value("청소"))
-                .andExpect(jsonPath("$[0].frequency").value("매주"))
-                .andExpect(jsonPath("$[1].choreId").value(2))
-                .andExpect(jsonPath("$[1].title").value("설거지"))
-                .andExpect(jsonPath("$[1].frequency").value("매일"));
-
-        verify(spaceService, times(1)).getChoresBySpace(Space.KITCHEN);
+                .andExpect(jsonPath("$[1].title").value("설거지"));
     }
 }

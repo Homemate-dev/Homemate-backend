@@ -1,26 +1,33 @@
 package com.zerobase.homemate.space;
 
 
-import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
-import com.zerobase.homemate.recommend.dto.ChoreResponse;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
+import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.recommend.service.SpaceService;
-import com.zerobase.homemate.repository.ChoreRepository;
+import com.zerobase.homemate.repository.SpaceChoreRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Pageable;
 
+import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class SpaceServiceTest {
     @Mock
-    private ChoreRepository choreRepository;
+    private SpaceChoreRepository spaceChoreRepository;
 
     @InjectMocks
     private SpaceService spaceService;
@@ -31,43 +38,65 @@ public class SpaceServiceTest {
     }
 
     @Test
-    void testGetChoresBySpace() {
+    @DisplayName("공간별 집안일 조회 - Repository + RepeatType 우선순위 적용")
+    void getChoresBySpace_ShouldReturnSortedByRepeatType() {
         // given
-        Chore chore1 = Chore.builder()
+        SpaceChore chore1 = SpaceChore.builder()
                 .id(1L)
-                .title("청소")
+                .titleKo("청소")
                 .repeatType(RepeatType.WEEKLY)
                 .space(Space.KITCHEN)
-                .isDeleted(false)
                 .build();
 
-        Chore chore2 = Chore.builder()
+        SpaceChore chore2 = SpaceChore.builder()
                 .id(2L)
-                .title("설거지")
+                .titleKo("설거지")
                 .repeatType(RepeatType.DAILY)
                 .space(Space.KITCHEN)
-                .isDeleted(false)
                 .build();
 
-        when(choreRepository.findBySpaceAndIsDeletedFalse(Space.KITCHEN))
+        when(spaceChoreRepository.findBySpace(eq(Space.KITCHEN), any(Pageable.class)))
                 .thenReturn(List.of(chore1, chore2));
 
         // when
-        List<ChoreResponse> result = spaceService.getChoresBySpace(Space.KITCHEN);
+        List<ClassifyChoreResponse> result = spaceService.getChoresBySpace(Space.KITCHEN, 0);
 
         // then
-        assertEquals(2, result.size());
-        assertEquals("청소", result.get(0).title());
-        assertEquals("설거지", result.get(1).title());
+        assertThat(result).hasSize(2);
+        // RepeatType 우선순위 확인 (DAILY가 WEEKLY보다 먼저)
+        assertThat(result.get(0).title()).isEqualTo("설거지");
+        assertThat(result.get(1).title()).isEqualTo("청소");
 
-        verify(choreRepository, times(1)).findBySpaceAndIsDeletedFalse(Space.KITCHEN);
+        verify(spaceChoreRepository, times(1))
+                .findBySpace(eq(Space.KITCHEN), any(Pageable.class));
     }
 
     @Test
-    void testGetAllSpaces() {
-        var result = spaceService.getAllSpaces();
-        assertEquals(Space.values().length, result.size());
-        assertEquals("KITCHEN", result.get(0).get("name"));
-        assertEquals("주방", result.get(0).get("description"));
+    @DisplayName("공간이 null일 경우 SPACE_NOT_FOUND 예외 발생")
+    void getChoresBySpace_ShouldThrowExceptionIfSpaceNull() {
+        // when & then
+        CustomException exception = assertThrows(CustomException.class,
+                () -> spaceService.getChoresBySpace(null, 0));
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.SPACE_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("모든 공간 정보 조회 - Enum 기반으로 SpaceResponse 리스트 반환")
+    void getAllSpaces_ShouldReturnAllSpaceResponses() {
+        // when
+        List<SpaceResponse> result = spaceService.getAllSpaces();
+
+        // then
+        assertThat(result).isNotEmpty();
+        assertThat(result)
+                .extracting(SpaceResponse::spaceName)
+                .containsExactlyInAnyOrder(
+                        Arrays.stream(Space.values())
+                                .map(Enum::name)
+                                .toArray(String[]::new)
+                );
+        assertThat(result)
+                .allMatch(r -> r.space() != null);
     }
 }
