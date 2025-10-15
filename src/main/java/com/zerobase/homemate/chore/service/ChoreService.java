@@ -157,6 +157,7 @@ public class ChoreService {
 
         chore.setTitle(request.getTitle());
         chore.setNotificationYn(request.getNotificationYn());
+        chore.setSpace(request.getSpace());
 
         return ChoreDto.Response.fromEntity(chore);
     }

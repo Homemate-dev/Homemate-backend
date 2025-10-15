@@ -79,6 +79,7 @@ public class Chore {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Setter
     private Space space;
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL)
