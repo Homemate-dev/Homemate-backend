@@ -61,4 +61,34 @@ public class UserMission {
 
     @OneToMany(mappedBy = "userMission", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MissionProgress> progressList = new ArrayList<>();
+
+    public boolean isAlreadyCompleted() {
+        return Boolean.TRUE.equals(this.isCompleted);
+    }
+
+    public boolean incrementCount() {
+        int next = this.currentCount + 1;
+        this.currentCount = next;
+
+        Integer target = this.mission.getTargetCount();
+        if (target != null && next >= target) {
+            this.isCompleted = true;
+            this.completedAt = LocalDateTime.now();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean decrementCount() {
+        int next = Math.max(0, this.currentCount - 1);
+        this.currentCount = next;
+
+        Integer target = this.mission.getTargetCount();
+        if (target != null && next < target) {
+            this.isCompleted = false;
+            this.completedAt = null;
+            return true;
+        }
+        return false;
+    }
 }
