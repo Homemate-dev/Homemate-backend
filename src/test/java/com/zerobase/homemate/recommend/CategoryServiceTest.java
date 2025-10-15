@@ -1,114 +1,107 @@
 package com.zerobase.homemate.recommend;
 
-import com.zerobase.homemate.entity.Category;
+
 import com.zerobase.homemate.entity.CategoryChore;
-import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.RepeatType;
-import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
-import com.zerobase.homemate.recommend.dto.ChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryService;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
-import com.zerobase.homemate.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.zerobase.homemate.entity.enums.RepeatType.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 class CategoryServiceTest {
 
     @Mock
     private CategoryChoreRepository categoryChoreRepository;
 
-    @Mock
-    private CategoryRepository categoryRepository;
-
     @InjectMocks
-    private CategoryService categoryService;
-
-    private Category category;
-    private Chore chore1, chore2;
-    private CategoryChore cc1, cc2;
+    CategoryService categoryService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        category = Category.builder()
-                .id(1L)
-                .nameKo("청소")
-                .isActive(true)
-                .build();
-
-        chore1 = Chore.builder()
-                .id(1L)
-                .title("거실 청소")
-                .notificationYn(false)
-                .space(Space.LIVING_ROOM)
-                .repeatType(RepeatType.DAILY)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now())
-                .build();
-
-        chore2 = Chore.builder()
-                .id(2L)
-                .title("욕실 청소")
-                .notificationYn(false)
-                .space(Space.BEDROOM)
-                .repeatType(RepeatType.WEEKLY)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now())
-                .build();
-
-        cc1 = CategoryChore.builder().category(category).chore(chore1).build();
-        cc2 = CategoryChore.builder().category(category).chore(chore2).build();
     }
 
+    @DisplayName("카테고리별 집안일을 조회 시, 집안일들은 주기 순으로 정렬값을 반환한다.")
     @Test
-    @DisplayName("카테고리별 집안일 조회 성공")
-    void getChoresByCategory_success() {
+    void getChoresByCategory_success(){
         // given
-        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
-        given(categoryChoreRepository.findByCategory_Id(eq(1L), any(PageRequest.class)))
-                .willReturn(List.of(cc1, cc2));
+        Category category = Category.WINTER;
+
+        CategoryChore cc1 =  CategoryChore.builder()
+                .category(Category.WINTER)
+                .title("가습기 세척하기")
+                .repeatType(RepeatType.MONTHLY)
+                .repeatInterval(3)
+                .build();
+
+        CategoryChore cc2 = CategoryChore.builder()
+                .category(Category.WINTER)
+                .title("베개커버, 이불커버 세탁하기")
+                .repeatType(RepeatType.WEEKLY)
+                .repeatInterval(2)
+                .build();
+
+        CategoryChore cc3 = CategoryChore.builder()
+                .category(Category.WINTER)
+                .title("옷장 정리하기")
+                .repeatType(DAILY)
+                .repeatInterval(3)
+                .build();
+
+        CategoryChore cc4 = CategoryChore.builder()
+                .category(Category.WINTER)
+                .title("보일러 점검하기")
+                .repeatType(RepeatType.NONE)
+                .repeatInterval(0)
+                .build();
+
+        categoryChoreRepository.save(cc1);
+        categoryChoreRepository.save(cc2);
+        categoryChoreRepository.save(cc3);
+        categoryChoreRepository.save(cc4);
+
+        when(categoryChoreRepository.findByCategory(eq(category), any(Pageable.class)))
+                .thenReturn(List.of(cc1, cc2, cc3, cc4));
+
 
         // when
-        List<ChoreResponse> result = categoryService.getChoresByCategory(1L);
+        var result = categoryService.getChoresByCategory(category);
 
         // then
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).title()).isEqualTo("거실 청소");
-        assertThat(result.get(1).title()).isEqualTo("욕실 청소");
-        assertThat(result.get(0).frequency()).isEqualTo("매일");
-        assertThat(result.get(1).frequency()).isEqualTo("매주");
-        verify(categoryRepository).findById(1L);
+        assertThat(result).hasSize(4);
+        assertThat(result.get(0).frequency()).isEqualTo("3일");      // cc3
+        assertThat(result.get(1).frequency()).isEqualTo("2주");      // cc2
+        assertThat(result.get(2).frequency()).isEqualTo("3달");      // cc1
+        assertThat(result.get(3).frequency()).isEqualTo("반복 없음"); // cc4
+
+        verify(categoryChoreRepository, times(1))
+                .findByCategory (eq(category), any(Pageable.class));
     }
 
     @Test
-    @DisplayName("존재하지 않는 카테고리 조회 시 예외 발생")
-    void getChoresByCategory_categoryNotFound() {
-        // given
-        given(categoryRepository.findById(999L)).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> categoryService.getChoresByCategory(999L))
+    @DisplayName("카테고리가 null이면 CATEGORY_NOT_FOUND 예외 발생")
+    void getChoresByCategory_nullCategory_fail() {
+        assertThatThrownBy(() -> categoryService.getChoresByCategory(null))
                 .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
+                .hasMessage(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
     }
+
+
 }
