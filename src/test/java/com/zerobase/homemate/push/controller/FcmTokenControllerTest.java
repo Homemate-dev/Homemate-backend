@@ -102,10 +102,12 @@ class FcmTokenControllerTest {
         @Test
         @DisplayName(" -> 204 No Content")
         public void success() throws Exception {
+            // given
             String token = "test-token";
             FcmTokenDto.Request request = new FcmTokenDto.Request();
             ReflectionTestUtils.setField(request, "token", token);
 
+            // when & then
             mockMvc.perform(delete(PATH)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request))
