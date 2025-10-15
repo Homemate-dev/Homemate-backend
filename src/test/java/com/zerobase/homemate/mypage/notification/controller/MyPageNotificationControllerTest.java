@@ -142,6 +142,33 @@ class MyPageNotificationControllerTest {
   }
 
   @Test
+  @DisplayName("PATCH 알림 시간 수정 성공")
+  void updateTime_ok() throws Exception {
+    long userId = 1L;
+    var resp = new NotiTimeResponse(LocalTime.of(18, 0), LocalDateTime.now());
+    given(myPageNotificationService.updateNotificationTime(eq(userId), eq(LocalTime.of(18, 0))))
+        .willReturn(resp);
+
+    Authentication auth = new UsernamePasswordAuthenticationToken(
+        new UserPrincipal(userId, "nick", "ROLE_USER"), null, List.of());
+
+    mockMvc.perform(
+            patch("/users/me/notification-settings/time")
+                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"notificationTime\":\"18:00\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.notificationTime").value("18:00"))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService)
+        .should()
+        .updateNotificationTime(eq(userId), eq(LocalTime.of(18, 0)));
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
   @DisplayName("알림(전체) ON")
   void toggleMaster_on() throws Exception {
     // given

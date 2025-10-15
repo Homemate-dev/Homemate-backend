@@ -6,6 +6,7 @@ import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSe
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
 import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.MasterToggleRequest;
 import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.MasterToggleResponse;
+import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeRequest;
 import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
 import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
 import jakarta.validation.Valid;
@@ -42,6 +43,15 @@ public class MyPageNotificationController {
   @GetMapping("/time")
   public ResponseEntity<NotiTimeResponse> getTime(@AuthenticationPrincipal UserPrincipal user) {
     return ResponseEntity.ok(myPageNotificationService.getNotificationTime(user.id()));
+  }
+
+  @PatchMapping("time")
+  public ResponseEntity<NotiTimeResponse> updateTime(
+      @AuthenticationPrincipal UserPrincipal user,
+      @Valid @RequestBody NotiTimeRequest request) {
+
+    return ResponseEntity.ok(
+        myPageNotificationService.updateNotificationTime(user.id(), request.notificationTime()));
   }
 
   @PatchMapping("/master")

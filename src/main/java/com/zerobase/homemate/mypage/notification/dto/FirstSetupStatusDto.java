@@ -11,7 +11,14 @@ public class FirstSetupStatusDto {
       boolean firstSetupCompleted,
       @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
       LocalTime notificationTime
-  ) {}
+  ) {
+    public static FirstSetupStatusResponse from(UserNotificationSetting s) {
+      return new FirstSetupStatusResponse(
+          s.isFirstSetupCompleted(),
+          s.getNotificationTime()
+      );
+    }
+  }
 
   public record FirstSetupRequest (
       @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")

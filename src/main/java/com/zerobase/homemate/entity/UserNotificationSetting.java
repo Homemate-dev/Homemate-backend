@@ -12,7 +12,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -67,8 +66,12 @@ public class UserNotificationSetting {
   }
 
   public void completeFirstSetup(LocalTime time) {
-    this.notificationTime = time.truncatedTo(ChronoUnit.MINUTES);
+    this.notificationTime = time;
     this.firstSetupCompleted = true;
+  }
+
+  public void changeNotificationTime(LocalTime time) {
+    this.notificationTime = time;
   }
 
   public void applyMasterEnabled(boolean enabled) {

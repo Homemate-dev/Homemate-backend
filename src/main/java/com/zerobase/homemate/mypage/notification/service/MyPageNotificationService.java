@@ -10,6 +10,7 @@ import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTim
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,45 +22,59 @@ public class MyPageNotificationService {
 
   @Transactional(readOnly = true)
   public FirstSetupStatusResponse getFirstSetupStatus(long userId) {
-    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
-
-    return new FirstSetupStatusResponse(
-        setting.isFirstSetupCompleted(), setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES));
+    return FirstSetupStatusResponse.from(getSettingOrThrow(userId));
   }
   
   @Transactional
   public FirstSetupResponse completeFirstSetup(long userId, LocalTime time) {
-    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+    UserNotificationSetting setting = getSettingOrThrow(userId);
 
     if (setting.isFirstSetupCompleted()) {
       throw new CustomException(ErrorCode.FIRST_SETUP_ALREADY_COMPLETED);
     }
 
-    setting.completeFirstSetup(time);
-    userNotificationSettingRepository.saveAndFlush(setting);
+    setting.completeFirstSetup(truncateToMinutes(time));
+    userNotificationSettingRepository.flush();
 
     return FirstSetupResponse.from(setting);
   }
   
   @Transactional(readOnly = true)
   public NotiTimeResponse getNotificationTime(long userId) {
-    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+    return NotiTimeResponse.from(getSettingOrThrow(userId));
+  }
 
-    return new NotiTimeResponse(
-        setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES), setting.getUpdatedAt());
+  @Transactional
+  public NotiTimeResponse updateNotificationTime(long userId, LocalTime time) {
+    UserNotificationSetting setting = getSettingOrThrow(userId);
+    LocalTime normalizedTime = truncateToMinutes(time);
+
+    if (!Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime)) {
+      setting.changeNotificationTime(normalizedTime);
+      userNotificationSettingRepository.flush();
+    }
+
+    return NotiTimeResponse.from(setting);
   }
 
   @Transactional
   public MasterToggleResponse toggleMaster(long userId, boolean enabled) {
-    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+    UserNotificationSetting setting = getSettingOrThrow(userId);
 
-    setting.applyMasterEnabled(enabled);
-    userNotificationSettingRepository.saveAndFlush(setting);
+    if (setting.isMasterEnabled() != enabled) {
+      setting.applyMasterEnabled(enabled);
+      userNotificationSettingRepository.flush();
+    }
 
     return MasterToggleResponse.from(setting);
+  }
+
+  private UserNotificationSetting getSettingOrThrow(long userId) {
+    return userNotificationSettingRepository.findByUserId(userId)
+        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+  }
+
+  private static LocalTime truncateToMinutes(LocalTime time) {
+    return time.truncatedTo(ChronoUnit.MINUTES);
   }
 }
