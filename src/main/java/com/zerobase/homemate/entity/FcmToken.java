@@ -50,15 +50,24 @@ public class FcmToken {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public void refreshLastUsed() {
-        this.lastUsedAt = LocalDateTime.now();
-    }
-
     public void activate() {
         this.isActive = true;
+        refreshLastUsed();
     }
 
     public void inActivate() {
         this.isActive = false;
+    }
+
+    public void refreshLastUsed() {
+        this.lastUsedAt = LocalDateTime.now();
+    }
+
+    public void changeUser(User user) {
+        this.user = user;
+    }
+
+    public void changeDeviceType(DeviceType deviceType) {
+        this.deviceType = deviceType;
     }
 }
