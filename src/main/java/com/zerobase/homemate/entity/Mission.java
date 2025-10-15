@@ -52,6 +52,7 @@ public class Mission {
     private YearMonth activeYearMonth;
 
     @Column(name = "is_active", nullable = false, columnDefinition = "BOOLEAN")
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreatedDate

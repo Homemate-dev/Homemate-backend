@@ -60,6 +60,7 @@ public class UserMission {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "userMission", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<MissionProgress> progressList = new ArrayList<>();
 
     public boolean isAlreadyCompleted() {
