@@ -14,6 +14,8 @@ public interface UserMissionRepository extends JpaRepository<UserMission, Long> 
 
     List<UserMission> findByUser_IdAndMission_IdIn(Long userId, Collection<Long> missionIds);
 
+    UserMission findByUser_IdAndMission_Id(Long userId, Long missionId);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
     INSERT INTO user_mission (
