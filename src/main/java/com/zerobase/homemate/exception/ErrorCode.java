@@ -15,7 +15,7 @@ public enum ErrorCode {
     INVALID_NOTIFICATION_TIME("INVALID_NOTIFICATION_TIME", "알림 시간 형식이 올바르지 않습니다. (HH:mm)", HttpStatus.BAD_REQUEST),
     PKCE_VERIFIER_REQUIRED("PKCE_VERIFIER_REQUIRED", "code_verifier 값이 필요합니다.", HttpStatus.BAD_REQUEST),
     INVALID_REQUEST_BODY("INVALID_REQUEST_BODY", "요청 본문(JSON)이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
-    UNVALID_PAGE("UNVALID_PAGE", "페이지 상한을 넘어섰습니다.", HttpStatus.BAD_REQUEST),
+
 
     // 401 Unauthorized
     UNAUTHORIZED("UNAUTHORIZED", "인증된 토큰 값이 아닙니다.", HttpStatus.UNAUTHORIZED),
@@ -64,8 +64,10 @@ public enum ErrorCode {
     PROVIDER_RESPONSE_MALFORMED("PROVIDER_RESPONSE_MALFORMED", "소셜 제공자 응답 형식이 유효하지 않습니다.", HttpStatus.BAD_GATEWAY),
 
     // 503 Service Unavailable
+    PAGE_UNAVAILABLE("UNVALID_PAGE", "페이지 상한을 넘어섰습니다.", HttpStatus.SERVICE_UNAVAILABLE),
     PROVIDER_UNAVAILABLE("PROVIDER_UNAVAILABLE", "소셜 제공자가 응답하지 않습니다.", HttpStatus.SERVICE_UNAVAILABLE),
     REFRESH_STORE_UNAVAILABLE("REFRESH_STORE_UNAVAILABLE", "토큰 저장소에 연결할 수 없습니다.", HttpStatus.SERVICE_UNAVAILABLE);
+
 
     private final String code;
     private final String message;

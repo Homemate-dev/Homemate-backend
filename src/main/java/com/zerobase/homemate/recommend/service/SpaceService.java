@@ -35,7 +35,7 @@ public class SpaceService {
         }
 
         if (page < 0 || page > 2) {
-            throw new CustomException(ErrorCode.UNVALID_PAGE);
+            throw new CustomException(ErrorCode.PAGE_UNAVAILABLE);
         }
 
         Pageable pageable = PageRequest.of(page, DEFAULT_LIMIT);
