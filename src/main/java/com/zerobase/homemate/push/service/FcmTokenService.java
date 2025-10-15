@@ -62,7 +62,7 @@ public class FcmTokenService {
     }
 
     @Transactional
-    public void deActivateToken(Long userId, FcmTokenDto.Request request) {
+    public void deActivateToken(FcmTokenDto.Request request) {
         fcmTokenRepository.findByToken(request.getToken()).ifPresent(FcmToken::deactivate);
     }
 }
