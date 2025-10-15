@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -46,7 +47,7 @@ public class MissionAssignmentService {
     /*
         호출하는 유저의 미션만 추가
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void assignUserMissionForMonth(Long userId) {
         List<Mission> missions =
             missionRepository.findByActiveYearMonthAndIsActiveTrueOrderByIdAsc(YearMonth.now());
