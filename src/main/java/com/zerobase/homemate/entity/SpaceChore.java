@@ -23,16 +23,15 @@
         @Column(name = "title_ko", nullable = false, length = 100)
         private String titleKo;
 
-        @Column(name = "default_freq", nullable = false)
         @Enumerated(EnumType.STRING)
-        private RepeatType defaultFreq;
+        @Column(name = "repeat_type", nullable = false)
+        private RepeatType repeatType;
 
-        @Column(name = "is_active")
-        private Boolean isActive;
+        @Column(name = "repeat_interval")
+        private Integer repeatInterval;
 
         @Enumerated(EnumType.STRING)
         @Column(nullable = false)
         private Space space;
-
 
     }

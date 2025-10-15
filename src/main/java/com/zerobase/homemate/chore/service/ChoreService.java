@@ -52,7 +52,6 @@ public class ChoreService {
             .title(request.getTitle())
             .notificationYn(request.getNotificationYn())
             .notificationTime(request.getNotificationTime())
-            .space(request.getSpace())
             .repeatType(request.getRepeatType())
             .repeatInterval(request.getRepeatInterval())
             .startDate(request.getStartDate())
@@ -158,7 +157,6 @@ public class ChoreService {
 
         chore.setTitle(request.getTitle());
         chore.setNotificationYn(request.getNotificationYn());
-        chore.setSpace(request.getSpace());
 
         return ChoreDto.Response.fromEntity(chore);
     }
