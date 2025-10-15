@@ -60,12 +60,13 @@ class SpaceControllerTest {
                 new ClassifyChoreResponse(1L, "청소", "매주", space, null),
                 new ClassifyChoreResponse(2L, "설거지", "매일", space, null)
         );
-
-        when(spaceService.getChoresBySpace(space)).thenReturn(mockChores);
+        int page = 0;
+        when(spaceService.getChoresBySpace(space, page)).thenReturn(mockChores);
 
         // when & then
         mockMvc.perform(get("/recommend/spaces/{space}/chores", space.name())
-                        .contentType(MediaType.APPLICATION_JSON))
+                .param("page",  String.valueOf(page))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(mockChores.size()))
                 .andExpect(jsonPath("$[0].title").value("청소"))

@@ -25,7 +25,7 @@ import java.util.Map;
 public class CategoryService {
 
     private final CategoryChoreRepository categoryChoreRepository;
-    private final int DEFAULT_PAGE_SIZE = 4;
+    private final int DEFAULT_PAGE_SIZE = 5;
 
     private static final Map<RepeatType, Integer> REPEAT_PRIORITY = Map.of(
             RepeatType.DAILY, 1,

@@ -9,20 +9,18 @@ import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class SpaceService {
 
     private final SpaceChoreRepository spaceChoreRepository;
-    private final int DEFAULT_LIMIT = 4;
+    private final int DEFAULT_LIMIT = 5;
 
     private static final Map<RepeatType, Integer> REPEAT_PRIORITY = Map.of(
             RepeatType.DAILY, 1,
@@ -31,22 +29,29 @@ public class SpaceService {
             RepeatType.NONE, 4
     );
 
-    public List<ClassifyChoreResponse> getChoresBySpace(Space space){
-        if(space == null){
+    public List<ClassifyChoreResponse> getChoresBySpace(Space space, int page){
+        if (space == null) {
             throw new CustomException(ErrorCode.SPACE_NOT_FOUND);
         }
 
-        List<SpaceChore> randomChores = spaceChoreRepository.findBySpace(
-                space,
-                Pageable.ofSize(DEFAULT_LIMIT)
-        );
+        if (page < 0 || page > 2) {
+            throw new CustomException(ErrorCode.UNVALID_PAGE);
+        }
 
-        if(randomChores.isEmpty()){
+        Pageable pageable = PageRequest.of(page, DEFAULT_LIMIT);
+
+        List<SpaceChore> randomChores = spaceChoreRepository.findBySpace(space, pageable);
+
+        if (randomChores.isEmpty()) {
             throw new CustomException(ErrorCode.CHORE_NOT_FOUND);
         }
 
-        return randomChores.stream()
-                .sorted(Comparator.comparingInt(spaceChore -> REPEAT_PRIORITY.get(spaceChore.getRepeatType())))
+        // 페이지 내에서 RepeatType 우선순위 정렬
+        List<SpaceChore> pageSpaceChores = randomChores.stream()
+                .sorted(Comparator.comparingInt(c -> REPEAT_PRIORITY.get(c.getRepeatType())))
+                .toList();
+
+        return pageSpaceChores.stream()
                 .map(ClassifyChoreResponse::fromSpace)
                 .toList();
     }

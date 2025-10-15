@@ -25,8 +25,9 @@ public class SpaceController {
 
     @GetMapping("/{space}/chores")
     public ResponseEntity<List<ClassifyChoreResponse>> getChoresBySpace(
-            @PathVariable("space") Space space) {
-        return ResponseEntity.ok(spaceService.getChoresBySpace(space));
+            @PathVariable("space") Space space,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
+        return ResponseEntity.ok(spaceService.getChoresBySpace(space, page));
     }
 
 

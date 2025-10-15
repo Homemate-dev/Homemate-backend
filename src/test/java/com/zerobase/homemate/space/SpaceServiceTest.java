@@ -59,7 +59,7 @@ public class SpaceServiceTest {
                 .thenReturn(List.of(chore1, chore2));
 
         // when
-        List<ClassifyChoreResponse> result = spaceService.getChoresBySpace(Space.KITCHEN);
+        List<ClassifyChoreResponse> result = spaceService.getChoresBySpace(Space.KITCHEN, 0);
 
         // then
         assertThat(result).hasSize(2);
@@ -76,7 +76,7 @@ public class SpaceServiceTest {
     void getChoresBySpace_ShouldThrowExceptionIfSpaceNull() {
         // when & then
         CustomException exception = assertThrows(CustomException.class,
-                () -> spaceService.getChoresBySpace(null));
+                () -> spaceService.getChoresBySpace(null, 0));
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.SPACE_NOT_FOUND);
     }

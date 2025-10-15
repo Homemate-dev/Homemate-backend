@@ -77,6 +77,7 @@ public class ChoreDto {
         private LocalDate startDate;
         private LocalDate endDate;
         private Boolean isDeleted;
+        private Space space;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private LocalDateTime deletedAt;
@@ -88,6 +89,7 @@ public class ChoreDto {
                 .notificationYn(chore.getNotificationYn())
                 .notificationTime(chore.getNotificationTime())
                 .repeatType(chore.getRepeatType())
+                .space(chore.getSpace())
                 .repeatInterval(chore.getRepeatInterval())
                 .startDate(chore.getStartDate())
                 .endDate(chore.getEndDate())
