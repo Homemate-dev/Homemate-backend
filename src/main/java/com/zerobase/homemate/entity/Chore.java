@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Table(name = "chore")
 @Getter
@@ -76,7 +77,7 @@ public class Chore {
     private User user;
 
 
-    @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL)
     @Builder.Default
     private List<ChoreInstance> choreInstances = new ArrayList<>();
 

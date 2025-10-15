@@ -70,4 +70,10 @@ public class UserNotificationSetting {
     this.notificationTime = time.truncatedTo(ChronoUnit.MINUTES);
     this.firstSetupCompleted = true;
   }
+
+  public void applyMasterEnabled(boolean enabled) {
+    this.masterEnabled = enabled;
+    this.choreEnabled = enabled;
+    this.noticeEnabled = enabled;
+  }
 }

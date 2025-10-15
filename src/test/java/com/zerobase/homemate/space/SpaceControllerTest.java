@@ -57,8 +57,8 @@ class SpaceControllerTest {
         Space space = Space.KITCHEN;
 
         List<ClassifyChoreResponse> mockChores = List.of(
-                new ClassifyChoreResponse(1L, "청소", "매주", space),
-                new ClassifyChoreResponse(2L, "설거지", "매일", space)
+                new ClassifyChoreResponse(1L, "청소", "매주", space, null),
+                new ClassifyChoreResponse(2L, "설거지", "매일", space, null)
         );
 
         when(spaceService.getChoresBySpace(space)).thenReturn(mockChores);

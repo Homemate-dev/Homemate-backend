@@ -21,8 +21,11 @@ public class MissionService {
 
     private final MissionRepository missionRepository;
     private final UserMissionRepository userMissionRepository;
+    private final MissionAssignmentService missionAssignmentService;
 
     public List<MissionDto.Response> getMonthlyMissions(long userId) {
+
+        missionAssignmentService.assignUserMissionForMonth(userId);
 
         List<Mission> monthlyMissions =
             missionRepository.findByActiveYearMonthAndIsActiveTrueOrderByIdAsc(YearMonth.now());

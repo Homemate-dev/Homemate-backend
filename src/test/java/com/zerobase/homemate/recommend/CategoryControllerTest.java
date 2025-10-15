@@ -1,22 +1,24 @@
 package com.zerobase.homemate.recommend;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.recommend.controller.CategoryController;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
-import com.zerobase.homemate.recommend.dto.ChoreResponse;
+import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.MediaType;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,42 +32,46 @@ class CategoryControllerTest {
     @MockitoBean
     private CategoryService categoryService;
 
-    @Test
-    @DisplayName("카테고리 ID로 집안일 목록 조회 성공")
-    void getChoresByCategory_success() throws Exception {
-        // given
-        List<ChoreResponse> mockChores = List.of(
-                new ChoreResponse(1L, "거실 청소하기", "매주"),
-                new ChoreResponse(2L, "욕실 청소하기", "2주")
-        );
-        Mockito.when(categoryService.getChoresByCategory(anyLong()))
-                .thenReturn(mockChores);
+    @Autowired
+    private ObjectMapper objectMapper;
 
-        // when & then
-        mockMvc.perform(get("/recommend/categories/1/chores")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("거실 청소하기"))
-                .andExpect(jsonPath("$[1].title").value("욕실 청소하기"))
-                .andExpect(jsonPath("$[0].frequency").value("매주"));
-    }
-
+    @DisplayName("카테고리 전체 조회 API 성공")
     @Test
-    @DisplayName("전체 카테고리 조회 성공")
     void getAllCategories_success() throws Exception {
-        // given
-        List<CategoryResponse> mockCategories = List.of(
-                new CategoryResponse("청소"),
-                new CategoryResponse("요리")
+        List<CategoryResponse> mockResponse = List.of(
+                new CategoryResponse("겨울철 대맞이 청소"),
+                new CategoryResponse("하루 15분 청소")
         );
-        Mockito.when(categoryService.getAllCategories())
-                .thenReturn(mockCategories);
 
-        // when & then
+        Mockito.when(categoryService.getAllCategories()).thenReturn(mockResponse);
+
         mockMvc.perform(get("/recommend/categories")
-                        .contentType(MediaType.APPLICATION_JSON))
+                .contentType(String.valueOf(MediaType.APPLICATION_JSON)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("청소"))
-                .andExpect(jsonPath("$[1].name").value("요리"));
+                .andExpect(jsonPath("$[0].category").value("겨울철 대맞이 청소"))
+                .andExpect(jsonPath("$[1].category").value("하루 15분 청소"));
+
     }
+
+    @DisplayName("✅ 특정 카테고리별 집안일 조회 API 성공")
+    @Test
+    void getChoresByCategory_success() throws Exception {
+        // frequency 필드에 맞춰서 Mock 데이터 생성
+        List<ClassifyChoreResponse> mockResponse = List.of(
+                new ClassifyChoreResponse(1L, "설거지", "매일", null, "겨울철 대맞이 청소"),
+                new ClassifyChoreResponse(2L, "냉장고 청소", "매달", null,"겨울철 대맞이 청소")
+        );
+
+        Mockito.when(categoryService.getChoresByCategory(eq(Category.WINTER)))
+                .thenReturn(mockResponse);
+
+        mockMvc.perform(get("/recommend/categories/WINTER/chores")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("설거지"))
+                .andExpect(jsonPath("$[0].frequency").value("매일"))
+                .andExpect(jsonPath("$[1].title").value("냉장고 청소"))
+                .andExpect(jsonPath("$[1].frequency").value("매달"));
+    }
+
 }
