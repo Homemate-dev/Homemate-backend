@@ -55,7 +55,7 @@ public class FcmToken {
         refreshLastUsed();
     }
 
-    public void inActivate() {
+    public void deactivate() {
         this.isActive = false;
     }
 
