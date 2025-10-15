@@ -43,6 +43,7 @@ public class Mission {
     @Column(name = "target_count", nullable = false)
     private Integer targetCount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "space", nullable = false)
     private Space space;
 
