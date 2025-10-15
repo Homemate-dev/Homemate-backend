@@ -37,6 +37,7 @@ public class FcmToken {
     private DeviceType deviceType;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "last_used_at")
@@ -55,7 +56,7 @@ public class FcmToken {
         refreshLastUsed();
     }
 
-    public void inActivate() {
+    public void deactivate() {
         this.isActive = false;
     }
 

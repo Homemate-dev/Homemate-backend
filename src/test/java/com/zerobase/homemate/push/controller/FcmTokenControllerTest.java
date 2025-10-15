@@ -3,7 +3,6 @@ package com.zerobase.homemate.push.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.entity.enums.DeviceType;
-import com.zerobase.homemate.exception.GlobalExceptionHandler;
 import com.zerobase.homemate.push.dto.FcmTokenDto;
 import com.zerobase.homemate.push.service.FcmTokenService;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -91,6 +90,29 @@ class FcmTokenControllerTest {
                             .with(csrf()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.token", equalTo(token)));
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /push/subscriptions")
+    class Unsubscribe {
+
+        public static final String PATH = "/push/subscriptions";
+
+        @Test
+        @DisplayName(" -> 204 No Content")
+        public void success() throws Exception {
+            // given
+            String token = "test-token";
+            FcmTokenDto.Request request = new FcmTokenDto.Request();
+            ReflectionTestUtils.setField(request, "token", token);
+
+            // when & then
+            mockMvc.perform(delete(PATH)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request))
+                            .with(csrf()))
+                    .andExpect(status().isNoContent());
         }
     }
 }

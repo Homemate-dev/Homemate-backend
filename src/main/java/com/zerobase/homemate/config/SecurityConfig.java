@@ -45,6 +45,7 @@ public class SecurityConfig {
         .cors(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/login/**", "/auth/refresh", "/auth/dev/**", "/policies/**").permitAll()
+            .requestMatchers(HttpMethod.DELETE, "/push/subscriptions").permitAll()
             .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
             .anyRequest().authenticated()
         )

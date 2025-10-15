@@ -157,4 +157,28 @@ class FcmTokenServiceTest {
         verify(spyExisting).changeUser(newUser);
         verify(spyExisting).activate();
     }
+
+    @Test
+    void deactivateToken_Success_withTokenExists() {
+        // given
+        String token = "test-token";
+        FcmToken existing = FcmToken.builder()
+                .id(1L)
+                .user(user)
+                .token(token)
+                .isActive(false)
+                .build();
+        FcmToken spyExisting = spy(existing);
+
+        FcmTokenDto.Request request = new FcmTokenDto.Request();
+        ReflectionTestUtils.setField(request, "token", token);
+
+        when(fcmTokenRepository.findByToken(token)).thenReturn(Optional.of(spyExisting));
+
+        // when
+        fcmTokenService.deactivateToken(request);
+
+        verify(fcmTokenRepository).findByToken(token);
+        verify(spyExisting).deactivate();
+    }
 }

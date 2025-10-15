@@ -60,4 +60,9 @@ public class FcmTokenService {
 
         return FcmTokenDto.Response.fromEntity(saved);
     }
+
+    @Transactional
+    public void deactivateToken(FcmTokenDto.Request request) {
+        fcmTokenRepository.findByToken(request.getToken()).ifPresent(FcmToken::deactivate);
+    }
 }
