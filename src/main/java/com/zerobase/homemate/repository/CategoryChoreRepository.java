@@ -1,13 +1,22 @@
 package com.zerobase.homemate.repository;
 
 import com.zerobase.homemate.entity.CategoryChore;
+import com.zerobase.homemate.entity.enums.Category;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
 
 public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Long> {
 
-    List<CategoryChore> findByCategory_Id(Long categoryId, Pageable pageable);
+    @Query("""
+    SELECT c
+    from CategoryChore c
+    WHERE c.category = :category
+    ORDER BY function('RAND')
+""")
+    List<CategoryChore> findByCategory(@Param("category") Category category, Pageable pageable);
 }

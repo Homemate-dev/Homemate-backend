@@ -3,9 +3,9 @@ package com.zerobase.homemate.mypage.notification.service;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
-import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupRequest;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupResponse;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
+import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.MasterToggleResponse;
 import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
@@ -50,5 +50,16 @@ public class MyPageNotificationService {
 
     return new NotiTimeResponse(
         setting.getNotificationTime().truncatedTo(ChronoUnit.MINUTES), setting.getUpdatedAt());
+  }
+
+  @Transactional
+  public MasterToggleResponse toggleMaster(long userId, boolean enabled) {
+    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
+        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+
+    setting.applyMasterEnabled(enabled);
+    userNotificationSettingRepository.saveAndFlush(setting);
+
+    return MasterToggleResponse.from(setting);
   }
 }

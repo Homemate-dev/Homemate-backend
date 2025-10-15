@@ -13,7 +13,13 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "user_mission")
+@Table(name = "user_mission",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uq_user_mission",
+            columnNames = {"user_id", "mission_id"})
+    }
+)
 @Getter
 @Builder
 @NoArgsConstructor
