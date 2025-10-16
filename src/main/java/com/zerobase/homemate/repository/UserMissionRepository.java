@@ -1,5 +1,6 @@
 package com.zerobase.homemate.repository;
 
+import com.zerobase.homemate.entity.Mission;
 import com.zerobase.homemate.entity.UserMission;
 import io.lettuce.core.dynamic.annotation.Param;
 import java.util.Collection;
@@ -12,9 +13,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserMissionRepository extends JpaRepository<UserMission, Long> {
 
-    List<UserMission> findByUser_IdAndMission_IdIn(Long userId, Collection<Long> missionIds);
+    List<UserMission> findByUser_IdAndMissionIn(Long userId,
+        Collection<Mission> missions);
 
-    UserMission findByUser_IdAndMission_Id(Long userId, Long missionId);
+    UserMission findByUser_IdAndMission(Long userId, Mission mission);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """

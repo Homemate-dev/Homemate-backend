@@ -42,12 +42,8 @@ public class MissionService {
             return List.of();
         }
 
-        List<Long> missionIds = monthlyMissions.stream()
-            .map(Mission::getId)
-            .toList();
-
         List<UserMission> userMissions =
-            userMissionRepository.findByUser_IdAndMission_IdIn(userId, missionIds);
+            userMissionRepository.findByUser_IdAndMissionIn(userId, monthlyMissions);
 
         Map<Long, UserMission> userMissionMap = userMissions.stream()
             .collect(Collectors.toMap(uerMission -> uerMission.getMission().getId(),
@@ -87,9 +83,8 @@ public class MissionService {
 
         if (monthlyMissions.isEmpty()) return;
 
-        List<Long> missionIds = monthlyMissions.stream().map(Mission::getId).toList();
-        List<UserMission> userMissions = userMissionRepository
-            .findByUser_IdAndMission_IdIn(userId, missionIds);
+        List<UserMission> userMissions =
+            userMissionRepository.findByUser_IdAndMissionIn(userId, monthlyMissions);
 
         if (userMissions.isEmpty()) return;
 
@@ -97,10 +92,9 @@ public class MissionService {
             .collect(Collectors.toMap(um -> um.getMission().getId(),
                 Function.identity()));
 
-        List<Long> userMissionIds = userMissions.stream().map(UserMission::getId).toList();
         Map<Long, MissionProgress> progressByUserMissionId =
-            missionProgressRepository.findByUserMission_IdInAndChoreInstance_Id(
-                userMissionIds, choreInstance.getId())
+            missionProgressRepository.findByUserMissionInAndChoreInstance(
+                userMissions, choreInstance)
             .stream()
             .collect(Collectors.toMap(mp ->
                 mp.getUserMission().getId(), Function.identity())
@@ -115,7 +109,7 @@ public class MissionService {
         UserMission counterUserMission = null;
         if (completeCounterMission != null) {
             counterUserMission = userMissionRepository.
-                findByUser_IdAndMission_Id(userId, counterUserMission.getId());
+                findByUser_IdAndMission(userId, completeCounterMission);
         }
 
         List<MissionProgress> toSave = new ArrayList<>();
@@ -198,8 +192,8 @@ public class MissionService {
             counterUserMission.decrementCount();
 
             MissionProgress counterMissionProgress =
-                missionProgressRepository.findByUserMission_IdAndChoreInstance_Id(
-                    counterUserMission.getId(), choreInstance.getId());
+                missionProgressRepository.findByUserMissionAndChoreInstance(
+                    counterUserMission, choreInstance);
 
             if (counterMissionProgress != null) {
                 toDelete.add(counterMissionProgress);
@@ -219,8 +213,8 @@ public class MissionService {
             return;
         }
 
-        UserMission userMission = userMissionRepository.findByUser_IdAndMission_Id(
-            userId, mission.getId());
+        UserMission userMission = userMissionRepository.findByUser_IdAndMission(
+            userId, mission);
 
         if (userMission == null) {
             return;
