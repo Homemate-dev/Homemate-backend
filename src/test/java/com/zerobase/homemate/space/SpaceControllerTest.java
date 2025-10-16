@@ -72,4 +72,6 @@ class SpaceControllerTest {
                 .andExpect(jsonPath("$[0].title").value("청소"))
                 .andExpect(jsonPath("$[1].title").value("설거지"));
     }
+
+
 }
