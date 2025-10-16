@@ -18,6 +18,7 @@ import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSe
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
 import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.ToggleResponse;
 import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
+import com.zerobase.homemate.mypage.notification.model.NotificationType;
 import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -177,7 +178,7 @@ class MyPageNotificationControllerTest {
         true, true, true,
         LocalDateTime.of(2025, 9, 19, 7, 10, 0)
     );
-    given(myPageNotificationService.toggleNotification(userId, "master", true))
+    given(myPageNotificationService.toggleNotification(userId, NotificationType.MASTER, true))
         .willReturn(resp);
 
     var principal = new UserPrincipal(userId, "nick", "ROLE_USER");
@@ -197,7 +198,7 @@ class MyPageNotificationControllerTest {
         .andExpect(jsonPath("$.noticeEnabled").value(true))
         .andExpect(jsonPath("$.updatedAt").exists());
 
-    then(myPageNotificationService).should().toggleNotification(userId, "master", true);
+    then(myPageNotificationService).should().toggleNotification(userId, NotificationType.MASTER, true);
     then(myPageNotificationService).shouldHaveNoMoreInteractions();
   }
 
@@ -210,7 +211,7 @@ class MyPageNotificationControllerTest {
         true, true, true,
         LocalDateTime.of(2025, 9, 19, 7, 10, 0)
     );
-    given(myPageNotificationService.toggleNotification(userId, "chore", true))
+    given(myPageNotificationService.toggleNotification(userId, NotificationType.CHORE, true))
         .willReturn(resp);
 
     var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
@@ -229,7 +230,7 @@ class MyPageNotificationControllerTest {
         .andExpect(jsonPath("$.updatedAt").exists());
 
     then(myPageNotificationService).should()
-        .toggleNotification(eq(1L), eq("chore"), eq(true));
+        .toggleNotification(eq(1L), eq(NotificationType.CHORE), eq(true));
     then(myPageNotificationService).shouldHaveNoMoreInteractions();
   }
 
@@ -242,7 +243,7 @@ class MyPageNotificationControllerTest {
         true, true, false,
         LocalDateTime.of(2025, 9, 19, 7, 10, 0)
     );
-    given(myPageNotificationService.toggleNotification(userId, "notice", false))
+    given(myPageNotificationService.toggleNotification(userId, NotificationType.NOTICE, false))
         .willReturn(resp);
 
     var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
@@ -261,7 +262,7 @@ class MyPageNotificationControllerTest {
         .andExpect(jsonPath("$.updatedAt").exists());
 
     then(myPageNotificationService).should()
-        .toggleNotification(eq(1L), eq("notice"), eq(false));
+        .toggleNotification(eq(1L), eq(NotificationType.NOTICE), eq(false));
     then(myPageNotificationService).shouldHaveNoMoreInteractions();
   }
 }

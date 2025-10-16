@@ -10,6 +10,7 @@ import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupRequest;
+import com.zerobase.homemate.mypage.notification.model.NotificationType;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -181,7 +182,7 @@ class MyPageNotificationServiceTest {
     given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
 
     // when
-    var res = sut.toggleNotification(userId, "master",  true);
+    var res = sut.toggleNotification(userId, NotificationType.MASTER,  true);
 
     // then
     assertThat(settings.isMasterEnabled()).isTrue();
@@ -214,7 +215,7 @@ class MyPageNotificationServiceTest {
     given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
 
     // when
-    var res = sut.toggleNotification(userId, "chore", true);
+    var res = sut.toggleNotification(userId, NotificationType.CHORE, true);
 
     // then
     assertThat(settings.isChoreEnabled()).isTrue();
@@ -247,7 +248,7 @@ class MyPageNotificationServiceTest {
     given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
 
     // when
-    var res = sut.toggleNotification(userId, "notice", false);
+    var res = sut.toggleNotification(userId, NotificationType.NOTICE, false);
 
     // then
     assertThat(settings.isChoreEnabled()).isTrue();
