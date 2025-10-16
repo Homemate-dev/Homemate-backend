@@ -41,6 +41,7 @@ public class CategoryController {
         return ResponseEntity.ok(responses);
     }
 
+    // Category 추천 집안일 등록
     @PostMapping("/{categoryChoreId}/register")
     public ResponseEntity<ChoreDto.Response> createChoreFromCategory(
             @AuthenticationPrincipal User user,

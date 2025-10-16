@@ -1,9 +1,18 @@
 package com.zerobase.homemate.space;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.entity.enums.UserRole;
+import com.zerobase.homemate.entity.enums.UserStatus;
+import com.zerobase.homemate.recommend.WithMockCustomUser;
 import com.zerobase.homemate.recommend.controller.SpaceController;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
+import com.zerobase.homemate.recommend.dto.SpaceChoreDto;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
+import com.zerobase.homemate.recommend.service.SpaceChoreCreator;
 import com.zerobase.homemate.recommend.service.SpaceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,8 +23,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -28,6 +41,12 @@ class SpaceControllerTest {
 
     @MockitoBean
     private SpaceService spaceService;
+
+    @MockitoBean
+    private SpaceChoreCreator spaceChoreCreator;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @DisplayName("모든 공간 Parameter 조회")
@@ -73,5 +92,58 @@ class SpaceControllerTest {
                 .andExpect(jsonPath("$[1].title").value("설거지"));
     }
 
+    @Test
+    @DisplayName("SpaceChore 기반 집안일 등록 테스트")
+    @WithMockCustomUser(id = 100L)
+    void createChoreFromSpace_shouldReturnCreatedChore() throws Exception {
+
+        Long spaceChoreId = 10L;
+        User mockUser = User.builder()
+                .id(100L)
+                .userStatus(UserStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .userRole(UserRole.USER)
+                .build();
+
+        // 요청 DTO
+        SpaceChoreDto.CreateRequest request = new  SpaceChoreDto.CreateRequest();
+        request.setSpace(Space.KITCHEN);
+
+        // Mock Response 생성
+        ChoreDto.Response mockResponse = ChoreDto.Response.builder()
+                .id(1L)
+                .title("주방 싱크대 정리하기")
+                .space(request.getSpace())
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now())
+                .createdAt(LocalDateTime.now())
+                .notificationYn(false)
+                .build();
+
+        when(spaceChoreCreator.createChoreFromSpace(
+                eq(100L),
+                any(Space.class),
+                eq(spaceChoreId)
+        )).thenReturn(mockResponse);
+
+        System.out.println(objectMapper.writeValueAsString(mockResponse));
+
+        mockMvc.perform(post("/recommend/spaces/{spaceChoreId}/register", spaceChoreId)
+                .with(csrf())
+                .with(request1 ->{
+                    request1.setUserPrincipal(() -> String.valueOf(mockUser.getId()));
+                    return request1;
+                })
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value(mockResponse.getTitle()))
+                .andExpect(jsonPath("$.space").value(mockResponse.getSpace().name()))
+                .andExpect(jsonPath("$.repeatType").value(mockResponse.getRepeatType().name()))
+                .andExpect(jsonPath("$.repeatInterval").value(mockResponse.getRepeatInterval()));
+    }
 
 }

@@ -86,7 +86,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("CategoryChore 기반 집안일 생성 테스트")
+    @DisplayName("CategoryChore 기반 집안일 등록 테스트")
     @WithMockCustomUser(id = 100L)
     void createChoreFromCategory_shouldReturnCreatedChore() throws Exception {
 
@@ -112,6 +112,7 @@ class CategoryControllerTest {
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .notificationYn(false)
+                .createdAt(LocalDateTime.now())
                 .build();
 
         // Service Mock
