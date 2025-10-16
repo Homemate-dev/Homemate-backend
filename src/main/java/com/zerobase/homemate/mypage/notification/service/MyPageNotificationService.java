@@ -7,6 +7,7 @@ import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSe
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
 import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.ToggleResponse;
 import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
+import com.zerobase.homemate.mypage.notification.model.NotificationType;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -58,34 +59,31 @@ public class MyPageNotificationService {
   }
 
   @Transactional
-  public ToggleResponse toggleNotification(long userId, String type, boolean enabled) {
+  public ToggleResponse toggleNotification(long userId, NotificationType type, boolean enabled) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
-
-    String key = type.toLowerCase();
     boolean changed = false;
 
-    switch (key) {
-      case "master" -> {
+    switch (type) {
+      case MASTER -> {
         if (setting.isMasterEnabled() != enabled) {
           setting.applyMasterEnabled(enabled);
           changed = true;
         }
       }
-      case "chore" -> {
+      case CHORE -> {
         if (setting.isChoreEnabled() != enabled) {
           setting.changeChoreEnabled(enabled);
           changed = true;
         }
         syncMaster(setting);
       }
-      case "notice" ->  {
+      case NOTICE ->  {
         if (setting.isNoticeEnabled() != enabled) {
           setting.changeNoticeEnabled(enabled);
           changed = true;
         }
         syncMaster(setting);
       }
-      default -> throw new CustomException(ErrorCode.INVALID_NOTIFICATION_TYPE);
     }
 
     if (changed) {

@@ -8,6 +8,7 @@ import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.Togg
 import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.ToggleResponse;
 import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeRequest;
 import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
+import com.zerobase.homemate.mypage.notification.model.NotificationType;
 import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,6 @@ public class MyPageNotificationController {
       @Valid @RequestBody ToggleRequest request) {
 
     return ResponseEntity.ok(
-        myPageNotificationService.toggleNotification(user.id(), type, request.enabled()));
+        myPageNotificationService.toggleNotification(user.id(), NotificationType.from(type), request.enabled()));
   }
 }
