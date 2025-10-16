@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.zerobase.homemate.util.ChoreDateUtils.calculateEndDate;
@@ -54,6 +55,7 @@ public class CategoryChoreCreator {
                 .space(space) // 매핑된 Space 또는 ETC
                 .repeatType(template.getRepeatType())
                 .repeatInterval(template.getRepeatInterval())
+                .createdAt(LocalDateTime.now())
                 .startDate(LocalDate.now())
                 .endDate(calculateEndDate(
                         LocalDate.now(),
