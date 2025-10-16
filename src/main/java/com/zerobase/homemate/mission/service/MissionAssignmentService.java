@@ -7,7 +7,6 @@ import com.zerobase.homemate.repository.MissionRepository;
 import com.zerobase.homemate.repository.UserMissionRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,9 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class MissionAssignmentService {
-
-    private static final DateTimeFormatter YM =
-        DateTimeFormatter.ofPattern("yyyy-MM");
 
     private final MissionRepository missionRepository;
     private final UserRepository userRepository;
