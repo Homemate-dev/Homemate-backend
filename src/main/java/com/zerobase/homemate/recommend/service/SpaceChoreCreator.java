@@ -1,23 +1,18 @@
 package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.entity.Chore;
-import com.zerobase.homemate.entity.ChoreInstance;
-import com.zerobase.homemate.entity.SpaceChore;
-import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
-import com.zerobase.homemate.repository.ChoreInstanceRepository;
-import com.zerobase.homemate.repository.ChoreRepository;
-import com.zerobase.homemate.repository.SpaceChoreRepository;
-import com.zerobase.homemate.repository.UserRepository;
+import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import static com.zerobase.homemate.util.ChoreDateUtils.calculateEndDate;
@@ -31,6 +26,7 @@ public class SpaceChoreCreator {
     private final ChoreInstanceRepository choreInstanceRepository;
     private final ChoreInstanceGenerator choreInstanceGenerator;
     private final SpaceChoreRepository spaceChoreRepository;
+    private final UserNotificationSettingRepository userNotificationSettingRepository;
 
     @Transactional
     public ChoreDto.Response createChoreFromSpace(Long userId, Space space, Long spaceChoreId){
@@ -47,7 +43,11 @@ public class SpaceChoreCreator {
             throw new CustomException(ErrorCode.CHORE_ALREADY_REGISTERED);
         }
 
-        // 4. Chore 생성
+        // 4. 사용자 설정으로부터 Notification 여부, notification time의 Chore에 대한 기본 설정을 가져오기
+        UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
+                .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(9, 0)));
+
+        // 5. Chore 생성
         Chore chore = Chore.builder()
                 .user(user)
                 .title(template.getTitleKo())
@@ -60,7 +60,8 @@ public class SpaceChoreCreator {
                         template.getRepeatType(),
                         template.getRepeatInterval()
                 ))
-                .notificationYn(false)
+                .notificationYn(setting.isChoreEnabled())
+                .notificationTime(setting.getNotificationTime())
                 .isDeleted(false)
                 .build();
 

@@ -20,11 +20,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
@@ -52,6 +52,9 @@ public class CategoryChoreCreatorTest {
 
     @InjectMocks
     private CategoryChoreCreator categoryChoreCreator;
+
+    @Mock
+    private UserNotificationSettingRepository userNotificationSettingRepository;
 
     @Test
     void createChoreFromCategory_shouldCreateChoreWithMatchedSpace(){
@@ -126,4 +129,33 @@ public class CategoryChoreCreatorTest {
         verify(choreRepository, never()).save(any(Chore.class));
         verify(choreInstanceRepository, never()).saveAll(anyList());
     }
+
+    @Test
+    @DisplayName("notificationYn 기본값 세팅 notificationTime 기본값 세팅 확인")
+    void createChore_shouldSetDefaultNotificationTimeEvenIfDisabled() {
+        // given
+        User user = User.builder().id(1L).build();
+        CategoryChore template = CategoryChore.builder()
+                .title("청소하기")
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(categoryChoreRepository.findById(1L)).thenReturn(Optional.of(template));
+        when(choreRepository.existsByUserIdAndTitle(anyLong(), anyString())).thenReturn(false);
+        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
+        when(choreInstanceGenerator.generateInstances(any())).thenReturn(List.of());
+        when(userNotificationSettingRepository.findByUserId(anyLong()))
+                .thenReturn(Optional.empty()); // 혹은 Optional.of(defaultSetting)
+
+        // when
+        ChoreDto.Response response = categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
+
+        // then
+        assertTrue(response.getNotificationYn(), "알림은 켜져 있어야 한다");
+        assertNotNull(response.getNotificationTime(), "알림 시간은 기본값으로 세팅되어 있어야 한다");
+        assertEquals(LocalTime.of(9, 0), response.getNotificationTime(), "기본 알림 시간은 09:00");
+    }
+
 }

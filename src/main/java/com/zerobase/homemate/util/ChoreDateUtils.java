@@ -12,10 +12,13 @@ public class ChoreDateUtils {
     public static LocalDate calculateEndDate(LocalDate startDate, RepeatType type, int interval) {
         return switch (type) {
             case NONE -> startDate;
-            case DAILY -> startDate.plusDays(interval);
-            case WEEKLY -> startDate.plusWeeks(interval);
-            case MONTHLY -> startDate.plusMonths(interval);
-            case YEARLY -> startDate.plusYears(interval);
+            case DAILY, WEEKLY -> startDate.plusWeeks(4);
+            case MONTHLY -> {
+                if(interval == 1) yield startDate.plusMonths(3);
+                else if(interval <= 3) yield startDate.plusYears(1);
+                else yield startDate.plusYears(2);
+            }
+            case YEARLY -> startDate.plusYears(3);
         };
     }
 }

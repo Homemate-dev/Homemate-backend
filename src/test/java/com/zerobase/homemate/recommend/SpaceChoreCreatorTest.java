@@ -9,10 +9,7 @@ import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.service.SpaceChoreCreator;
-import com.zerobase.homemate.repository.ChoreInstanceRepository;
-import com.zerobase.homemate.repository.ChoreRepository;
-import com.zerobase.homemate.repository.SpaceChoreRepository;
-import com.zerobase.homemate.repository.UserRepository;
+import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,11 +18,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
@@ -51,6 +48,9 @@ public class SpaceChoreCreatorTest {
 
     @InjectMocks
     private SpaceChoreCreator spaceChoreCreator;
+
+    @Mock
+    private UserNotificationSettingRepository userNotificationSettingRepository;
 
     @Test
     void createChoreFromSpace_success(){
@@ -119,5 +119,35 @@ public class SpaceChoreCreatorTest {
         assertEquals(ErrorCode.CHORE_ALREADY_REGISTERED, exception.getErrorCode());
         verify(choreRepository, never()).save(any(Chore.class));
         verify(choreInstanceRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("기본 설정이 없을 때, 알림은 ON 상태이며 시간은 9시로 설정된다.")
+    void createChore_shouldSetDefaultNotificationTimeAndYn(){
+        // given
+        User user = User.builder().id(1L).build();
+
+        SpaceChore template = SpaceChore.builder()
+                .titleKo("주방 설거지하기")
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .code("주방")
+                .space(Space.KITCHEN)
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(spaceChoreRepository.findById(anyLong())).thenReturn(Optional.of(template));
+        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
+        when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
+        when(userNotificationSettingRepository.findByUserId(anyLong()))
+                .thenReturn(Optional.empty());
+
+        // when
+        ChoreDto.Response response = spaceChoreCreator.createChoreFromSpace(1L, Space.KITCHEN, anyLong());
+
+        // then
+        assertTrue(response.getNotificationYn(), "알림은 켜져 있는 게 Default");
+        assertNotNull(response.getNotificationTime(), "알림 시간은 기본값이 정해져 있다.");
+        assertEquals(LocalTime.of(9, 0), response.getNotificationTime(), "기본 알림 시각 9시 정각");
     }
 }
