@@ -49,13 +49,12 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
            SET ci.choreStatus = :deleted,
                ci.deletedAt = :now
          WHERE ci.chore = :chore
-           AND ci.choreStatus IN :included
+           AND ci.choreStatus IN ('PENDING', 'COMPLETED')
            AND ci.dueDate >= :dueDate
     """)
     void bulkSoftDeleteAfterByChoreAndStatuses(
         @Param("chore") Chore chore,
         @Param("dueDate") LocalDate dueDate,
-        @Param("included") Collection<ChoreStatus> statuses,
         @Param("deleted") ChoreStatus deleted,
         @Param("now") LocalDateTime now);
 

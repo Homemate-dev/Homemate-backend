@@ -283,11 +283,8 @@ public class ChoreService {
                 choreInstance.softDelete();
             } else {
                 if (applyToAfter) {
-                    EnumSet<ChoreStatus> includedStatuses =
-                        EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
-
                     choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
-                        chore, choreInstance.getDueDate(), includedStatuses,
+                        chore, choreInstance.getDueDate(),
                         ChoreStatus.DELETED, LocalDateTime.now());
 
                     softDeleteChoreIfAllInstancesDeleted(chore);
