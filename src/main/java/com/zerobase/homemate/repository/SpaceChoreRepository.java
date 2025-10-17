@@ -3,6 +3,7 @@ package com.zerobase.homemate.repository;
 
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +20,7 @@ public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
     ORDER BY function('RAND')
 """)
     List<SpaceChore> findBySpace(Space space, Pageable pageable);
+
+    @Query(value = "SELECT titleKo FROM space_chores ORDER BY RAND() LIMIT 3", nativeQuery = true)
+    List<SpaceChoreResponse> findRandomChores();
 }
