@@ -49,6 +49,7 @@ public enum ErrorCode {
     CHORE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "이미 삭제된 집안일 입니다.", HttpStatus.CONFLICT),
     CHORE_INSTANCE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "해당 날짜의 집안일은 이미 취소되었거나 삭제되었습니다.", HttpStatus.CONFLICT),
     FIRST_SETUP_ALREADY_COMPLETED("FIRST_SETUP_ALREADY_COMPLETED", "최초 알림 설정이 이미 완료되었습니다.",  HttpStatus.CONFLICT),
+    CHORE_ALREADY_REGISTERED("CHORE_ALREADY_REGISTERED", "이미 등록된 집안일입니다.", HttpStatus.CONFLICT),
 
     // 429 Too Many Requests
     PROVIDER_RATE_LIMIT("PROVIDER_RATE_LIMIT", "소셜 제공자 호출 한도 초과입니다.", HttpStatus.TOO_MANY_REQUESTS),

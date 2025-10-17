@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.zerobase.homemate.util.ChoreDateUtils.calculateEndDate;
@@ -41,6 +40,11 @@ public class CategoryChoreCreator {
         CategoryChore template = categoryChoreRepository.findById(categoryChoreId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
+        // 3️⃣ ChoreRepository에서 동일한 이름과 사용자로 인해 만들어진 Chore가 있는지 검증
+        if(choreRepository.existsByUserIdAndTitle(userId, template.getTitle())){
+            throw new CustomException(ErrorCode.CHORE_ALREADY_REGISTERED);
+        }
+
         // 1️⃣ 동일한 집안일 찾기 (title 기준)
         SpaceChore matchedSpaceChore = spaceChoreRepository.findByTitleKo(template.getTitle())
                 .orElse(null);
@@ -55,7 +59,6 @@ public class CategoryChoreCreator {
                 .space(space) // 매핑된 Space 또는 ETC
                 .repeatType(template.getRepeatType())
                 .repeatInterval(template.getRepeatInterval())
-                .createdAt(LocalDateTime.now())
                 .startDate(LocalDate.now())
                 .endDate(calculateEndDate(
                         LocalDate.now(),
