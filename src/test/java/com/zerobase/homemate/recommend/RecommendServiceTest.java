@@ -1,8 +1,6 @@
 package com.zerobase.homemate.recommend;
 
-import com.zerobase.homemate.entity.SpaceChore;
-import com.zerobase.homemate.entity.enums.RepeatType;
-import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.service.RecommendService;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 public class RecommendServiceTest {
 
@@ -26,44 +29,30 @@ public class RecommendServiceTest {
 
     @Test
     void getRandomChores_shouldReturnThreeChores(){
-        // given
+        // given - 익명 클래스 방식으로 두 필드 구현
+        SpaceChoreResponse sc1 = new SpaceChoreResponse() {
+            public Long getId() { return 1L; }
+            public String getTitleKo() { return "주방 싱크대 청소하기"; }
+        };
+        SpaceChoreResponse sc2 = new SpaceChoreResponse() {
+            public Long getId() { return 2L; }
+            public String getTitleKo() { return "신발정리"; }
+        };
+        SpaceChoreResponse sc3 = new SpaceChoreResponse() {
+            public Long getId() { return 3L; }
+            public String getTitleKo() { return "환기하기"; }
+        };
 
-        SpaceChore sc1 = SpaceChore.builder()
-                .titleKo("주방 싱크대 비우기")
-                .space(Space.KITCHEN)
-                .code("주방")
-                .repeatType(RepeatType.DAILY)
-                .repeatInterval(1)
-                .build();
+        SpaceChoreResponse sc4 = new SpaceChoreResponse() {
+            public Long getId() { return 4L; }
+            public String getTitleKo() { return "에어컨 필터 청소하기"; }
+        };
 
-        SpaceChore sc2 = SpaceChore.builder()
-                .titleKo("기상 후 침구 정리하기")
-                .space(Space.BEDROOM)
-                .code("침실")
-                .repeatType(RepeatType.DAILY)
-                .repeatInterval(1)
-                .build();
+        when(spaceChoreRepository.findRandomChores()).thenReturn(List.of(sc1, sc2, sc4));
 
-        SpaceChore sc3 = SpaceChore.builder()
-                .titleKo("신발정리")
-                .space(Space.PORCH)
-                .code("현관")
-                .repeatType(RepeatType.WEEKLY)
-                .repeatInterval(1)
-                .build();
+        List<SpaceChoreResponse> responses = recommendService.getRandomChores();
 
-        SpaceChore sc4 = SpaceChore.builder()
-                .titleKo("환기하기")
-                .space(Space.ETC)
-                .code("기타")
-                .repeatType(RepeatType.DAILY)
-                .repeatInterval(1)
-                .build();
-
-        spaceChoreRepository.save(sc1);
-        spaceChoreRepository.save(sc2);
-        spaceChoreRepository.save(sc3);
-        spaceChoreRepository.save(sc4);
-
+        assertEquals(3, responses.size());
+        assertEquals("신발정리", responses.get(1).getTitleKo());
     }
 }

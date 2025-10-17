@@ -21,6 +21,6 @@ public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
 """)
     List<SpaceChore> findBySpace(Space space, Pageable pageable);
 
-    @Query(value = "SELECT titleKo FROM space_chores ORDER BY RAND() LIMIT 3", nativeQuery = true)
+    @Query(value = "SELECT id, title_ko FROM space_chores ORDER BY RAND() LIMIT 3", nativeQuery = true)
     List<SpaceChoreResponse> findRandomChores();
 }
