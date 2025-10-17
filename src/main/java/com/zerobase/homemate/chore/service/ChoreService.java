@@ -6,6 +6,7 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
+import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -275,24 +276,39 @@ public class ChoreService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        /*
-            TODO : 반복 주기 별 삭제 로직 구분 추가
-         */
         if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
             choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
-            if (applyToAll) {
+            if (chore.getRepeatType() == RepeatType.NONE) {
                 chore.softDelete();
-
-                EnumSet<ChoreStatus> includedStatuses =
-                    EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
-
-                choreInstanceRepository.bulkSoftDeleteByChoreIdAndStatuses(
-                    chore.getId(), includedStatuses, ChoreStatus.DELETED, LocalDateTime.now());
-            } else {
                 choreInstance.softDelete();
+            } else {
+                if (applyToAfter) {
+                    EnumSet<ChoreStatus> includedStatuses =
+                        EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
+
+                    choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
+                        chore, choreInstance.getDueDate(), includedStatuses,
+                        ChoreStatus.DELETED, LocalDateTime.now());
+
+                    softDeleteChoreIfAllInstancesDeleted(chore);
+                } else {
+                    choreInstance.softDelete();
+                    softDeleteChoreIfAllInstancesDeleted(chore);
+                }
             }
         } else {
             throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        }
+    }
+
+    private void softDeleteChoreIfAllInstancesDeleted(Chore chore) {
+        List<ChoreInstance> activeInstances =
+            choreInstanceRepository.findByChoreAndChoreStatus(
+                chore, ChoreStatus.PENDING);
+
+        if (activeInstances.isEmpty()) {
+            Chore refChore = choreRepository.getReferenceById(chore.getId());
+            refChore.softDelete();
         }
     }
 }
