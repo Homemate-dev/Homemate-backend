@@ -59,7 +59,7 @@ public class ChoreDto {
     @Getter
     @Setter
     public static class UpdateRequest extends Request {
-        private Boolean applyToAll;
+        private Boolean applyToAfter;
     }
 
     @AllArgsConstructor

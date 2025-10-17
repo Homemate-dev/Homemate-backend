@@ -114,7 +114,7 @@ public class ChoreService {
     private ChoreDto.Response updateChoreInstance(Chore chore,
         ChoreInstance choreInstance, ChoreDto.UpdateRequest request) {
 
-        if (request.getApplyToAll()) {
+        if (request.getApplyToAfter()) {
             List<ChoreInstance> futureInstances = choreInstanceRepository
                 .findByChoreIdAndDueDateGreaterThanEqualAndChoreStatus(
                     chore.getId(),
@@ -264,7 +264,7 @@ public class ChoreService {
 
     @Transactional
     public void deleteChore(Long userId, Long choreInstanceId,
-        boolean applyToAll) {
+        boolean applyToAfter) {
 
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)
