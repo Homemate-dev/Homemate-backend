@@ -28,7 +28,7 @@ public class MissionDto {
             @Nullable UserMission userMission) {
             int currentCount =
                 (userMission != null) ? userMission.getCurrentCount() : 0;
-            boolean isCompeleted =
+            boolean isCompleted =
                 (userMission != null) ? userMission.getIsCompleted() : false;
 
             return Response.builder()
@@ -36,7 +36,7 @@ public class MissionDto {
                 .title(mission.getTitle())
                 .targetCount(mission.getTargetCount())
                 .currentCount(currentCount)
-                .isCompleted(isCompeleted)
+                .isCompleted(isCompleted)
                 .build();
         }
     }

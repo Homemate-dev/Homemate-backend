@@ -6,8 +6,10 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
+import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.repository.UserRepository;
@@ -31,6 +33,7 @@ public class ChoreService {
     private final ChoreInstanceRepository choreInstanceRepository;
     private final ChoreInstanceGenerator choreInstanceGenerator;
     private final UserRepository userRepository;
+    private final MissionService missionService;
 
     @Transactional
     public ChoreDto.Response createChores(Long userId,
@@ -64,6 +67,9 @@ public class ChoreService {
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(
             savedChore);
         choreInstanceRepository.saveAll(instances);
+
+        missionService.increaseMissionCountForAction(
+            userId, UserActionType.CREATE_CHORE_MANUAL);
 
         return ChoreDto.Response.fromEntity(savedChore);
     }
@@ -176,8 +182,16 @@ public class ChoreService {
         }
 
         switch (choreInstance.getChoreStatus()) {
-            case PENDING -> choreInstance.completeChore();
-            case COMPLETED -> choreInstance.cancelCompleteChore();
+            case PENDING -> {
+                choreInstance.completeChore();
+                missionService.applyChoreCompletionByStatus(userId,
+                    choreInstance, true);
+            }
+            case COMPLETED -> {
+                choreInstance.cancelCompleteChore();
+                missionService.applyChoreCompletionByStatus(userId,
+                    choreInstance, false);
+            }
             case CANCELLED, DELETED -> throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
             default -> throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
@@ -261,6 +275,9 @@ public class ChoreService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
+        /*
+            TODO : 반복 주기 별 삭제 로직 구분 추가
+         */
         if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
             choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
             if (applyToAll) {

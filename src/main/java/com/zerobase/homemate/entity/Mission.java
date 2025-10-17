@@ -43,6 +43,7 @@ public class Mission {
     @Column(name = "target_count", nullable = false)
     private Integer targetCount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "space", nullable = false)
     private Space space;
 
@@ -51,6 +52,7 @@ public class Mission {
     private YearMonth activeYearMonth;
 
     @Column(name = "is_active", nullable = false, columnDefinition = "BOOLEAN")
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreatedDate
