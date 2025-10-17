@@ -10,6 +10,7 @@ import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupRequest;
+import com.zerobase.homemate.mypage.notification.model.NotificationType;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -181,7 +182,7 @@ class MyPageNotificationServiceTest {
     given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
 
     // when
-    var res = sut.toggleMaster(userId, true);
+    var res = sut.toggleNotification(userId, NotificationType.MASTER,  true);
 
     // then
     assertThat(settings.isMasterEnabled()).isTrue();
@@ -191,6 +192,72 @@ class MyPageNotificationServiceTest {
     assertThat(res.masterEnabled()).isTrue();
     assertThat(res.choreEnabled()).isTrue();
     assertThat(res.noticeEnabled()).isTrue();
+
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().flush();
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("chore ON, master 동기화(둘 다 true)")
+  void toggleChore_on_syncMasterToTrue() {
+    // given: master=false, chore=false, notice=true
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().id(userId).build())
+        .firstSetupCompleted(true)
+        .masterEnabled(false)
+        .choreEnabled(false)
+        .noticeEnabled(true)
+        .notificationTime(LocalTime.of(9, 0))
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    // when
+    var res = sut.toggleNotification(userId, NotificationType.CHORE, true);
+
+    // then
+    assertThat(settings.isChoreEnabled()).isTrue();
+    assertThat(settings.isNoticeEnabled()).isTrue();
+    assertThat(settings.isMasterEnabled()).isTrue();
+
+    assertThat(res.masterEnabled()).isTrue();
+    assertThat(res.choreEnabled()).isTrue();
+    assertThat(res.noticeEnabled()).isTrue();
+
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().flush();
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("notice OFF, master 동기화 X")
+  void toggleNotice_off_syncMasterToFalse() {
+    // given: master=true, chore=true, notice=true
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().id(userId).build())
+        .firstSetupCompleted(true)
+        .masterEnabled(true)
+        .choreEnabled(true)
+        .noticeEnabled(true)
+        .notificationTime(LocalTime.of(9, 0))
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    // when
+    var res = sut.toggleNotification(userId, NotificationType.NOTICE, false);
+
+    // then
+    assertThat(settings.isChoreEnabled()).isTrue();
+    assertThat(settings.isNoticeEnabled()).isFalse();
+    assertThat(settings.isMasterEnabled()).isTrue();
+
+    assertThat(res.masterEnabled()).isTrue();
+    assertThat(res.choreEnabled()).isTrue();
+    assertThat(res.noticeEnabled()).isFalse();
 
     then(settingsRepo).should().findByUserId(userId);
     then(settingsRepo).should().flush();

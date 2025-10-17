@@ -79,4 +79,16 @@ public class UserNotificationSetting {
     this.choreEnabled = enabled;
     this.noticeEnabled = enabled;
   }
+
+  public void changeMasterEnabled(boolean enabled) {
+    this.masterEnabled = enabled;
+  }
+
+  public void changeChoreEnabled(boolean enabled) {
+    this.choreEnabled = enabled;
+  }
+
+  public void changeNoticeEnabled(boolean enabled) {
+    this.noticeEnabled = enabled;
+  }
 }
