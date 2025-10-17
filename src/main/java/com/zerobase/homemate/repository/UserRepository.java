@@ -3,7 +3,9 @@ package com.zerobase.homemate.repository;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
+import com.zerobase.homemate.mypage.query.dto.MyPageResponseDto;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +23,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<Long> findIdsByUserStatusAndUserRole(
         @Param("status") UserStatus status,
         @Param("userRole") UserRole userRole);
+
+    @Query("""
+    SELECT new com.zerobase.homemate.mypage.query.dto.MyPageResponseDto(
+        u.id, sa.socialProvider, u.profileName, u.profileImageUrl,
+        u.createdAt, u.lastLoginAt,
+        s.masterEnabled, s.choreEnabled, s.noticeEnabled,
+        s.notificationTime, s.updatedAt
+    )
+    FROM User u
+    LEFT JOIN UserSocialAccount sa ON sa.user = u
+    LEFT JOIN UserNotificationSetting s ON s.user = u
+    WHERE u.id = :id
+    """)
+    Optional<MyPageResponseDto> findMyPageResponseById(Long id);
 }
