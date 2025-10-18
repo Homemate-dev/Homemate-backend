@@ -1,4 +1,4 @@
-package com.zerobase.homemate.push.service;
+package com.zerobase.homemate.notification.push.service;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.MulticastMessage;

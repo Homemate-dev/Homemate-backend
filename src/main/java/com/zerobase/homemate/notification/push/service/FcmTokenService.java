@@ -1,9 +1,9 @@
-package com.zerobase.homemate.push.service;
+package com.zerobase.homemate.notification.push.service;
 
 import com.zerobase.homemate.entity.FcmToken;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.DeviceType;
-import com.zerobase.homemate.push.dto.FcmTokenDto;
+import com.zerobase.homemate.notification.push.dto.FcmTokenDto;
 import com.zerobase.homemate.repository.FcmTokenRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

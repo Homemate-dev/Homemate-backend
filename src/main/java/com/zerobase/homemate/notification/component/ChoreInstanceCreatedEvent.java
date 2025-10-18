@@ -1,4 +1,4 @@
-package com.zerobase.homemate.push.component;
+package com.zerobase.homemate.notification.component;
 
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.enums.RepeatType;

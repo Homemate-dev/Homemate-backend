@@ -1,6 +1,6 @@
-package com.zerobase.homemate.push.component;
+package com.zerobase.homemate.notification.component;
 
-import com.zerobase.homemate.push.service.ChoreNotificationSchedulerService;
+import com.zerobase.homemate.notification.service.ChoreNotificationSchedulerService;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
 import org.springframework.stereotype.Component;

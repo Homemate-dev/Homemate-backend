@@ -10,7 +10,7 @@ import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.service.MissionService;
-import com.zerobase.homemate.push.component.ChoreInstanceCreatedEvent;
+import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.repository.UserRepository;

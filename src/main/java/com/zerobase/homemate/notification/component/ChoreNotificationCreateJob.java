@@ -1,4 +1,4 @@
-package com.zerobase.homemate.push.component;
+package com.zerobase.homemate.notification.component;
 
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
@@ -6,7 +6,7 @@ import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.notification.dto.ChoreNotificationCreateDto;
 import com.zerobase.homemate.notification.service.NotificationService;
-import com.zerobase.homemate.push.service.FcmPushService;
+import com.zerobase.homemate.notification.push.service.FcmPushService;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

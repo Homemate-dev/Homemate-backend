@@ -1,8 +1,8 @@
-package com.zerobase.homemate.push.service;
+package com.zerobase.homemate.notification.service;
 
 import com.zerobase.homemate.entity.enums.RepeatType;
-import com.zerobase.homemate.push.component.ChoreInstanceCreatedEvent;
-import com.zerobase.homemate.push.component.ChoreNotificationCreateJob;
+import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
+import com.zerobase.homemate.notification.component.ChoreNotificationCreateJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
