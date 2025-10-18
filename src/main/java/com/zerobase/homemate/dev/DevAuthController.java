@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Profile({"local", "dev", "test"})
+@ConditionalOnProperty(value = "auth.dev.enabled", havingValue = "true")
 @RestController
 @RequestMapping("/auth/dev")
 @RequiredArgsConstructor
