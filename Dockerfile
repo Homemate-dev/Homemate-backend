@@ -1,8 +1,8 @@
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# curl + netcat 설치 (헬스체크용)
-RUN apk add --no-cache curl netcat-openbsd
+# curl 설치 (헬스체크용에서 사용)
+RUN apk add --no-cache curl
 
 # GitHub Actions에서 만든 jar를 복사
 COPY build/libs/*.jar app.jar
