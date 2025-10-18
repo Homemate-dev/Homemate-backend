@@ -19,9 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
@@ -64,28 +61,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    // 0) 공통: CORS preflight 는 무조건 스킵
-    RequestMatcher optionsMatcher = req -> "OPTIONS".equalsIgnoreCase(req.getMethod());
-    if (optionsMatcher.matches(request)) return true;
+    String path = request.getRequestURI();
+    if (path.equals("/auth/logout")) return false;
 
-    // 1) 로그아웃은 반드시 인증 필요
-    RequestMatcher logoutMatcher = new AntPathRequestMatcher("/auth/logout");
-    if (logoutMatcher.matches(request)) return false;
-
-    // 2) 푸시 구독 삭제는 인증 필요 (DELETE /push/subscriptions)
-    RequestMatcher deletePushMatcher = req ->
-        "DELETE".equalsIgnoreCase(req.getMethod()) &&
-        new AntPathRequestMatcher("/push/subscriptions").matches(req);
-    if (deletePushMatcher.matches(request)) return false;
-
-    // 3) 공개(인증 스킵) 엔드포인트 화이트리스트
-    RequestMatcher publicMatchers = new OrRequestMatcher(
-        new AntPathRequestMatcher("/auth/login/**"),
-        new AntPathRequestMatcher("/auth/refresh"),
-        new AntPathRequestMatcher("/auth/dev/**"),
-        new AntPathRequestMatcher("/policies/**")
-    );
-
-    return publicMatchers.matches(request);
+    if (path.equals("/push/subscriptions") && "DELETE".equalsIgnoreCase(request.getMethod())) {
+      return true;
+    }
+    
+    return path.startsWith("/auth/") || path.startsWith("/policies/");
   }
 }
