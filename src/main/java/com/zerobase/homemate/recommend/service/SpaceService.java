@@ -28,7 +28,6 @@ public class SpaceService {
             RepeatType.MONTHLY, 3,
             RepeatType.YEARLY, 4,
             RepeatType.NONE, 5
-
     );
 
 

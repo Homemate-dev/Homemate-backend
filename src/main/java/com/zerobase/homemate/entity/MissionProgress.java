@@ -28,10 +28,6 @@ public class MissionProgress {
     private UserMission userMission;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chore_id")
-    private Chore chore;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chore_instance_id")
     private ChoreInstance choreInstance;
 

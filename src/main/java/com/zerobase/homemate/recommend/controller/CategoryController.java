@@ -1,11 +1,17 @@
 package com.zerobase.homemate.recommend.controller;
 
+import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.recommend.dto.CategoryChoreDto;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
+import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
 import com.zerobase.homemate.recommend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +22,7 @@ import java.util.List;
 public class CategoryController {
 
     private final CategoryService categoryService;
+    private final CategoryChoreCreator categoryChoreCreator;
 
     // 전체 집안일에서 카테고리 필터링
     @GetMapping("/{category}/chores")
@@ -33,4 +40,23 @@ public class CategoryController {
         List<CategoryResponse> responses = categoryService.getAllCategories();
         return ResponseEntity.ok(responses);
     }
+
+    // Category 추천 집안일 등록
+    @PostMapping("/{categoryChoreId}/register")
+    public ResponseEntity<ChoreDto.Response> createChoreFromCategory(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long categoryChoreId,
+            @RequestBody CategoryChoreDto.CreateRequest request
+    ) {
+        ChoreDto.Response response = categoryChoreCreator.createChoreFromCategory(
+                user.getId(),
+                request.getCategory(),
+                categoryChoreId
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+
+
 }

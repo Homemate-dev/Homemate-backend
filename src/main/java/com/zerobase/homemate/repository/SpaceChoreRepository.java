@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
@@ -23,4 +24,6 @@ public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
 
     @Query(value = "SELECT id, title_ko FROM space_chores ORDER BY RAND() LIMIT 3", nativeQuery = true)
     List<SpaceChoreResponse> findRandomChores();
+           
+    Optional<SpaceChore> findByTitleKo(String title);
 }
