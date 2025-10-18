@@ -76,7 +76,7 @@ public class ChoreService {
 
         // TODO: for-loop 대신 배치 처리 구현
         for (ChoreInstance instance : instances) {
-            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(instance, savedChore.getRepeatType()));
+            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(userId, instance, savedChore.getRepeatType()));
         }
 
         return ChoreDto.Response.fromEntity(savedChore);
