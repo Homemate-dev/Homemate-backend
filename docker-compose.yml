@@ -5,7 +5,7 @@ services:
 
   # Spring Boot Application
   app:
-    image: docker.io/${DOCKER_USERNAME}/homemate-backend:latest
+    image: docker.io/${DOCKER_USERNAME}/homemate:latest
     container_name: homemate-app
     restart: always
     ports:
