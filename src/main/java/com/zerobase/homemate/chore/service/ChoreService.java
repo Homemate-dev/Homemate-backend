@@ -10,6 +10,7 @@ import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.service.MissionService;
+import com.zerobase.homemate.push.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.repository.UserRepository;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,7 @@ public class ChoreService {
     private final ChoreInstanceGenerator choreInstanceGenerator;
     private final UserRepository userRepository;
     private final MissionService missionService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ChoreDto.Response createChores(Long userId,
@@ -70,6 +73,11 @@ public class ChoreService {
 
         missionService.increaseMissionCountForAction(
             userId, UserActionType.CREATE_CHORE_MANUAL);
+
+        // TODO: for-loop 대신 배치 처리 구현
+        for (ChoreInstance instance : instances) {
+            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(instance, savedChore.getRepeatType()));
+        }
 
         return ChoreDto.Response.fromEntity(savedChore);
     }
