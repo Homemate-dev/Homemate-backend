@@ -28,14 +28,14 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCEKR_USERNAME }}
+          username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Extract image tags
         id: meta
         run: |
           SHA=${GITHUB_SHA::7}
-          echo "img=${{ secrets.DOCEKR_USERNAME }}/homemate" >> $GITHUB_OUTPUT
+          echo "img=${{ secrets.DOCKER_USERNAME }}/homemate" >> $GITHUB_OUTPUT
           echo "tag_latest=latest" >> $GITHUB_OUTPUT
           echo "tag_sha=${SHA}" >> $GITHUB_OUTPUT
 
@@ -76,4 +76,5 @@ jobs:
             # 상태/로그 간단 점검
             docker-compose ps
             sleep 2
+
             docker logs --tail=100 homemate-app || true
