@@ -279,20 +279,19 @@ public class ChoreService {
         if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
             choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
             if (chore.getRepeatType() == RepeatType.NONE) {
-                chore.softDelete();
                 choreInstance.softDelete();
+                chore.softDelete();
             } else {
                 if (applyToAfter) {
                     choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
                         chore, choreInstance.getDueDate(),
                         ChoreStatus.DELETED, LocalDateTime.now());
-
-                    softDeleteChoreIfAllInstancesDeleted(chore);
                 } else {
                     choreInstance.softDelete();
-                    softDeleteChoreIfAllInstancesDeleted(chore);
                 }
             }
+
+            softDeleteChoreIfAllInstancesDeleted(chore);
         } else {
             throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
         }
