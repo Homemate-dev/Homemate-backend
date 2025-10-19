@@ -64,27 +64,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    // 0) 공통: CORS preflight 는 무조건 스킵
-    RequestMatcher optionsMatcher = req -> "OPTIONS".equalsIgnoreCase(req.getMethod());
-    if (optionsMatcher.matches(request)) return true;
-
-    // 1) 로그아웃은 반드시 인증 필요
-    RequestMatcher logoutMatcher = new AntPathRequestMatcher("/auth/logout");
-    if (logoutMatcher.matches(request)) return false;
-
-    // 2) 푸시 구독 삭제는 인증 스킵 (DELETE /push/subscriptions)
-    RequestMatcher deletePushMatcher = req ->
-        "DELETE".equalsIgnoreCase(req.getMethod()) &&
-            new AntPathRequestMatcher("/push/subscriptions").matches(req);
-    if (deletePushMatcher.matches(request)) return true;
-
-    // 3) 공개(인증 스킵) 엔드포인트 화이트리스트
-    RequestMatcher publicMatchers = new OrRequestMatcher(
-        new AntPathRequestMatcher("/auth/login/**"),
-        new AntPathRequestMatcher("/auth/refresh"),
-        new AntPathRequestMatcher("/auth/dev/**")
-    );
-
-    return publicMatchers.matches(request);
+    return "OPTIONS".equalsIgnoreCase(request.getMethod());
   }
 }
