@@ -24,18 +24,24 @@ public class KakaoClient {
 
   // 인가코드로 액세스 토큰 교환
   public KakaoDto.TokenResponse exchangeToken(String authorizationCode, String redirectUri, String codeVerifier) {
-    log.info("[KAKAO][REQ] token-exchange code.len={}, redirectUri='{}', codeVerifier.len={}, tokenUri={}",
-        (authorizationCode == null ? "null" : authorizationCode.length()),
+    final String clientIdTrim = property.clientId() == null ? null : property.clientId().trim();
+    String clientSecretTrim = property.clientSecret(); // null 가능
+    clientSecretTrim = (clientSecretTrim == null) ? null : clientSecretTrim.trim();
+
+    log.info("[KAKAO][REQ] token-exchange clientId.prefix={}, clientSecret.present={}, code.len={}, verifier.len={}, redirectUri='{}', tokenUri={}",
+        (clientIdTrim == null ? "null" : clientIdTrim.substring(0, Math.min(6, clientIdTrim.length()))),
+        (clientSecretTrim != null && !clientSecretTrim.isEmpty()),
+        (authorizationCode == null ? -1 : authorizationCode.length()),
+        (codeVerifier == null ? -1 : codeVerifier.length()),
         redirectUri,
-        (codeVerifier == null ? "null" : codeVerifier.length()),
         property.tokenUri()
     );
     
     MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
     form.add("grant_type", "authorization_code");
-    form.add("client_id", property.clientId());
-    if (property.clientSecret() != null && !property.clientSecret().isBlank()) {
-      form.add("client_secret", property.clientSecret());
+    form.add("client_id", clientIdTrim);
+    if (clientSecretTrim != null && !clientSecretTrim.isEmpty()) {
+      form.add("client_secret", clientSecretTrim);
     }
     form.add("code", authorizationCode);
     form.add("redirect_uri", redirectUri);
@@ -62,13 +68,23 @@ public class KakaoClient {
 
     } catch (HttpClientErrorException e) {
       String body = e.getResponseBodyAsString();
-      String head = (body == null) ? "null" : body.substring(0, Math.min(240, body.length())).replaceAll("\\s+"," ");
+      String head = body.substring(0, Math.min(240, body.length())).replaceAll("\\s+"," ");
       log.warn("[KAKAO][TOKEN] HTTP {} {} body.head={}", e.getStatusCode().value(), e.getStatusText(), head);
+      log.warn("[KAKAO][TOKEN] resp.headers={}", e.getResponseHeaders());
       
       int sc = e.getStatusCode().value();
-      if (sc == 401) throw new CustomException(ErrorCode.UNAUTHORIZED);
-      if (sc == 403) throw new CustomException(ErrorCode.FORBIDDEN);
-      if (sc == 429) throw new CustomException(ErrorCode.PROVIDER_RATE_LIMIT);
+      if (sc == 401) {
+        log.warn("[KAKAO][HINT] 401 Unauthorized: invalid_client(키/시크릿), 잘못 보낸 client_secret, 또는 invalid_grant 가능");
+        throw new CustomException(ErrorCode.UNAUTHORIZED);
+      }
+      if (sc == 403) {
+        log.warn("[KAKAO][HINT] 403 Forbidden: 앱 권한/스코프 확인");
+        throw new CustomException(ErrorCode.FORBIDDEN);
+      }
+      if (sc == 429) {
+        log.warn("[KAKAO][HINT] 429 Rate limit");
+        throw new CustomException(ErrorCode.PROVIDER_RATE_LIMIT);
+      }
 
       if (body.contains("redirect_uri")) {
         log.warn("[KAKAO][HINT] redirect_uri mismatch 의심. 요청 redirectUri='{}'", redirectUri);
