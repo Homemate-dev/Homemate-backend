@@ -1,17 +1,12 @@
 package com.zerobase.homemate.notification.service;
 
-import com.zerobase.homemate.entity.ChoreNotification;
-import com.zerobase.homemate.entity.Notice;
-import com.zerobase.homemate.entity.NoticeRead;
-import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.notification.dto.ChoreNotificationCreateDto;
 import com.zerobase.homemate.notification.dto.ChoreNotificationDto;
 import com.zerobase.homemate.notification.dto.NoticeDto;
 import com.zerobase.homemate.notification.dto.NotificationReadDto;
-import com.zerobase.homemate.repository.ChoreNotificationRepository;
-import com.zerobase.homemate.repository.NoticeReadRepository;
-import com.zerobase.homemate.repository.NoticeRepository;
-import com.zerobase.homemate.repository.UserRepository;
+import com.zerobase.homemate.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +29,7 @@ public class NotificationService {
 
     private static final int MAX_NOTIFICATION_SIZE = 30;
     private final UserRepository userRepository;
+    private final ChoreInstanceRepository choreInstanceRepository;
     private final ChoreNotificationRepository choreNotificationRepository;
     private final NoticeRepository noticeRepository;
     private final NoticeReadRepository noticeReadRepository;
@@ -111,5 +107,26 @@ public class NotificationService {
         );
 
         return NotificationReadDto.fromNotice(notice, noticeRead);
+    }
+
+    @Transactional
+    public NotificationReadDto createChoreNotification(ChoreNotificationCreateDto request) {
+        User user = userRepository.getReferenceById(request.getUserId());
+        ChoreInstance choreInstance = choreInstanceRepository.getReferenceById(request.getChoreInstanceId());
+
+        ChoreNotification notification = ChoreNotification.builder()
+                .user(user)
+                .choreInstance(choreInstance)
+                .title(request.getTitle())
+                .message(request.getMessage())
+                .scheduledAt(request.getScheduledAt())
+                .isCancelled(false)
+                .isRead(false)
+                .readAt(null)
+                .build();
+
+        ChoreNotification saved = choreNotificationRepository.save(notification);
+
+        return NotificationReadDto.fromChoreNotification(saved);
     }
 }

@@ -1,4 +1,4 @@
-package com.zerobase.homemate.push.dto;
+package com.zerobase.homemate.notification.push.dto;
 
 import com.zerobase.homemate.entity.FcmToken;
 import com.zerobase.homemate.entity.enums.DeviceType;
