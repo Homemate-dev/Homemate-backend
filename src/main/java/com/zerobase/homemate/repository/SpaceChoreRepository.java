@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
@@ -19,4 +20,6 @@ public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
     ORDER BY function('RAND')
 """)
     List<SpaceChore> findBySpace(Space space, Pageable pageable);
+
+    Optional<SpaceChore> findByTitleKo(String title);
 }
