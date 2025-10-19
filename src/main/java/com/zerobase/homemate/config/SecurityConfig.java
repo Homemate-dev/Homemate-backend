@@ -20,6 +20,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -48,6 +50,24 @@ public class SecurityConfig {
     reg.setEnabled(false);
     return reg;
   }
+
+  // 공개 URL 집합
+  private final RequestMatcher publicMatchers = request -> {
+    String uri = request.getRequestURI();
+    return uri.startsWith("/auth/login/")
+        || uri.equals("/auth/refresh")
+        || uri.startsWith("/auth/dev/");
+  };
+
+  // 보호해야 하는 주요 API 패턴
+  private static final String[] PROTECTED_PATTERNS = {
+      "/users/**",
+      "/chore/**",
+      "/notifications/**",
+      "/missions",
+      "/push/subscriptions",
+      "/auth/logout"
+  };
 
   /** 공개 체인: JWT 필터 등록하지 않음 */
   @Bean
@@ -79,14 +99,27 @@ public class SecurityConfig {
             .authenticationEntryPoint(restAuthenticationEntryPoint)
             .accessDeniedHandler(restAccessDeniedHandler)
         )
-        .securityMatcher("/push/subscriptions", "/auth/logout")
+        .securityMatcher(new NegatedRequestMatcher(publicMatchers))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.DELETE, "/push/subscriptions").permitAll()
             .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
-            .anyRequest().authenticated()
+            .requestMatchers(HttpMethod.POST, "/recommend/**").authenticated()
+            .requestMatchers(HttpMethod.GET , "/recommend/**").permitAll()
+            .requestMatchers(PROTECTED_PATTERNS).authenticated()
+            .anyRequest().permitAll()
         )
         .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
+  }
+
+  @Bean
+  @Order(99)
+  public SecurityFilterChain fallbackChain(HttpSecurity http) throws Exception {
+    return http
+        .securityMatcher(req -> true)
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(a -> a.anyRequest().permitAll())
+        .build();
   }
 
   @Bean
