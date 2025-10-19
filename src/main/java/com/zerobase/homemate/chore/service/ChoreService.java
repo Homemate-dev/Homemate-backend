@@ -51,6 +51,13 @@ public class ChoreService {
 
         User userReference = userRepository.getReferenceById(userId);
 
+        LocalDate endDate;
+        if (request.getRepeatType() == RepeatType.NONE) {
+            endDate = request.getStartDate();
+        } else {
+            endDate = request.getEndDate();
+        }
+
         Chore chore = Chore.builder()
             .user(userReference)
             .title(request.getTitle())
@@ -60,7 +67,7 @@ public class ChoreService {
             .repeatType(request.getRepeatType())
             .repeatInterval(request.getRepeatInterval())
             .startDate(request.getStartDate())
-            .endDate(request.getEndDate())
+            .endDate(endDate)
             .isDeleted(false)
             .build();
 
