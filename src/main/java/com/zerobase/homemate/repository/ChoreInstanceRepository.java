@@ -1,5 +1,6 @@
 package com.zerobase.homemate.repository;
 
+import com.zerobase.homemate.chore.dto.ChoreCounts;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
@@ -7,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -60,4 +62,22 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
 
     List<ChoreInstance> findByChoreAndChoreStatus(
         Chore chore, ChoreStatus choreStatus);
+
+    @Query("""
+        SELECT new com.zerobase.homemate.chore.dto.ChoreCounts(
+            COALESCE(count(ci), 0L),
+            COALESCE(SUM(CASE WHEN ci.choreStatus = com.zerobase.homemate.entity.enums.ChoreStatus.COMPLETED THEN 1 ELSE 0 END), 0L)
+            )
+        FROM ChoreInstance ci
+        JOIN ci.chore c
+        WHERE c.user.id = :userId
+        AND c.isDeleted = false
+        AND ci.dueDate = :today
+        AND ci.choreStatus in :included
+    """)
+    ChoreCounts countTodayTotalsAndCompleted(
+        @Param("userId") Long userId,
+        @Param("today") LocalDate date,
+        @Param("included") Set<ChoreStatus> included
+    );
 }

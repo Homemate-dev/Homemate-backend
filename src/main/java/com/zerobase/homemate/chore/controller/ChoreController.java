@@ -98,4 +98,14 @@ public class ChoreController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/today-rate")
+    public ResponseEntity<Double> getTodayCompleteRate(
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+
+        double rate = choreService.getTodayCompleteRate(user.id());
+
+        return ResponseEntity.status(HttpStatus.OK).body(rate);
+    }
 }
