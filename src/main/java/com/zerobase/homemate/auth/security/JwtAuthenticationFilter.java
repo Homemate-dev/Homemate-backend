@@ -76,7 +76,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     RequestMatcher deletePushMatcher = req ->
         "DELETE".equalsIgnoreCase(req.getMethod()) &&
             new AntPathRequestMatcher("/push/subscriptions").matches(req);
-    if (deletePushMatcher.matches(request)) return false;
+    if (deletePushMatcher.matches(request)) return true;
 
     // 3) 공개(인증 스킵) 엔드포인트 화이트리스트
     RequestMatcher publicMatchers = new OrRequestMatcher(
