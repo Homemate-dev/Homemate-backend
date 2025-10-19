@@ -19,6 +19,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
@@ -61,13 +64,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    String path = request.getRequestURI();
-    if (path.equals("/auth/logout")) return false;
-
-    if (path.equals("/push/subscriptions") && "DELETE".equalsIgnoreCase(request.getMethod())) {
-      return true;
-    }
-    
-    return path.startsWith("/auth/") || path.startsWith("/policies/");
+    return "OPTIONS".equalsIgnoreCase(request.getMethod());
   }
 }
