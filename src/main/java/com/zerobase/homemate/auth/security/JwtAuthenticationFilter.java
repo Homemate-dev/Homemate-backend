@@ -1,7 +1,6 @@
 package com.zerobase.homemate.auth.security;
 
 import com.zerobase.homemate.auth.service.JwtService;
-import com.zerobase.homemate.auth.support.BearerTokenExtractor;
 import com.zerobase.homemate.auth.token.AccessTokenBlocklist;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.UserStatus;
@@ -27,11 +26,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final UserRepository userRepository;
   private final AccessTokenBlocklist accessTokenBlocklist;
 
+  private static final String PREFIX = "Bearer ";
+
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain chain) throws ServletException, IOException {
 
-    String token = BearerTokenExtractor.resolveBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+    // 헤더가 없거나 Bearer가 아니면 그냥 통과
+    if (authorization == null || !authorization.regionMatches(true, 0, PREFIX, 0, PREFIX.length())) {
+      chain.doFilter(request, response);
+      return;
+    }
+
+    String token = authorization.substring(PREFIX.length()).trim();
+    if (token.isEmpty()) {
+      chain.doFilter(request, response);
+      return;
+    }
+
     Claims claims = jwtService.parseOrThrow(token);
 
     if (claims.get("type", String.class).equals("AT")) {
