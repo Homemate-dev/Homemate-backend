@@ -6,6 +6,7 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
+import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -114,7 +115,7 @@ public class ChoreService {
     private ChoreDto.Response updateChoreInstance(Chore chore,
         ChoreInstance choreInstance, ChoreDto.UpdateRequest request) {
 
-        if (request.getApplyToAll()) {
+        if (request.getApplyToAfter()) {
             List<ChoreInstance> futureInstances = choreInstanceRepository
                 .findByChoreIdAndDueDateGreaterThanEqualAndChoreStatus(
                     chore.getId(),
@@ -264,7 +265,7 @@ public class ChoreService {
 
     @Transactional
     public void deleteChore(Long userId, Long choreInstanceId,
-        boolean applyToAll) {
+        boolean applyToAfter) {
 
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)
@@ -275,24 +276,35 @@ public class ChoreService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        /*
-            TODO : 반복 주기 별 삭제 로직 구분 추가
-         */
         if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
             choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
-            if (applyToAll) {
-                chore.softDelete();
-
-                EnumSet<ChoreStatus> includedStatuses =
-                    EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
-
-                choreInstanceRepository.bulkSoftDeleteByChoreIdAndStatuses(
-                    chore.getId(), includedStatuses, ChoreStatus.DELETED, LocalDateTime.now());
-            } else {
+            if (chore.getRepeatType() == RepeatType.NONE) {
                 choreInstance.softDelete();
+                chore.softDelete();
+            } else {
+                if (applyToAfter) {
+                    choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
+                        chore, choreInstance.getDueDate(),
+                        ChoreStatus.DELETED, LocalDateTime.now());
+                } else {
+                    choreInstance.softDelete();
+                }
             }
+
+            softDeleteChoreIfAllInstancesDeleted(chore);
         } else {
             throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        }
+    }
+
+    private void softDeleteChoreIfAllInstancesDeleted(Chore chore) {
+        List<ChoreInstance> activeInstances =
+            choreInstanceRepository.findByChoreAndChoreStatus(
+                chore, ChoreStatus.PENDING);
+
+        if (activeInstances.isEmpty()) {
+            Chore refChore = choreRepository.getReferenceById(chore.getId());
+            refChore.softDelete();
         }
     }
 }
