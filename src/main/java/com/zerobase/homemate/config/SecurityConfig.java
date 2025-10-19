@@ -9,10 +9,11 @@ import com.zerobase.homemate.repository.UserRepository;
 import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -35,37 +36,63 @@ public class SecurityConfig {
   private final RestAccessDeniedHandler restAccessDeniedHandler;
 
   @Bean
-  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    JwtAuthenticationFilter jwtFilter =
-        new JwtAuthenticationFilter(jwtService, userRepository, accessTokenBlocklist);
+  public JwtAuthenticationFilter jwtAuthenticationFilter() {
+    return new JwtAuthenticationFilter(jwtService, userRepository, accessTokenBlocklist);
+  }
 
+  // 전역(서블릿) 자동 등록 OFF
+  @Bean
+  public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
+      JwtAuthenticationFilter filter) {
+    var reg = new FilterRegistrationBean<>(filter);
+    reg.setEnabled(false);
+    return reg;
+  }
+
+  /** 공개 체인: JWT 필터 등록하지 않음 */
+  @Bean
+  @Order(1)
+  public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
     http
-        .csrf(csrf -> csrf.disable())
+        .csrf(AbstractHttpConfigurer::disable)
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .cors(Customizer.withDefaults())
+        .exceptionHandling(ex -> ex
+            .authenticationEntryPoint(restAuthenticationEntryPoint)
+            .accessDeniedHandler(restAccessDeniedHandler)
+        )
+        .securityMatcher("/auth/login/**", "/auth/refresh", "/auth/dev/**")
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        .logout(AbstractHttpConfigurer::disable);
+    return http.build();
+  }
+
+  /** 보호 체인: JWT 필터 적용 */
+  @Bean
+  @Order(2)
+  public SecurityFilterChain appChain(HttpSecurity http, JwtAuthenticationFilter filter) throws Exception {
+    http
+        .csrf(AbstractHttpConfigurer::disable)
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(ex -> ex
+            .authenticationEntryPoint(restAuthenticationEntryPoint)
+            .accessDeniedHandler(restAccessDeniedHandler)
+        )
+        .securityMatcher("/push/subscriptions", "/auth/logout")
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/auth/login/**", "/auth/refresh", "/auth/dev/**", "/policies/**").permitAll()
-            .requestMatchers(HttpMethod.DELETE, "/push/subscriptions").permitAll()
+            .requestMatchers(HttpMethod.DELETE, "/push/subscriptions").authenticated()
             .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
             .anyRequest().authenticated()
         )
-        .exceptionHandling(ex -> ex
-            .authenticationEntryPoint(restAuthenticationEntryPoint) // 401
-            .accessDeniedHandler(restAccessDeniedHandler) // 403
-        )
-        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-        .logout(AbstractHttpConfigurer::disable);
-
+        .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of(
-        "http://localhost:3000",
-        "http://localhost:5173"
-    ));
+    config.setAllowedOrigins(List.of("*"));
 
     // 배포 후 추가(예시)
     // config.addAllowedOrigin("https://www.homemate.com");
