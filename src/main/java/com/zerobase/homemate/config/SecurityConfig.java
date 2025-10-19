@@ -81,7 +81,7 @@ public class SecurityConfig {
         )
         .securityMatcher("/push/subscriptions", "/auth/logout")
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.DELETE, "/push/subscriptions").authenticated()
+            .requestMatchers(HttpMethod.DELETE, "/push/subscriptions").permitAll()
             .requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
             .anyRequest().authenticated()
         )
