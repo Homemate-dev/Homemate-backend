@@ -1,5 +1,6 @@
 package com.zerobase.homemate.repository;
 
+import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import java.time.LocalDate;
@@ -45,14 +46,18 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
         UPDATE ChoreInstance ci
-            SET ci.choreStatus = :deleted,
-                ci.deletedAt = :now
-        WHERE ci.chore.id = :choreId
-          AND ci.choreStatus IN :included
+           SET ci.choreStatus = :deleted,
+               ci.deletedAt = :now
+         WHERE ci.chore = :chore
+           AND ci.choreStatus IN ('PENDING', 'COMPLETED')
+           AND ci.dueDate >= :dueDate
     """)
-    void bulkSoftDeleteByChoreIdAndStatuses(
-        @Param("choreId") Long choreId,
-        @Param("included") Collection<ChoreStatus> statuses,
+    void bulkSoftDeleteAfterByChoreAndStatuses(
+        @Param("chore") Chore chore,
+        @Param("dueDate") LocalDate dueDate,
         @Param("deleted") ChoreStatus deleted,
         @Param("now") LocalDateTime now);
+
+    List<ChoreInstance> findByChoreAndChoreStatus(
+        Chore chore, ChoreStatus choreStatus);
 }

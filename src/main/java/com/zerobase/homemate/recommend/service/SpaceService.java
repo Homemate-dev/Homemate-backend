@@ -30,6 +30,8 @@ public class SpaceService {
             RepeatType.NONE, 5
     );
 
+
+
     public List<ClassifyChoreResponse> getChoresBySpace(Space space, int page){
         if (space == null) {
             throw new CustomException(ErrorCode.SPACE_NOT_FOUND);
