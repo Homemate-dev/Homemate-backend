@@ -72,7 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     RequestMatcher logoutMatcher = new AntPathRequestMatcher("/auth/logout");
     if (logoutMatcher.matches(request)) return false;
 
-    // 2) 푸시 구독 삭제는 인증 필요 (DELETE /push/subscriptions)
+    // 2) 푸시 구독 삭제는 인증 스킵 (DELETE /push/subscriptions)
     RequestMatcher deletePushMatcher = req ->
         "DELETE".equalsIgnoreCase(req.getMethod()) &&
             new AntPathRequestMatcher("/push/subscriptions").matches(req);
