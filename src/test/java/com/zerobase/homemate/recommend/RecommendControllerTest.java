@@ -1,14 +1,20 @@
 package com.zerobase.homemate.recommend;
 
+import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.enums.UserRole;
+import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.recommend.controller.RecommendController;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.recommend.service.RecommendService;
 import com.zerobase.homemate.recommend.service.stats.ChoreStatsService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -61,35 +67,53 @@ public class RecommendControllerTest {
     }
 
     @Test
+    @DisplayName("유저별 미션 달성 집안일 + Top N 조회 (집안일 개수 포함)")
     void testGetTopOverall() throws Exception {
         // given
+        User user = User.builder()
+                .userRole(UserRole.USER)
+                .id(1L)
+                .userStatus(UserStatus.ACTIVE)
+                .profileName("테스트")
+                .build();
+
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(user, null, List.of());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+
         List<TopItemDto> topList = List.of(
-                new TopItemDto("미션 달성 집안일", "MISSIONS"),
-                new TopItemDto("기타 집안일", "ETC"),
-                new TopItemDto("15분 청소", "FIFTEEN"),
-                new TopItemDto("겨울철 집안일", "WINTER"),
-                new TopItemDto("주방", "KITCHEN")
+                new TopItemDto("미션 달성 집안일", "MISSIONS", 3L),
+                new TopItemDto("기타 집안일", "ETC", 8L),
+                new TopItemDto("15분 청소", "FIFTEEN", 6L),
+                new TopItemDto("겨울철 집안일", "WINTER", 4L),
+                new TopItemDto("주방", "KITCHEN", 2L)
         );
 
-        when(choreStatsService.getTopOverallWithMissions(5)).thenReturn(topList);
+        when(choreStatsService.getTopOverallWithMissions(user.getId(), 5))
+                .thenReturn(topList);
 
         // when & then
         mockMvc.perform(get("/recommend/trend")
+                        .param("userId", String.valueOf(user.getId()))
                         .param("topN", "5")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                // name 검증
                 .andExpect(jsonPath("$[0].name").value("미션 달성 집안일"))
-                .andExpect(jsonPath("$[0].code").value("MISSIONS"))
                 .andExpect(jsonPath("$[1].name").value("기타 집안일"))
-                .andExpect(jsonPath("$[1].code").value("ETC"))
                 .andExpect(jsonPath("$[2].name").value("15분 청소"))
+                // code 검증
+                .andExpect(jsonPath("$[0].code").value("MISSIONS"))
+                .andExpect(jsonPath("$[1].code").value("ETC"))
                 .andExpect(jsonPath("$[2].code").value("FIFTEEN"))
-                .andExpect(jsonPath("$[3].name").value("겨울철 집안일"))
-                .andExpect(jsonPath("$[3].code").value("WINTER"))
-                .andExpect(jsonPath("$[4].name").value("주방"))
-                .andExpect(jsonPath("$[4].code").value("KITCHEN"));
+                // count 검증
+                .andExpect(jsonPath("$[0].count").value(3))
+                .andExpect(jsonPath("$[1].count").value(8))
+                .andExpect(jsonPath("$[2].count").value(6));
 
-        verify(choreStatsService, times(1)).getTopOverallWithMissions(5);
+        verify(choreStatsService, times(1)).getTopOverallWithMissions(user.getId(), 5);
     }
+
 
 }
