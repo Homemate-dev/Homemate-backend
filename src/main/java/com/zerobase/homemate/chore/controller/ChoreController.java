@@ -8,6 +8,7 @@ import com.zerobase.homemate.chore.service.ChoreService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -97,5 +98,15 @@ public class ChoreController {
         choreService.deleteChore(user.id(), choreInstanceId, applyToAfter);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/today-rate")
+    public ResponseEntity<Map<String, Double>> getTodayCompleteRate(
+        @AuthenticationPrincipal UserPrincipal user
+    ) {
+
+        double rate = choreService.getTodayCompleteRate(user.id());
+
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("rate", rate));
     }
 }

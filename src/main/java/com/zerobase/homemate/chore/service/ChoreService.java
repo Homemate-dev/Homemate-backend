@@ -1,5 +1,6 @@
 package com.zerobase.homemate.chore.service;
 
+import com.zerobase.homemate.chore.dto.ChoreCounts;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
@@ -54,6 +55,13 @@ public class ChoreService {
 
         User userReference = userRepository.getReferenceById(userId);
 
+        LocalDate endDate;
+        if (request.getRepeatType() == RepeatType.NONE) {
+            endDate = request.getStartDate();
+        } else {
+            endDate = request.getEndDate();
+        }
+
         Chore chore = Chore.builder()
             .user(userReference)
             .title(request.getTitle())
@@ -63,7 +71,7 @@ public class ChoreService {
             .repeatType(request.getRepeatType())
             .repeatInterval(request.getRepeatInterval())
             .startDate(request.getStartDate())
-            .endDate(request.getEndDate())
+            .endDate(endDate)
             .isDeleted(false)
             .build();
 
@@ -314,5 +322,24 @@ public class ChoreService {
             Chore refChore = choreRepository.getReferenceById(chore.getId());
             refChore.softDelete();
         }
+    }
+
+    public double getTodayCompleteRate(Long userId) {
+        EnumSet<ChoreStatus> includedStatuses =
+            EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
+
+        ChoreCounts counts =
+            choreInstanceRepository.countTodayTotalsAndCompleted(
+                userId, LocalDate.now(), includedStatuses);
+
+        long total = counts.total();
+        if (total == 0) {
+            return 0.0;
+        }
+
+        long completed = counts.completed();
+        double rate = (double) completed / total * 100;
+
+        return Math.round(rate * 100.0) / 100.0;
     }
 }
