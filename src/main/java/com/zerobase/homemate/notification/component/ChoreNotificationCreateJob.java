@@ -2,12 +2,14 @@ package com.zerobase.homemate.notification.component;
 
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.notification.dto.ChoreNotificationCreateDto;
 import com.zerobase.homemate.notification.service.NotificationService;
 import com.zerobase.homemate.notification.push.service.FcmPushService;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class ChoreNotificationCreateJob extends QuartzJobBean {
 
     private final UserRepository userRepository;
     private final ChoreInstanceRepository choreInstanceRepository;
+    private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final NotificationService notificationService;
     private final FcmPushService fcmPushService;
 
@@ -89,12 +92,19 @@ public class ChoreNotificationCreateJob extends QuartzJobBean {
         }
 
         // 4. FCM Push 발송
-        try {
-            fcmPushService.send(user, title, message);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        UserNotificationSetting userNotificationSetting = userNotificationSettingRepository.findByUser(user).orElse(null);
+        if (userNotificationSetting == null) {
+            log.warn("Run ChoreNotificationJob: userNotificationSetting not exists - userId={}", userId);
+            return;
         }
 
+        if (userNotificationSetting.isChoreEnabled()) {
+            try {
+                fcmPushService.send(user, title, message);
+            } catch (Exception e) {
+                log.warn("Run ChoreNotificationJob: fcm push send failed - userId={}, choreInstanceId={}", userId, choreInstanceId);
+            }
+        }
     }
 
     private void cleanupAllTriggersAndJob(JobExecutionContext context) {
