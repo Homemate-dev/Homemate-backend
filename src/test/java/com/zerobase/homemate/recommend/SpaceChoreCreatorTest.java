@@ -9,6 +9,7 @@ import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.service.SpaceChoreCreator;
+import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import org.junit.jupiter.api.DisplayName;
@@ -46,11 +47,17 @@ public class SpaceChoreCreatorTest {
     @Mock
     private ChoreInstanceGenerator choreInstanceGenerator;
 
+    @Mock
+    private CategoryChoreRepository categoryChoreRepository;
+
     @InjectMocks
     private SpaceChoreCreator spaceChoreCreator;
 
     @Mock
     private UserNotificationSettingRepository userNotificationSettingRepository;
+
+    @Mock
+    private RedisChoreStatsService redisChoreStatsService;
 
     @Test
     void createChoreFromSpace_success(){

@@ -11,6 +11,7 @@ import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
+import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import org.junit.jupiter.api.DisplayName;
@@ -55,6 +56,9 @@ public class CategoryChoreCreatorTest {
 
     @Mock
     private UserNotificationSettingRepository userNotificationSettingRepository;
+
+    @Mock
+    private RedisChoreStatsService redisChoreStatsService;
 
     @Test
     void createChoreFromCategory_shouldCreateChoreWithMatchedSpace(){
