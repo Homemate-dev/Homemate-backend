@@ -21,7 +21,7 @@ public class FirebaseConfig {
         * TODO: 배포 서버에 서비스 계정 키 설정하기
         * 참고: https://firebase.google.com/docs/admin/setup
         * */
-        try (InputStream is = new ClassPathResource("homemate-firebase-example.json").getInputStream()) {
+        try (InputStream is = new ClassPathResource("homemate-firebase.json").getInputStream()) {
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(is))
                     .build();

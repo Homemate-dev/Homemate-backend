@@ -92,9 +92,9 @@ public class ChoreController {
     public ResponseEntity<Void> deleteChore(
         @AuthenticationPrincipal UserPrincipal user,
         @PathVariable Long choreInstanceId,
-        @RequestParam boolean applyToAll) {
+        @RequestParam boolean applyToAfter) {
 
-        choreService.deleteChore(user.id(), choreInstanceId, applyToAll);
+        choreService.deleteChore(user.id(), choreInstanceId, applyToAfter);
 
         return ResponseEntity.noContent().build();
     }

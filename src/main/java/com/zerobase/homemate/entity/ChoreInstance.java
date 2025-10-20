@@ -16,7 +16,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chore_instance")
+@Table(name = "chore_instance",
+        indexes = {
+            @Index(name = "idx_ci_chore_status_dueDate",
+                columnList = "chore_id, chore_status, due_date")
+        })
 @Getter
 @Builder
 @NoArgsConstructor

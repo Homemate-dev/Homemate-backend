@@ -1,8 +1,8 @@
-package com.zerobase.homemate.push.controller;
+package com.zerobase.homemate.notification.push.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
-import com.zerobase.homemate.push.dto.FcmTokenDto;
-import com.zerobase.homemate.push.service.FcmTokenService;
+import com.zerobase.homemate.notification.push.dto.FcmTokenDto;
+import com.zerobase.homemate.notification.push.service.FcmTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
