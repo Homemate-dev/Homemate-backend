@@ -11,7 +11,7 @@ public enum Category {
     SAFETY_CHECK("안전 점검의 날"),
     APPLIANCE_MAINTENANCE("가전제품 관리하기"),
     TEN_MINUTES_CLEANING("하루 10분 청소하기"),
-    ETC("기타");
+    ETC("카테고리-기타");
 
     private final String categoryName;
 

@@ -2,9 +2,11 @@ package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.*;
+import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,8 @@ public class SpaceChoreCreator {
     private final ChoreInstanceGenerator choreInstanceGenerator;
     private final SpaceChoreRepository spaceChoreRepository;
     private final UserNotificationSettingRepository userNotificationSettingRepository;
+    private final RedisChoreStatsService redisChoreStatsService;
+    private final CategoryChoreRepository categoryChoreRepository;
 
     @Transactional
     public ChoreDto.Response createChoreFromSpace(Long userId, Space space, Long spaceChoreId){
@@ -69,6 +73,14 @@ public class SpaceChoreCreator {
 
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
+
+        //. Category 소속여부 조회
+        CategoryChore matchedCategoryChore = categoryChoreRepository.findByTitle(template.getTitleKo())
+                        .orElse(null);
+
+        Category category = (matchedCategoryChore != null) ? matchedCategoryChore.getCategory() : Category.ETC;
+
+        redisChoreStatsService.increment(category, template.getSpace());
 
         return ChoreDto.Response.fromEntity(saved);
     }
