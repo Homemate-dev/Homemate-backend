@@ -29,8 +29,8 @@ public class ChoreStats {
 
     private LocalDateTime lastSyncedAt;
 
-    public void increment(Long delta){
-        this.count += delta;
+    public void increment(Long count){
+        this.count += count;
         this.lastSyncedAt = LocalDateTime.now();
     }
 }
