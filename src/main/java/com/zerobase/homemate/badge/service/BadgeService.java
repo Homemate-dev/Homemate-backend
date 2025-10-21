@@ -43,7 +43,7 @@ public class BadgeService {
         List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
                 .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
                 .filter(BadgeType::isRegisterBadge)
-                .filter(type -> matchesCondition(chore, type))
+                .filter(type -> matchesCondition(user, type))
                 .map(type -> new Badge(user, type))
                 .toList();
 
