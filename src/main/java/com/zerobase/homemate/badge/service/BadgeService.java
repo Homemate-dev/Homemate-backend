@@ -2,6 +2,7 @@ package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.badge.BadgeResponse;
 import com.zerobase.homemate.entity.Badge;
+import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.repository.BadgeRepository;
@@ -30,9 +31,24 @@ public class BadgeService {
             }
 
             Long completedCount = countCompleted(user, badgeType);
-            if(completedCount >= badgeType.getRequiredCount()){
+            if(completedCount >= badgeType.getRequireCount()){
                 badgeRepository.save(new Badge(user, badgeType));
             }
+        }
+    }
+
+    // 집안일 등록 시 호출
+    @Transactional
+    public void evaluateBadgesOnCreate(User user, Chore chore){
+        List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
+                .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
+                .filter(BadgeType::isRegisterBadge)
+                .filter(type -> matchesCondition(chore, type))
+                .map(type -> new Badge(user, type))
+                .toList();
+
+        if(!badgesToSave.isEmpty()){
+            badgeRepository.saveAll(badgesToSave);
         }
     }
 
@@ -54,7 +70,7 @@ public class BadgeService {
                 .filter(type -> !acquiredTypes.contains(type))
                 .map(type -> {
                     Long completed = countCompleted(user, type);
-                    int remaining = Math.max(0, type.getRequiredCount() - (int) completed);
+                    int remaining = Math.max(0, type.getRequireCount()) - completed.intValue();
                     return new  BadgeResponse(type, false, remaining);
                 })
                 .sorted(Comparator.comparingInt(BadgeResponse::remainingCount))
@@ -65,14 +81,14 @@ public class BadgeService {
     // 완료된 집안일 카운트 계산
     private Long countCompleted(User user, BadgeType badgeType){
         if(badgeType.getSpace() != null){
-            return choreRepository.countByUserAndSpaceAndIsCompletedTrue((user, badgeType.getSpace());
+            return choreRepository.countByUserAndSpaceAndIsCompletedTrue(user, badgeType.getSpace());
         }
         if(badgeType.getCategory() != null){
-            return choreRepository.countByUserAndCategoryAndIsCompletedTrue((user, badgeType.getCategory());
+            return choreRepository.countByUserAndCategoryAndIsCompletedTrue(user, badgeType.getCategory());
         }
 
         if(badgeType.getChoreTitle() != null){
-            return choreRepository.countByUserAndTitleAndIsCompletedTrue((user, badgeType.getChoreTitle());
+            return choreRepository.countByUserAndTitleAndIsCompletedTrue(user, badgeType.getChoreTitle());
         }
         return 0L;
     }
