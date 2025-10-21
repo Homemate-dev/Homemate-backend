@@ -1,5 +1,6 @@
 package com.zerobase.homemate.repository;
 
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +14,8 @@ public interface UserNotificationSettingRepository extends JpaRepository<UserNot
   boolean existsByUserId(Long userId);
   Optional<UserNotificationSetting> findByUserId(Long userId);
 
+  Optional<UserNotificationSetting> findByUser(User user);
+  
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query("""
       UPDATE UserNotificationSetting s
@@ -23,5 +26,4 @@ public interface UserNotificationSettingRepository extends JpaRepository<UserNot
          AND s.masterEnabled = FALSE
   """)
   void enableUserNotificationSetting(@Param("userId") Long userId);
-
 }
