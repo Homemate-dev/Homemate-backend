@@ -59,14 +59,11 @@ public class BadgeService {
         }
     }
 
-    private BadgeCondition createCondition(BadgeType type) {
+    public BadgeCondition createCondition(BadgeType type) {
         if(type.getSpace() != null){
             return new SpaceBadgeCondition(type.getSpace(), type.getRequireCount(), type.getBadgeName(), choreRepository);
         }
 
-        if(type.getCategory() != null){
-            return new CategoryBadgeCondition(type.getCategory(), type.getRequireCount(), type.getBadgeName(), categoryChoreRepository, choreRepository);
-        }
 
         if(type.getChoreTitle() != null){
             return new NameBadgeCondition(type.getChoreTitle(),  type.getRequireCount(), type.getBadgeName(), choreRepository);
@@ -145,9 +142,6 @@ public class BadgeService {
     private Long countCompleted(User user, BadgeType badgeType){
         if(badgeType.getSpace() != null){
             return choreRepository.countByUserAndSpaceAndIsCompletedTrue(user, badgeType.getSpace());
-        }
-        if(badgeType.getCategory() != null){
-            return choreRepository.countByUserAndCategoryAndIsCompletedTrue(user, badgeType.getCategory());
         }
 
         if(badgeType.getChoreTitle() != null){

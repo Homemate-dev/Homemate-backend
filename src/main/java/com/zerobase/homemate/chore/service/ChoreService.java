@@ -1,5 +1,6 @@
 package com.zerobase.homemate.chore.service;
 
+import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.chore.dto.ChoreCounts;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
@@ -41,6 +42,7 @@ public class ChoreService {
     private final MissionService missionService;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisChoreStatsService redisChoreStatsService;
+    private final BadgeService badgeService;
 
     @Transactional
     public ChoreDto.Response createChores(Long userId,
@@ -91,6 +93,8 @@ public class ChoreService {
         }
 
         redisChoreStatsService.increment(null, request.getSpace());
+
+        badgeService.evaluateBadgesOnCreate(userReference, savedChore);
 
         return ChoreDto.Response.fromEntity(savedChore);
     }
@@ -216,6 +220,8 @@ public class ChoreService {
             case CANCELLED, DELETED -> throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
             default -> throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
+
+        badgeService.evaluateBadges(chore.getUser());
 
         return ChoreInstanceDto.Response.fromEntity(choreInstance);
     }

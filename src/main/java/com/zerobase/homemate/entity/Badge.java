@@ -1,7 +1,6 @@
 package com.zerobase.homemate.entity;
 
 import com.zerobase.homemate.entity.enums.BadgeType;
-import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.Space;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,10 +21,6 @@ public class Badge {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "category")
-    private Category category;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "space")
@@ -49,7 +44,6 @@ public class Badge {
         this.user = user;
         this.badgeType = badgeType;
         this.acquiredAt = LocalDateTime.now();
-        this.category = badgeType.getCategory();
         this.space = badgeType.getSpace();
     }
 }
