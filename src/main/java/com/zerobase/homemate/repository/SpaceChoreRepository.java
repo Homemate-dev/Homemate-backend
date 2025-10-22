@@ -26,4 +26,6 @@ public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
     List<SpaceChoreResponse> findRandomChores();
            
     Optional<SpaceChore> findByTitleKo(String title);
+
+    Long countBySpace(Space space);
 }

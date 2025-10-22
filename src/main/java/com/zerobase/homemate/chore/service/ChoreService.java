@@ -13,6 +13,7 @@ import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
+import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
@@ -40,7 +41,9 @@ public class ChoreService {
     private final UserRepository userRepository;
     private final MissionService missionService;
     private final ApplicationEventPublisher eventPublisher;
+
     private final UserNotificationSettingRepository userNotificationSettingRepository;
+    private final RedisChoreStatsService redisChoreStatsService;
 
     @Transactional
     public ChoreDto.Response createChores(Long userId,
@@ -94,6 +97,8 @@ public class ChoreService {
         for (ChoreInstance instance : instances) {
             eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(userId, instance, savedChore.getRepeatType()));
         }
+
+        redisChoreStatsService.increment(null, request.getSpace());
 
         return ChoreDto.Response.fromEntity(savedChore);
     }
