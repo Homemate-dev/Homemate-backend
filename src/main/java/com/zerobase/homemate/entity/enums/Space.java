@@ -9,12 +9,12 @@ public enum Space {
     BATHROOM("욕실"),
     BEDROOM("침실"),
     PORCH("현관"),
-    ETC("기타");
+    ETC("공간-기타");
 
-    private final String description;
+    private final String spaceName;
 
-    Space(String description) {
-        this.description = description;
+    Space(String spaceName) {
+        this.spaceName = spaceName;
     }
 }
 
