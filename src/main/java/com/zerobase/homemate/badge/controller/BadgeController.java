@@ -1,7 +1,6 @@
 package com.zerobase.homemate.badge.controller;
 
 
-import com.zerobase.homemate.auth.service.AuthService;
 import com.zerobase.homemate.badge.BadgeResponse;
 import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.entity.User;
