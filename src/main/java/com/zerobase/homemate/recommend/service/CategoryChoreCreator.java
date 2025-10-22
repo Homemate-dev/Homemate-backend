@@ -6,6 +6,7 @@ import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class CategoryChoreCreator {
     private final CategoryChoreRepository categoryChoreRepository;
     private final SpaceChoreRepository spaceChoreRepository;
     private final UserNotificationSettingRepository userNotificationSettingRepository;
+    private final RedisChoreStatsService redisChoreStatsService;
 
 
     @Transactional
@@ -77,12 +79,16 @@ public class CategoryChoreCreator {
                 .isDeleted(false)
                 .build();
 
-        // 4️⃣ 저장
+        // 5. 저장
         Chore saved = choreRepository.save(chore);
 
-        // 5️⃣ 반복 인스턴스 생성
+        // 6. 반복 인스턴스 생성
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
+
+        // 7. Redis counting 반영
+        redisChoreStatsService.increment(template.getCategory(), space);
+
 
         return ChoreDto.Response.fromEntity(saved);
     }
