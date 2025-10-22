@@ -42,9 +42,7 @@ public class ChoreStatsService {
         List<TopItemDto> result = new ArrayList<>();
 
         // 미션 집안일 수
-        Long missionCount = missionService.getMonthlyMissions(userId).stream()
-                .filter(mission -> !mission.isCompleted())
-                        .count();
+        Long missionCount = (long) missionService.getMonthlyMissions(userId).size();
 
         // 미션 달성 집안일 먼저 추가
         result.add(new TopItemDto("미션 달성 집안일", "MISSIONS", missionCount));
