@@ -16,6 +16,7 @@ import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
@@ -40,6 +41,8 @@ public class ChoreService {
     private final UserRepository userRepository;
     private final MissionService missionService;
     private final ApplicationEventPublisher eventPublisher;
+
+    private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final RedisChoreStatsService redisChoreStatsService;
 
     @Transactional
@@ -62,6 +65,11 @@ public class ChoreService {
             endDate = request.getStartDate();
         } else {
             endDate = request.getEndDate();
+        }
+
+        if (request.getNotificationYn()) {
+            userNotificationSettingRepository.
+                enableUserNotificationSetting(userId);
         }
 
         Chore chore = Chore.builder()
