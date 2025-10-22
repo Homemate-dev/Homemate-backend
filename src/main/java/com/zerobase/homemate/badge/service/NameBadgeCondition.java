@@ -21,7 +21,7 @@ public class NameBadgeCondition implements BadgeCondition {
     public boolean matchesCondition(Chore chore) {
 
         // 이 집안일은 해당 키워드와 관련이 있는가 확인
-        if(chore.getTitle() == null || !chore.getTitle().contains(keyword)){
+        if(chore.getTitle() == null || !chore.getTitle().equals(keyword)){
             return false;
         }
 
@@ -33,6 +33,6 @@ public class NameBadgeCondition implements BadgeCondition {
 
     @Override
     public String getBadgeName() {
-        return "";
+        return badgeName;
     }
 }

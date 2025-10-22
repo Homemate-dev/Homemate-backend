@@ -49,5 +49,7 @@ public class Badge {
         this.user = user;
         this.badgeType = badgeType;
         this.acquiredAt = LocalDateTime.now();
+        this.category = badgeType.getCategory();
+        this.space = badgeType.getSpace();
     }
 }
