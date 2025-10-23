@@ -9,6 +9,7 @@ import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.repository.BadgeRepository;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
 import com.zerobase.homemate.repository.ChoreRepository;
+import com.zerobase.homemate.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,13 +30,15 @@ class BadgeServiceTest {
     private ChoreRepository choreRepository;
     private CategoryChoreRepository categoryChoreRepository;
     private User user;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
         badgeRepository = Mockito.mock(BadgeRepository.class);
         choreRepository = Mockito.mock(ChoreRepository.class);
         categoryChoreRepository = Mockito.mock(CategoryChoreRepository.class);
-        badgeService = new BadgeService(badgeRepository, choreRepository, categoryChoreRepository); // choreRepository, categoryChoreRepository는 countRemaining에서 Mock 처리 필요 시 추가
+        userRepository = Mockito.mock(UserRepository.class);
+        badgeService = new BadgeService(badgeRepository, choreRepository, categoryChoreRepository, userRepository); // choreRepository, categoryChoreRepository는 countRemaining에서 Mock 처리 필요 시 추가
         user = User.builder()
                 .id(1L)
                 .profileName("test")
@@ -44,10 +48,11 @@ class BadgeServiceTest {
 
         when(choreRepository.countByUserAndSpaceAndIsCompletedTrue(any(), any())).thenReturn(3L);
 
-
         when(choreRepository.countByUserAndTitleAndIsCompletedTrue(any(), any())).thenReturn(2L);
 
         when(categoryChoreRepository.existsByChoreAndCategory(any(), any())).thenReturn(false);
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
     }
 
     @Test
@@ -62,7 +67,7 @@ class BadgeServiceTest {
                 .thenReturn(List.of(acquiredBadge));
 
         // when
-        List<BadgeResponse> result = badgeService.getAcquiredBadges(user);
+        List<BadgeResponse> result = badgeService.getAcquiredBadges(user.getId());
 
         // then
         assertThat(result).isNotNull();
@@ -122,7 +127,7 @@ class BadgeServiceTest {
         when(choreRepository.countByUserAndTitleAndIsCompletedTrue(any(), any())).thenReturn(2L);
 
         // when
-        List<BadgeResponse> result = badgeService.getClosestBadges(user);
+        List<BadgeResponse> result = badgeService.getClosestBadges(user.getId());
 
         // then
         assertThat(result).isNotNull();

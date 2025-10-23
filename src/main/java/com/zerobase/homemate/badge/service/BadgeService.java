@@ -5,9 +5,12 @@ import com.zerobase.homemate.entity.Badge;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.BadgeType;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.BadgeRepository;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
 import com.zerobase.homemate.repository.ChoreRepository;
+import com.zerobase.homemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,7 @@ public class BadgeService {
     private final BadgeRepository badgeRepository;
     private final ChoreRepository choreRepository;
     private final CategoryChoreRepository categoryChoreRepository;
+    private final UserRepository userRepository;
 
 
     // 집안일 완료 시 호출
@@ -74,7 +78,11 @@ public class BadgeService {
 
     // 유저의 획득한 배지 목록
     @Transactional(readOnly = true)
-    public List<BadgeResponse> getAcquiredBadges(User user){
+    public List<BadgeResponse> getAcquiredBadges(Long userId){
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
         List<BadgeType> acquiredTypes = badgeRepository.findAllByUser(user)
                 .stream()
                 .map(Badge::getBadgeType)
@@ -122,7 +130,11 @@ public class BadgeService {
 
     // 아직 획득하지 못한 배지들 중 남은 횟수가 가장 적은 3개 리스트 반환
     @Transactional(readOnly = true)
-    public List<BadgeResponse> getClosestBadges(User user){
+    public List<BadgeResponse> getClosestBadges(Long userId){
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
         List<BadgeType> acquiredTypes = badgeRepository.findAllByUser(user).stream()
                 .map(Badge::getBadgeType).toList();
 
