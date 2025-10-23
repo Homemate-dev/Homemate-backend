@@ -1,6 +1,5 @@
 package com.zerobase.homemate.chore.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
@@ -108,7 +107,6 @@ public class ChoreDto {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ApiResponse<T> {
         private T data;
 
