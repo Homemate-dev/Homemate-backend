@@ -8,8 +8,10 @@ import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.SpaceChoreCreator;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
@@ -61,6 +63,9 @@ public class SpaceChoreCreatorTest {
     @Mock
     private RedisChoreStatsService redisChoreStatsService;
 
+    @Mock
+    private MissionService missionService;
+
     @Test
     void createChoreFromSpace_success(){
         // given
@@ -86,8 +91,11 @@ public class SpaceChoreCreatorTest {
         when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
         when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
 
-        // when
+        when(missionService.increaseMissionCountForAction(eq(userId), eq(
+            UserActionType.CREATE_CHORE_WITH_SPACE)))
+            .thenReturn(Optional.empty());
 
+        // when
         ApiResponse<Response> response = spaceChoreCreator.createChoreFromSpace(userId, Space.KITCHEN, spaceChoreId);
 
         // then
@@ -150,6 +158,10 @@ public class SpaceChoreCreatorTest {
         when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
         when(userNotificationSettingRepository.findByUserId(anyLong()))
                 .thenReturn(Optional.empty());
+
+        when(missionService.increaseMissionCountForAction(eq(user.getId()), eq(
+            UserActionType.CREATE_CHORE_WITH_SPACE)))
+            .thenReturn(Optional.empty());
 
         // when
         ApiResponse<ChoreDto.Response> response = spaceChoreCreator.createChoreFromSpace(1L, Space.KITCHEN, anyLong());

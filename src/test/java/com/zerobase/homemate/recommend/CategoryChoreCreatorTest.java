@@ -9,8 +9,10 @@ import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
@@ -61,6 +63,9 @@ public class CategoryChoreCreatorTest {
     @Mock
     private RedisChoreStatsService redisChoreStatsService;
 
+    @Mock
+    private MissionService missionService;
+
     @Test
     void createChoreFromCategory_shouldCreateChoreWithMatchedSpace(){
         // given
@@ -92,6 +97,10 @@ public class CategoryChoreCreatorTest {
         when(spaceChoreRepository.findByTitleKo(spaceChore.getTitleKo())).thenReturn(Optional.of(spaceChore));
         when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
         when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
+
+        when(missionService.increaseMissionCountForAction(eq(userId), eq(
+            UserActionType.CREATE_CHORE_WITH_SPACE)))
+            .thenReturn(Optional.empty());
 
         // when
         ApiResponse<ChoreDto.Response> response =
@@ -154,6 +163,10 @@ public class CategoryChoreCreatorTest {
         when(choreInstanceGenerator.generateInstances(any())).thenReturn(List.of());
         when(userNotificationSettingRepository.findByUserId(anyLong()))
                 .thenReturn(Optional.empty()); // 혹은 Optional.of(defaultSetting)
+
+        when(missionService.increaseMissionCountForAction(eq(user.getId()), eq(
+            UserActionType.CREATE_CHORE_WITH_SPACE)))
+            .thenReturn(Optional.empty());
 
         // when
         ApiResponse<ChoreDto.Response> response =
