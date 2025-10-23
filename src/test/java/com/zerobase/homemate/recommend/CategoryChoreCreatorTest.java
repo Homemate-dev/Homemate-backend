@@ -1,6 +1,7 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.SpaceChore;
@@ -93,11 +94,12 @@ public class CategoryChoreCreatorTest {
         when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
 
         // when
-        ChoreDto.Response response = categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
+        ApiResponse<ChoreDto.Response> response =
+            categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
 
         // then
-        assertEquals("청소하기", response.getTitle());
-        assertEquals(Space.KITCHEN, response.getSpace());
+        assertEquals("청소하기", response.getData().getTitle());
+        assertEquals(Space.KITCHEN, response.getData().getSpace());
         verify(choreRepository).save(any(Chore.class));
         verify(choreInstanceRepository).saveAll(anyList());
     }
@@ -154,12 +156,15 @@ public class CategoryChoreCreatorTest {
                 .thenReturn(Optional.empty()); // 혹은 Optional.of(defaultSetting)
 
         // when
-        ChoreDto.Response response = categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
+        ApiResponse<ChoreDto.Response> response =
+            categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
 
         // then
-        assertTrue(response.getNotificationYn(), "알림은 켜져 있어야 한다");
-        assertNotNull(response.getNotificationTime(), "알림 시간은 기본값으로 세팅되어 있어야 한다");
-        assertEquals(LocalTime.of(9, 0), response.getNotificationTime(), "기본 알림 시간은 09:00");
+        assertTrue(response.getData().getNotificationYn(), "알림은 켜져 있어야 한다");
+        assertNotNull(response.getData().getNotificationTime(), "알림 시간은 기본값으로 세팅되어 "
+            + "있어야 한다");
+        assertEquals(LocalTime.of(9, 0), response.getData().getNotificationTime(),
+            "기본 알림 시간은 09:00");
     }
 
 }

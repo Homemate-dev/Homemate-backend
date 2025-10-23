@@ -1,6 +1,8 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
+import com.zerobase.homemate.chore.dto.ChoreDto.Response;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.User;
@@ -86,11 +88,11 @@ public class SpaceChoreCreatorTest {
 
         // when
 
-        ChoreDto.Response response = spaceChoreCreator.createChoreFromSpace(userId, Space.KITCHEN, spaceChoreId);
+        ApiResponse<Response> response = spaceChoreCreator.createChoreFromSpace(userId, Space.KITCHEN, spaceChoreId);
 
         // then
-        assertEquals("주방 싱크대 정리하기", response.getTitle());
-        assertEquals(Space.KITCHEN, response.getSpace());
+        assertEquals("주방 싱크대 정리하기", response.getData().getTitle());
+        assertEquals(Space.KITCHEN, response.getData().getSpace());
         verify(choreRepository).save(any(Chore.class));
         verify(choreInstanceRepository).saveAll(anyList());
     }
@@ -150,11 +152,11 @@ public class SpaceChoreCreatorTest {
                 .thenReturn(Optional.empty());
 
         // when
-        ChoreDto.Response response = spaceChoreCreator.createChoreFromSpace(1L, Space.KITCHEN, anyLong());
+        ApiResponse<ChoreDto.Response> response = spaceChoreCreator.createChoreFromSpace(1L, Space.KITCHEN, anyLong());
 
         // then
-        assertTrue(response.getNotificationYn(), "알림은 켜져 있는 게 Default");
-        assertNotNull(response.getNotificationTime(), "알림 시간은 기본값이 정해져 있다.");
-        assertEquals(LocalTime.of(9, 0), response.getNotificationTime(), "기본 알림 시각 9시 정각");
+        assertTrue(response.getData().getNotificationYn(), "알림은 켜져 있는 게 Default");
+        assertNotNull(response.getData().getNotificationTime(), "알림 시간은 기본값이 정해져 있다.");
+        assertEquals(LocalTime.of(9, 0), response.getData().getNotificationTime(), "기본 알림 시각 9시 정각");
     }
 }

@@ -2,6 +2,8 @@ package com.zerobase.homemate.recommend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
+import com.zerobase.homemate.chore.dto.ChoreDto.Response;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.recommend.controller.CategoryController;
@@ -103,16 +105,19 @@ class CategoryControllerTest {
         request.setCategory(Category.WINTER);
 
         // Mock Response 생성
-        ChoreDto.Response mockResponse = ChoreDto.Response.builder()
-                .id(1L) // 필수
-                .title("청소하기")
-                .space(Space.KITCHEN)
-                .repeatType(RepeatType.DAILY)
-                .repeatInterval(3)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusDays(3))
-                .notificationYn(false)
-                .createdAt(LocalDateTime.now())
+        ApiResponse<ChoreDto.Response> mockResponse =
+            ApiResponse.<Response>builder()
+                .data(ChoreDto.Response.builder()
+                    .id(1L) // 필수
+                    .title("청소하기")
+                    .space(Space.KITCHEN)
+                    .repeatType(RepeatType.DAILY)
+                    .repeatInterval(3)
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(3))
+                    .notificationYn(false)
+                    .createdAt(LocalDateTime.now())
+                    .build())
                 .build();
 
         // Service Mock
@@ -137,10 +142,10 @@ class CategoryControllerTest {
                         .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value(mockResponse.getTitle()))
-                .andExpect(jsonPath("$.space").value(mockResponse.getSpace().name()))
-                .andExpect(jsonPath("$.repeatType").value(mockResponse.getRepeatType().name()))
-                .andExpect(jsonPath("$.repeatInterval").value(mockResponse.getRepeatInterval()));
+                .andExpect(jsonPath("$.title").value(mockResponse.getData().getTitle()))
+                .andExpect(jsonPath("$.space").value(mockResponse.getData().getSpace().name()))
+                .andExpect(jsonPath("$.repeatType").value(mockResponse.getData().getRepeatType().name()))
+                .andExpect(jsonPath("$.repeatInterval").value(mockResponse.getData().getRepeatInterval()));
     }
 
 

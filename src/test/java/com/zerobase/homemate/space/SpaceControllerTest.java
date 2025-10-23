@@ -2,6 +2,7 @@ package com.zerobase.homemate.space;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
@@ -110,7 +111,8 @@ class SpaceControllerTest {
         request.setSpace(Space.KITCHEN);
 
         // Mock Response 생성
-        ChoreDto.Response mockResponse = ChoreDto.Response.builder()
+        ApiResponse<ChoreDto.Response> mockResponse =
+            ApiResponse.<ChoreDto.Response>builder().data(ChoreDto.Response.builder()
                 .id(1L)
                 .title("주방 싱크대 정리하기")
                 .space(request.getSpace())
@@ -120,7 +122,8 @@ class SpaceControllerTest {
                 .endDate(LocalDate.now())
                 .createdAt(LocalDateTime.now())
                 .notificationYn(false)
-                .build();
+                .build())
+            .build();
 
         when(spaceChoreCreator.createChoreFromSpace(
                 eq(100L),
@@ -140,10 +143,10 @@ class SpaceControllerTest {
                 .content(objectMapper.writeValueAsString(request))
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value(mockResponse.getTitle()))
-                .andExpect(jsonPath("$.space").value(mockResponse.getSpace().name()))
-                .andExpect(jsonPath("$.repeatType").value(mockResponse.getRepeatType().name()))
-                .andExpect(jsonPath("$.repeatInterval").value(mockResponse.getRepeatInterval()));
+                .andExpect(jsonPath("$.data.title").value(mockResponse.getData().getTitle()))
+                .andExpect(jsonPath("$.data.space").value(mockResponse.getData().getSpace().name()))
+                .andExpect(jsonPath("$.data.repeatType").value(mockResponse.getData().getRepeatType().name()))
+                .andExpect(jsonPath("$.data.repeatInterval").value(mockResponse.getData().getRepeatInterval()));
     }
 
 }
