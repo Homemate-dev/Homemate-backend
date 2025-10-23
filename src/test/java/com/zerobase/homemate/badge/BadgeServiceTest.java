@@ -2,6 +2,7 @@ package com.zerobase.homemate.badge;
 
 import com.zerobase.homemate.badge.service.BadgeCondition;
 import com.zerobase.homemate.badge.service.BadgeService;
+import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.entity.Badge;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.User;
@@ -31,6 +32,7 @@ class BadgeServiceTest {
     private CategoryChoreRepository categoryChoreRepository;
     private User user;
     private UserRepository userRepository;
+    private UserBadgeStatsService userBadgeStatsService;
 
     @BeforeEach
     void setUp() {
@@ -38,7 +40,7 @@ class BadgeServiceTest {
         choreRepository = Mockito.mock(ChoreRepository.class);
         categoryChoreRepository = Mockito.mock(CategoryChoreRepository.class);
         userRepository = Mockito.mock(UserRepository.class);
-        badgeService = new BadgeService(badgeRepository, choreRepository, categoryChoreRepository, userRepository); // choreRepository, categoryChoreRepository는 countRemaining에서 Mock 처리 필요 시 추가
+        badgeService = new BadgeService(badgeRepository, choreRepository, categoryChoreRepository, userRepository, userBadgeStatsService); // choreRepository, categoryChoreRepository는 countRemaining에서 Mock 처리 필요 시 추가
         user = User.builder()
                 .id(1L)
                 .profileName("test")

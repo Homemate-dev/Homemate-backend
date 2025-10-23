@@ -28,6 +28,7 @@ public class BadgeService {
     private final ChoreRepository choreRepository;
     private final CategoryChoreRepository categoryChoreRepository;
     private final UserRepository userRepository;
+    private final UserBadgeStatsService userBadgeStatsService;
 
 
     // 집안일 완료 시 호출
@@ -152,13 +153,13 @@ public class BadgeService {
 
     // 완료된 집안일 카운트 계산
     private Long countCompleted(User user, BadgeType badgeType){
-        if(badgeType.getSpace() != null){
-            return choreRepository.countByUserAndSpaceAndIsCompletedTrue(user, badgeType.getSpace());
+        if (badgeType.getSpace() != null) {
+            return userBadgeStatsService.getSpaceCount(user.getId(), badgeType.getSpace().name());
         }
 
-        if(badgeType.getChoreTitle() != null){
-            return choreRepository.countByUserAndTitleAndIsCompletedTrue(user, badgeType.getChoreTitle());
+        if (badgeType.getChoreTitle() != null) {
+            return userBadgeStatsService.getTitleCount(user.getId(), badgeType.getChoreTitle());
         }
-        return 0L;
+        return userBadgeStatsService.getCount(user.getId());
     }
 }
