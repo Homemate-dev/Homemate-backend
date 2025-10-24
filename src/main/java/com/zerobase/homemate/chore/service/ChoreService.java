@@ -23,10 +23,8 @@ import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Objects;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -94,9 +92,10 @@ public class ChoreService {
             savedChore);
         choreInstanceRepository.saveAll(instances);
 
-        Optional<MissionDto.Response> userMission =
+        List<MissionDto.Response> userMission =
             missionService.increaseMissionCountForAction(
-            userId, UserActionType.CREATE_CHORE_MANUAL);
+            userId, UserActionType.CREATE_CHORE_MANUAL)
+                .stream().filter(MissionDto.Response::isCompleted).toList();
 
         // TODO: for-loop 대신 배치 처리 구현
         for (ChoreInstance instance : instances) {
@@ -107,15 +106,7 @@ public class ChoreService {
 
         return ApiResponse.<ChoreDto.Response>builder()
             .data(ChoreDto.Response.fromEntity(savedChore))
-            .missionResults(
-                userMission
-                    .filter(MissionDto.Response::isCompleted)
-                    .map(List::of)
-                    .orElseGet(List::of)
-                    .stream()
-                    .sorted(Comparator.comparing(MissionDto.Response::getTitle))
-                    .toList()
-            )
+            .missionResults(userMission)
             .build();
     }
 
@@ -228,7 +219,7 @@ public class ChoreService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        List<MissionDto.Response> userMission = null;
+        final List<MissionDto.Response> userMission;
 
         switch (choreInstance.getChoreStatus()) {
             case PENDING -> {
@@ -249,12 +240,7 @@ public class ChoreService {
 
         return ApiResponse.<ChoreInstanceDto.Response>builder()
             .data(ChoreInstanceDto.Response.fromEntity(choreInstance))
-            .missionResults(Optional.ofNullable(userMission)
-                .orElseGet(List::of)
-                .stream()
-                .filter(MissionDto.Response::isCompleted)
-                .sorted(Comparator.comparing(MissionDto.Response::getTitle))
-                .toList())
+            .missionResults(userMission)
             .build();
     }
 

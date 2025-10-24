@@ -93,7 +93,7 @@ public class SpaceChoreCreatorTest {
 
         when(missionService.increaseMissionCountForAction(eq(userId), eq(
             UserActionType.CREATE_CHORE_WITH_SPACE)))
-            .thenReturn(Optional.empty());
+            .thenReturn(List.of());
 
         // when
         ApiResponse<Response> response = spaceChoreCreator.createChoreFromSpace(userId, Space.KITCHEN, spaceChoreId);
@@ -161,7 +161,7 @@ public class SpaceChoreCreatorTest {
 
         when(missionService.increaseMissionCountForAction(eq(user.getId()), eq(
             UserActionType.CREATE_CHORE_WITH_SPACE)))
-            .thenReturn(Optional.empty());
+            .thenReturn(List.of());
 
         // when
         ApiResponse<ChoreDto.Response> response = spaceChoreCreator.createChoreFromSpace(1L, Space.KITCHEN, anyLong());

@@ -8,12 +8,11 @@ import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
-import com.zerobase.homemate.mission.dto.MissionDto.Response;
+import com.zerobase.homemate.mission.dto.MissionDto;
 import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,15 +94,14 @@ public class CategoryChoreCreator {
         // 7. Redis counting 반영
         redisChoreStatsService.increment(template.getCategory(), space);
 
-        Optional<Response> userMission =
+        List<MissionDto.Response> userMission =
             missionService.increaseMissionCountForAction(userId,
-                UserActionType.CREATE_CHORE_WITH_SPACE);
+                UserActionType.CREATE_CHORE_RECOMMENDED)
+                .stream().filter(MissionDto.Response::isCompleted).toList();
 
         return ApiResponse.<ChoreDto.Response>builder()
             .data(ChoreDto.Response.fromEntity(saved))
-            .missionResults(
-                userMission.map(List::of).orElseGet(List::of)
-            )
+            .missionResults(userMission)
             .build();
     }
 

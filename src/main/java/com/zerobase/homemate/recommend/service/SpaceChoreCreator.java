@@ -13,7 +13,6 @@ import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,15 +88,14 @@ public class SpaceChoreCreator {
 
         redisChoreStatsService.increment(category, template.getSpace());
 
-        Optional<MissionDto.Response> userMission =
+        List<MissionDto.Response> userMission =
             missionService.increaseMissionCountForAction(userId,
-            UserActionType.CREATE_CHORE_WITH_SPACE);
+            UserActionType.CREATE_CHORE_WITH_SPACE)
+                .stream().filter(MissionDto.Response::isCompleted).toList();
 
         return ApiResponse.<ChoreDto.Response>builder()
             .data(ChoreDto.Response.fromEntity(saved))
-            .missionResults(
-                userMission.map(List::of).orElseGet(List::of)
-            )
+            .missionResults(userMission)
             .build();
     }
 

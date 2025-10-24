@@ -100,7 +100,7 @@ public class CategoryChoreCreatorTest {
 
         when(missionService.increaseMissionCountForAction(eq(userId), eq(
             UserActionType.CREATE_CHORE_WITH_SPACE)))
-            .thenReturn(Optional.empty());
+            .thenReturn(List.of());
 
         // when
         ApiResponse<ChoreDto.Response> response =
@@ -166,7 +166,7 @@ public class CategoryChoreCreatorTest {
 
         when(missionService.increaseMissionCountForAction(eq(user.getId()), eq(
             UserActionType.CREATE_CHORE_WITH_SPACE)))
-            .thenReturn(Optional.empty());
+            .thenReturn(List.of());
 
         // when
         ApiResponse<ChoreDto.Response> response =

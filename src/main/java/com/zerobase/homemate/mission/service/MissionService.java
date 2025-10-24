@@ -13,9 +13,9 @@ import com.zerobase.homemate.repository.MissionRepository;
 import com.zerobase.homemate.repository.UserMissionRepository;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -144,7 +144,10 @@ public class MissionService {
             missionProgressRepository.saveAll(toSave);
         }
 
-        return response;
+        return response
+            .stream()
+            .sorted(Comparator.comparing(MissionDto.Response::getTitle))
+            .toList();
     }
 
     private boolean qualifies(Mission mission, ChoreInstance choreInstance) {
@@ -209,7 +212,7 @@ public class MissionService {
     }
 
     @Transactional
-    public Optional<MissionDto.Response> increaseMissionCountForAction(Long userId,
+    public List<MissionDto.Response> increaseMissionCountForAction(Long userId,
         UserActionType userActionType) {
         Mission mission =
             missionRepository.findByMissionTypeAndUserActionTypeAndActiveYearMonth(
@@ -217,14 +220,14 @@ public class MissionService {
             );
 
         if (mission == null) {
-            return Optional.empty();
+            return List.of();
         }
 
         UserMission userMission = userMissionRepository.findByUser_IdAndMission(
             userId, mission);
 
         if (userMission == null) {
-            return Optional.empty();
+            return List.of();
         }
 
         userMission.incrementCount();
@@ -235,6 +238,6 @@ public class MissionService {
                 .build()
         );
 
-        return Optional.of(MissionDto.Response.of(mission, userMission));
+        return List.of(MissionDto.Response.of(mission, userMission));
     }
 }
