@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "badges")
+@Table(name = "badges",
+uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "badgeType"}))
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,6 +32,7 @@ public class Badge {
     private User user;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private BadgeType badgeType;
 
     @Column(name = "acquired_at")
