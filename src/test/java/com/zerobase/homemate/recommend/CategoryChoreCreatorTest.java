@@ -99,7 +99,7 @@ public class CategoryChoreCreatorTest {
         when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
 
         when(missionService.increaseMissionCountForAction(eq(userId), eq(
-            UserActionType.CREATE_CHORE_WITH_SPACE)))
+            UserActionType.CREATE_CHORE_RECOMMENDED)))
             .thenReturn(List.of());
 
         // when
@@ -165,7 +165,7 @@ public class CategoryChoreCreatorTest {
                 .thenReturn(Optional.empty()); // 혹은 Optional.of(defaultSetting)
 
         when(missionService.increaseMissionCountForAction(eq(user.getId()), eq(
-            UserActionType.CREATE_CHORE_WITH_SPACE)))
+            UserActionType.CREATE_CHORE_RECOMMENDED)))
             .thenReturn(List.of());
 
         // when
