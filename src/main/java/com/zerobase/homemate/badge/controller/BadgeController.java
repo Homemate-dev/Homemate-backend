@@ -7,6 +7,7 @@ import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,22 +24,25 @@ public class BadgeController {
 
     // 내가 가진 배지 목록 조회
     @GetMapping("/acquired")
-    public List<BadgeResponse> getMyBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
+    public ResponseEntity<List<BadgeResponse>> getMyBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
         if(userPrincipal == null){
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
-        Long userId = userPrincipal.id();
-        return badgeService.getAcquiredBadges(userId);
+
+        List<BadgeResponse> badges = badgeService.getAcquiredBadges(userPrincipal.id());
+
+        return ResponseEntity.ok(badges);
     }
 
     // 취득까지 얼마 안 남은 배지 상위 3개 조회
     @GetMapping("/closest")
-    public List<BadgeResponse> getClosestBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
+    public ResponseEntity<List<BadgeResponse>> getClosestBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
         if(userPrincipal == null){
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
-        Long userId = userPrincipal.id();
-        return badgeService.getClosestBadges(userId);
+        List<BadgeResponse> closest = badgeService.getClosestBadges(userPrincipal.id());
+
+        return ResponseEntity.ok(closest);
     }
 }

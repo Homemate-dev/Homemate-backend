@@ -8,8 +8,6 @@ import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.BadgeRepository;
-import com.zerobase.homemate.repository.CategoryChoreRepository;
-import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,8 +23,6 @@ import java.util.List;
 public class BadgeService {
 
     private final BadgeRepository badgeRepository;
-    private final ChoreRepository choreRepository;
-    private final CategoryChoreRepository categoryChoreRepository;
     private final UserRepository userRepository;
     private final UserBadgeStatsService userBadgeStatsService;
 
@@ -66,12 +62,12 @@ public class BadgeService {
 
     public BadgeCondition createCondition(BadgeType type) {
         if(type.getSpace() != null){
-            return new SpaceBadgeCondition(type.getSpace(), type.getRequireCount(), type.getBadgeName(), choreRepository);
+            return new SpaceBadgeCondition(type.getSpace(), type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
         }
 
 
         if(type.getChoreTitle() != null){
-            return new NameBadgeCondition(type.getChoreTitle(),  type.getRequireCount(), type.getBadgeName(), choreRepository);
+            return new NameBadgeCondition(type.getChoreTitle(),  type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
         }
 
         return null;

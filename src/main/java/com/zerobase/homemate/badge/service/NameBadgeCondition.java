@@ -1,20 +1,20 @@
 package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.entity.Chore;
-import com.zerobase.homemate.repository.ChoreRepository;
 
 public class NameBadgeCondition implements BadgeCondition {
 
     private final String keyword;
     private final int requiredCount;
     private final String badgeName;
-    private final ChoreRepository choreRepository;
+    private final UserBadgeStatsService userBadgeStatsService;
 
-    public NameBadgeCondition(String keyword, int requiredCount, String badgeName, ChoreRepository choreRepository) {
+    public NameBadgeCondition(String keyword, int requiredCount, String badgeName,
+                              UserBadgeStatsService userBadgeStatsService) {
         this.keyword = keyword;
         this.requiredCount = requiredCount;
         this.badgeName = badgeName;
-        this.choreRepository = choreRepository;
+        this.userBadgeStatsService = userBadgeStatsService;
     }
 
     @Override
@@ -26,8 +26,7 @@ public class NameBadgeCondition implements BadgeCondition {
         }
 
         // 사용자가 해당 키워드를 포함하는 집안일을 몇 번 완료했는지 카운트
-        Long completedCount = choreRepository.countByUserAndTitleAndIsCompletedTrue(chore.getUser(), keyword);
-
+        long completedCount = userBadgeStatsService.getTitleCount(chore.getUser().getId(), keyword);
         return completedCount >= requiredCount;
     }
 

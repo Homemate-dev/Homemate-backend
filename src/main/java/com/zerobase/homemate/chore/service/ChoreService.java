@@ -1,12 +1,14 @@
 package com.zerobase.homemate.chore.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
+import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreCounts;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.UserActionType;
@@ -21,6 +23,7 @@ import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +46,7 @@ public class ChoreService {
     private final ApplicationEventPublisher eventPublisher;
     private final RedisChoreStatsService redisChoreStatsService;
     private final BadgeService badgeService;
+    private final UserBadgeStatsService userBadgeStatsService;
 
     @Transactional
     public ChoreDto.Response createChores(Long userId,
@@ -219,6 +223,18 @@ public class ChoreService {
             }
             case CANCELLED, DELETED -> throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
             default -> throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        userBadgeStatsService.incrementCount(userId);
+        if(chore.getSpace() != null) {
+            userBadgeStatsService.incrementSpaceCount(userId, chore.getSpace().name());
+        }
+
+        boolean isTitleBadgeTarget = Arrays.stream(BadgeType.values())
+                        .anyMatch(type -> chore.getTitle().equalsIgnoreCase(type.name()));
+
+        if(isTitleBadgeTarget) {
+            userBadgeStatsService.incrementTitleCount(userId, chore.getTitle());
         }
 
         badgeService.evaluateBadges(chore.getUser());
