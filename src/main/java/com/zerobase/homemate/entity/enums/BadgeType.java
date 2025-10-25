@@ -17,9 +17,9 @@ public enum BadgeType {
     LARGE_J( "대문자 J", "집안일 90회 등록하기", null, null,90, true, false),
     POWER_J( "파워 J", "집안일 180회 등록하기",  null, null,180, true, false),
 
-    SEED_MISSION( "미션 새싹", "미션 3회 달성하기",  null, null,3, true, false),
-    EXPERT_MISSION( "미션 달인", "미션 18회 달성하기",  null, null,18, true, false),
-    MASTER_MISSION( "미션 마스터", "미션 36회 달성하기",  null, null,36, true, false),
+    SEED_MISSION( "미션 새싹", "미션 3회 달성하기",  null, null,3, true, true),
+    EXPERT_MISSION( "미션 달인", "미션 18회 달성하기",  null, null,18, true, true),
+    MASTER_MISSION( "미션 마스터", "미션 36회 달성하기",  null, null,36, true, true),
 
     BEGINNER_KITCHEN("주방 깔끔이", "주방 집안일 30회 완료",  Space.KITCHEN, null,30, false, false),
     EXPERT_KITCHEN("주방 반짝이", "주방 집안일 90회 완료",  Space.KITCHEN, null,90, false, false),

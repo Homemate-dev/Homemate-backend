@@ -13,6 +13,7 @@ public class UserBadgeStatsService {
     private static final String PREFIX_SPACE = "user:chore:space";
     private static final String PREFIX_TITLE = "user:chore:title";
     private static final String PREFIX_ALL = "user:chore:all";
+    private static final String PREFIX_MISSION = "user:chore:mission";
 
 
     // 공간별, 집안일별이 아닌 아무 집안일이든 올라가는 횟수 증가
@@ -33,6 +34,12 @@ public class UserBadgeStatsService {
         redisTemplate.opsForValue().increment(key, 1);
     }
 
+    // 미션 완료 횟수 증가
+    public void incrementMissionCount(Long userId) {
+        String key = String.format("%s:%d", PREFIX_MISSION, userId);
+        redisTemplate.opsForValue().increment(key, 1);
+    }
+
     // 공간별, 집안일별이 아닌 아무 집안일이든 올라가는 횟수 조회
     public long getCount(Long userId){
         String key = String.format("%s:%d", PREFIX_ALL, userId);
@@ -50,6 +57,13 @@ public class UserBadgeStatsService {
     // 특정 집안일별 완료 횟수 조회
     public long getTitleCount(Long userId, String title) {
         String key = String.format("%s:%d:%s", PREFIX_TITLE, userId, title);
+        String val = redisTemplate.opsForValue().get(key);
+        return val != null ? Long.parseLong(val) : 0L;
+    }
+
+    // 미션 완료 횟수 조회
+    public long getMissionCount(Long userId){
+        String key = String.format("%s:%d", PREFIX_MISSION, userId);
         String val = redisTemplate.opsForValue().get(key);
         return val != null ? Long.parseLong(val) : 0L;
     }

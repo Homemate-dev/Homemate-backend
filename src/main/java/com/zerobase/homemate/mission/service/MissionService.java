@@ -1,5 +1,6 @@
 package com.zerobase.homemate.mission.service;
 
+import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.Mission;
 import com.zerobase.homemate.entity.MissionProgress;
@@ -30,6 +31,7 @@ public class MissionService {
     private final UserMissionRepository userMissionRepository;
     private final MissionAssignmentService missionAssignmentService;
     private final MissionProgressRepository missionProgressRepository;
+    private final UserBadgeStatsService userBadgeStatsService;
 
     public List<MissionDto.Response> getMonthlyMissions(long userId) {
 
@@ -176,6 +178,8 @@ public class MissionService {
                 .choreInstance(choreInstance)
                 .build());
         }
+
+        userBadgeStatsService.incrementMissionCount(userMission.getUser().getId());
     }
 
     private void revertCompletion(UserMission userMission,

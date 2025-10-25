@@ -70,6 +70,10 @@ public class BadgeService {
             return new NameBadgeCondition(type.getChoreTitle(),  type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
         }
 
+        if(type.isMissionBadge()){
+            return new MissionBadgeCondition(type.name(), type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
+        }
+
         return null;
     }
 
