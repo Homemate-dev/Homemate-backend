@@ -18,10 +18,8 @@ public class ChoreInstanceCreatedEvent {
     private RepeatType repeatType;
     private LocalDateTime scheduledAt;
 
-    public static ChoreInstanceCreatedEvent create(Long userId, ChoreInstance choreInstance, RepeatType repeatType) {
-        LocalDate dueDate = choreInstance.getDueDate();
-        LocalTime notificationTime = choreInstance.getNotificationTime();
-        LocalDateTime scheduledAt = LocalDateTime.of(dueDate, notificationTime);
+    public static ChoreInstanceCreatedEvent create(Long userId, ChoreInstance choreInstance, LocalTime notificationTime, RepeatType repeatType) {
+        LocalDateTime scheduledAt = LocalDateTime.of(choreInstance.getDueDate(), notificationTime);
 
         return ChoreInstanceCreatedEvent.builder()
                 .userId(userId)

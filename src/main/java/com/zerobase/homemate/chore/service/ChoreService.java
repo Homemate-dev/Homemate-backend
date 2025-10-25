@@ -6,6 +6,7 @@ import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.UserActionType;
@@ -21,6 +22,7 @@ import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -93,9 +95,21 @@ public class ChoreService {
         missionService.increaseMissionCountForAction(
             userId, UserActionType.CREATE_CHORE_MANUAL);
 
+        // 맞춤 알림 시간이 null일 경우 마이페이지 시간 -> 없으면 기본값(19:00) 사용
+        LocalTime notificationTime = request.getNotificationTime();
+        if (notificationTime == null) {
+            notificationTime = userNotificationSettingRepository.findByUser(userReference)
+                    .map(UserNotificationSetting::getNotificationTime)
+                    .orElseGet(() -> LocalTime.of(19, 0)); // default time
+        }
+
         // TODO: for-loop 대신 배치 처리 구현
         for (ChoreInstance instance : instances) {
-            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(userId, instance, savedChore.getRepeatType()));
+            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(userId,
+                    instance,
+                    notificationTime,
+                    savedChore.getRepeatType()
+            ));
         }
 
         redisChoreStatsService.increment(null, request.getSpace());
