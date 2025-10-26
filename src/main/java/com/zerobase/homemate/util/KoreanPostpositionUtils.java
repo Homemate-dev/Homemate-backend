@@ -28,8 +28,4 @@ public final class KoreanPostpositionUtils {
     public static String selectIGa(String noun) {
         return hasFinalConsonant(noun) ? "이" : "가";
     }
-
-    public static String selectEunNeun(String noun) {
-        return hasFinalConsonant(noun) ? "은" : "는";
-    }
 }
