@@ -3,9 +3,11 @@ package com.zerobase.homemate.chore.dto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.mission.dto.MissionDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -99,5 +101,16 @@ public class ChoreDto {
                 .deletedAt(chore.getDeletedAt())
                 .build();
         }
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ApiResponse<T> {
+        private T data;
+
+        @Builder.Default
+        private List<MissionDto.Response> missionResults = List.of();
     }
 }
