@@ -1,5 +1,6 @@
 package com.zerobase.homemate.recommend;
 
+import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.service.RecommendService;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
@@ -33,19 +34,23 @@ public class RecommendServiceTest {
         SpaceChoreResponse sc1 = new SpaceChoreResponse() {
             public Long getId() { return 1L; }
             public String getTitleKo() { return "주방 싱크대 청소하기"; }
+            public Space getSpace() { return Space.KITCHEN; }
         };
         SpaceChoreResponse sc2 = new SpaceChoreResponse() {
             public Long getId() { return 2L; }
             public String getTitleKo() { return "신발정리"; }
+            public Space getSpace() { return Space.PORCH; }
         };
         SpaceChoreResponse sc3 = new SpaceChoreResponse() {
             public Long getId() { return 3L; }
             public String getTitleKo() { return "환기하기"; }
+            public Space getSpace() { return Space.ETC; }
         };
 
         SpaceChoreResponse sc4 = new SpaceChoreResponse() {
             public Long getId() { return 4L; }
             public String getTitleKo() { return "에어컨 필터 청소하기"; }
+            public Space getSpace() { return Space.ETC; }
         };
 
         when(spaceChoreRepository.findRandomChores()).thenReturn(List.of(sc1, sc2, sc4));

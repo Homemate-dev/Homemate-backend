@@ -1,6 +1,7 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.recommend.controller.RecommendController;
@@ -44,15 +45,18 @@ public class RecommendControllerTest {
         // given - 익명 클래스 방식으로 두 필드 구현
         SpaceChoreResponse sc1 = new SpaceChoreResponse() {
             public Long getId() { return 1L; }
-            public String getTitleKo() { return "주방 싱크대 청소하기"; }
+            public String getTitleKo() { return "주방 싱크대 청소하기";}
+            public Space getSpace() { return Space.KITCHEN; }
         };
         SpaceChoreResponse sc2 = new SpaceChoreResponse() {
             public Long getId() { return 2L; }
             public String getTitleKo() { return "신발정리"; }
+            public Space getSpace() { return Space.PORCH; }
         };
         SpaceChoreResponse sc3 = new SpaceChoreResponse() {
             public Long getId() { return 3L; }
             public String getTitleKo() { return "환기하기"; }
+            public Space getSpace() { return Space.ETC; }
         };
 
         when(recommendService.getRandomChores()).thenReturn(List.of(sc1, sc2, sc3));
