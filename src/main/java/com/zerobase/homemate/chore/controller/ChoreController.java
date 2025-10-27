@@ -2,6 +2,7 @@ package com.zerobase.homemate.chore.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto.Response;
 import com.zerobase.homemate.chore.service.ChoreService;
@@ -23,34 +24,34 @@ public class ChoreController {
     private final ChoreService choreService;
 
     @PostMapping()
-    public ResponseEntity<ChoreDto.Response> createChore(
+    public ResponseEntity<ApiResponse<ChoreDto.Response>> createChore(
         @AuthenticationPrincipal UserPrincipal user,
         @Valid @RequestBody ChoreDto.CreateRequest request) {
 
-        ChoreDto.Response response =
+        ApiResponse<ChoreDto.Response> response =
             choreService.createChores(user.id(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{choreInstanceId}")
-    public ResponseEntity<ChoreDto.Response> updateChore(
+    public ResponseEntity<ApiResponse<ChoreDto.Response>> updateChore(
         @AuthenticationPrincipal UserPrincipal user,
         @PathVariable Long choreInstanceId,
         @Valid @RequestBody ChoreDto.UpdateRequest request) {
 
-        ChoreDto.Response response = choreService.updateChores(user.id(),
+        ApiResponse<ChoreDto.Response> response = choreService.updateChores(user.id(),
             choreInstanceId, request);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PatchMapping("/{choreInstanceId}")
-    public ResponseEntity<ChoreInstanceDto.Response> completeChore(
+    public ResponseEntity<ApiResponse<ChoreInstanceDto.Response>> completeChore(
         @AuthenticationPrincipal UserPrincipal user,
         @PathVariable Long choreInstanceId) {
 
-        ChoreInstanceDto.Response response =
+        ApiResponse<ChoreInstanceDto.Response> response =
             choreService.completeChore(user.id(), choreInstanceId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
