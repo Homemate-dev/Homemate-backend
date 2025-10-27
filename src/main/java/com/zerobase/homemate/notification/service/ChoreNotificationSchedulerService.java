@@ -3,6 +3,7 @@ package com.zerobase.homemate.notification.service;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.notification.component.ChoreNotificationCreateJob;
+import com.zerobase.homemate.notification.model.NotificationIndex;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
@@ -26,8 +27,11 @@ public class ChoreNotificationSchedulerService {
     public void scheduleChoreNotification(ChoreInstanceCreatedEvent event) throws SchedulerException {
         Long userId = event.getUserId();
         Long instanceId = event.getChoreInstanceId();
+        if (event.getScheduledAt() == null) {
+            log.warn("Not scheduled choreInstance - userId = {}, instanceId = {}", userId, instanceId);
+            return;
+        }
         ZonedDateTime scheduledAt = event.getScheduledAt().atZone(ZONE);
-
         List<NotificationTime> times = NotificationTime.buildList(scheduledAt, event.getRepeatType());
 
         JobKey jk = jobKey(instanceId);
@@ -44,7 +48,7 @@ public class ChoreNotificationSchedulerService {
         }
 
         for (NotificationTime time : times) {
-            String index = time.index();
+            String index = time.notificationIndex().index();
             ZonedDateTime when = time.when();
 
             if (when.isBefore(ZonedDateTime.now(ZONE))) {
@@ -54,6 +58,7 @@ public class ChoreNotificationSchedulerService {
 
             TriggerKey tk = triggerKey(instanceId, index);
             JobDataMap triggerMap = new JobDataMap();
+            triggerMap.put("index", index);
             triggerMap.put("scheduledAt", when.toInstant().toEpochMilli());
 
             Trigger trigger = TriggerBuilder.newTrigger()
@@ -77,16 +82,16 @@ public class ChoreNotificationSchedulerService {
         }
     }
 
-    private record NotificationTime(String index, ZonedDateTime when) {
+    private record NotificationTime(NotificationIndex notificationIndex, ZonedDateTime when) {
         private static List<NotificationTime> buildList(ZonedDateTime scheduledAt, RepeatType repeatType) {
             List<NotificationTime> list = new ArrayList<>();
 
             // 매달/3개월/6개월/1년의 경우 전날 알림 추가
             if (repeatType.equals(RepeatType.MONTHLY) || repeatType.equals(RepeatType.YEARLY)) {
-                list.add(new NotificationTime("Tmiuns1d", scheduledAt.minusDays(1)));
+                list.add(new NotificationTime(NotificationIndex.T_MINUS_1D, scheduledAt.minusDays(1)));
             }
-            list.add(new NotificationTime("Tminus10m", scheduledAt.minusMinutes(10)));
-            list.add(new NotificationTime("T0", scheduledAt));
+            list.add(new NotificationTime(NotificationIndex.T_MINUS_10M, scheduledAt.minusMinutes(10)));
+            list.add(new NotificationTime(NotificationIndex.T_0, scheduledAt));
 
             return list;
         }

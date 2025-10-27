@@ -9,6 +9,7 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.BadgeType;
+import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.UserActionType;
@@ -19,11 +20,13 @@ import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +47,8 @@ public class ChoreService {
     private final UserRepository userRepository;
     private final MissionService missionService;
     private final ApplicationEventPublisher eventPublisher;
+
+    private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final RedisChoreStatsService redisChoreStatsService;
     private final BadgeService badgeService;
     private final UserBadgeStatsService userBadgeStatsService;
@@ -70,6 +75,11 @@ public class ChoreService {
             endDate = request.getEndDate();
         }
 
+        if (request.getNotificationYn()) {
+            userNotificationSettingRepository.
+                enableUserNotificationSetting(userId);
+        }
+
         Chore chore = Chore.builder()
             .user(userReference)
             .title(request.getTitle())
@@ -91,9 +101,21 @@ public class ChoreService {
         missionService.increaseMissionCountForAction(
             userId, UserActionType.CREATE_CHORE_MANUAL);
 
+        // 맞춤 알림 시간이 null일 경우 마이페이지 시간 -> 없으면 기본값(19:00) 사용
+        LocalTime notificationTime = request.getNotificationTime();
+        if (notificationTime == null) {
+            notificationTime = userNotificationSettingRepository.findByUser(userReference)
+                    .map(UserNotificationSetting::getNotificationTime)
+                    .orElseGet(() -> LocalTime.of(19, 0)); // default time
+        }
+
         // TODO: for-loop 대신 배치 처리 구현
         for (ChoreInstance instance : instances) {
-            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(userId, instance, savedChore.getRepeatType()));
+            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(userId,
+                    instance,
+                    notificationTime,
+                    savedChore.getRepeatType()
+            ));
         }
 
         redisChoreStatsService.increment(null, request.getSpace());

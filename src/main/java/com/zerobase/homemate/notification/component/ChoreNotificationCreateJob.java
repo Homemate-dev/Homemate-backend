@@ -34,6 +34,7 @@ public class ChoreNotificationCreateJob extends QuartzJobBean {
     private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final NotificationService notificationService;
     private final FcmPushService fcmPushService;
+    private final NotificationMessageGenerator notificationMessageGenerator;
 
     @Override
     public void executeInternal(JobExecutionContext context) throws JobExecutionException {
@@ -72,8 +73,9 @@ public class ChoreNotificationCreateJob extends QuartzJobBean {
         }
 
         // 3. ChoreNotification 생성 (인앱 수신함)
-        String title = choreInstance.getTitleSnapshot();
-        String message = ""; // TODO: 메시지 템플릿 질의
+        String index = jobDataMap.getString("index");
+        String title = notificationMessageGenerator.titleFor(index);
+        String message = notificationMessageGenerator.buildMessage(user, choreInstance.getTitleSnapshot());
 
         try {
             ChoreNotificationCreateDto request = ChoreNotificationCreateDto.builder()
