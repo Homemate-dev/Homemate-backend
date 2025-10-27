@@ -19,6 +19,10 @@ public class FirebaseConfig {
     @PostConstruct
     public void init() {
         String secretKeyPath = System.getenv("FIREBASE_CREDENTIALS");
+        if (secretKeyPath == null) {
+            log.error("Firebase Credentials not set");
+            return;
+        }
 
         try (InputStream is = new FileInputStream(secretKeyPath)) {
             FirebaseOptions options = FirebaseOptions.builder()
