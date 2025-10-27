@@ -1,6 +1,7 @@
 package com.zerobase.homemate.space;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.RepeatType;
@@ -19,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -133,7 +136,14 @@ class SpaceControllerTest {
         mockMvc.perform(post("/recommend/spaces/{spaceChoreId}/register", spaceChoreId)
                 .with(csrf())
                 .with(request1 ->{
-                    request1.setUserPrincipal(() -> String.valueOf(mockUser.getId()));
+                    UserPrincipal principal = new UserPrincipal(
+                            mockUser.getId(),
+                            mockUser.getProfileName(),
+                            mockUser.getUserRole().name()
+                    );
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(principal, null, principal.authorities());
+                    SecurityContextHolder.getContext().setAuthentication(auth);
                     return request1;
                 })
                 .contentType(MediaType.APPLICATION_JSON)
