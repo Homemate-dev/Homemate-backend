@@ -3,12 +3,17 @@ package com.zerobase.homemate.badge;
 
 import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
+import com.zerobase.homemate.entity.ChoreInstance;
+import com.zerobase.homemate.entity.Mission;
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.UserMission;
 import com.zerobase.homemate.entity.enums.BadgeType;
+import com.zerobase.homemate.entity.enums.MissionType;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
-import com.zerobase.homemate.repository.BadgeRepository;
-import com.zerobase.homemate.repository.UserRepository;
+import com.zerobase.homemate.mission.service.MissionAssignmentService;
+import com.zerobase.homemate.mission.service.MissionService;
+import com.zerobase.homemate.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -25,8 +30,22 @@ class BadgeService30CompletionTest {
     private UserRepository userRepository;
     private UserBadgeStatsService userBadgeStatsService;
     private BadgeService badgeService;
+    private MissionService missionService;
+    private final MissionRepository missionRepository;
+    private final UserMissionRepository userMissionRepository;
+    private final MissionAssignmentService missionAssignmentService;
+    private final MissionProgressRepository missionProgressRepository;
 
     private User user;
+    private UserMission userMission;
+    private ChoreInstance choreInstance;
+
+    BadgeService30CompletionTest(MissionRepository missionRepository, UserMissionRepository userMissionRepository, MissionAssignmentService missionAssignmentService, MissionProgressRepository missionProgressRepository) {
+        this.missionRepository = missionRepository;
+        this.userMissionRepository = userMissionRepository;
+        this.missionAssignmentService = missionAssignmentService;
+        this.missionProgressRepository = missionProgressRepository;
+    }
 
     @BeforeEach
     void setUp() {
@@ -35,11 +54,36 @@ class BadgeService30CompletionTest {
         userBadgeStatsService = mock(UserBadgeStatsService.class);
         badgeService = new BadgeService(badgeRepository, userRepository, userBadgeStatsService);
 
+        missionService = new MissionService(
+                missionRepository,
+                userMissionRepository,
+                missionAssignmentService,
+                missionProgressRepository,
+                userBadgeStatsService,
+                badgeService
+        );
+
         user = User.builder()
                 .id(1L)
                 .profileName("user")
                 .userRole(UserRole.USER)
                 .userStatus(UserStatus.ACTIVE)
+                .build();
+
+        Mission mission = Mission.builder()
+                .id(1L)
+                .missionType(MissionType.USER_ACTION)
+                .build();
+
+        userMission = UserMission.builder()
+                .id(1L)
+                .user(user)
+                .mission(mission)
+                .currentCount(29)
+                .build();
+
+        choreInstance = ChoreInstance.builder()
+                .id(100L)
                 .build();
     }
 
@@ -96,4 +140,20 @@ class BadgeService30CompletionTest {
         when(userBadgeStatsService.getTitleCount(user.getId(), "빨래하기")).thenReturn(30L);
 
     }
+
+//    @Test
+//    void whenMissionCompleted_ThenBadgeServiceShouldBeTriggered() {
+//        // given
+//        when(badgeRepository.existsByUserAndBadgeType(any(), any())).thenReturn(false);
+//        when(userBadgeStatsService.getCount(user.getId())).thenReturn(30L);
+//
+//        // when
+//        missionService.applyCompletion(userMission, null, choreInstance, new java.util.ArrayList<>(), null);
+//
+//        // then
+//        verify(userBadgeStatsService, times(1)).incrementMissionCount(user.getId());
+//        verify(badgeRepository, atLeastOnce()).save(any());
+//    }
+
+
 }

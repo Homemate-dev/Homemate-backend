@@ -8,7 +8,7 @@ public class MissionBadgeCondition implements BadgeCondition{
     private final String badgeName;
     private final UserBadgeStatsService userBadgeStatsService;
 
-    public MissionBadgeCondition(String keyword, int requiredCount, String badgeName, UserBadgeStatsService userBadgeStatsService) {
+    public MissionBadgeCondition(int requiredCount, String badgeName, UserBadgeStatsService userBadgeStatsService) {
         this.requiredCount = requiredCount;
         this.badgeName = badgeName;
         this.userBadgeStatsService = userBadgeStatsService;

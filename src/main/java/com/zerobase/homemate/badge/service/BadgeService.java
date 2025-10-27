@@ -61,18 +61,19 @@ public class BadgeService {
     }
 
     public BadgeCondition createCondition(BadgeType type) {
-        if(type.getSpace() != null){
-            return new SpaceBadgeCondition(type.getSpace(), type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
+        if(type.isMissionBadge()){
+            return new MissionBadgeCondition(type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
         }
-
 
         if(type.getChoreTitle() != null){
             return new NameBadgeCondition(type.getChoreTitle(),  type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
         }
 
-        if(type.isMissionBadge()){
-            return new MissionBadgeCondition(type.name(), type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
+        if(type.getSpace() != null){
+            return new SpaceBadgeCondition(type.getSpace(), type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
         }
+
+
 
         return null;
     }
@@ -153,6 +154,10 @@ public class BadgeService {
 
     // 완료된 집안일 카운트 계산
     private Long countCompleted(User user, BadgeType badgeType){
+        if(badgeType.isMissionBadge()){
+            return userBadgeStatsService.getMissionCount(user.getId());
+        }
+
         if (badgeType.getSpace() != null) {
             return userBadgeStatsService.getSpaceCount(user.getId(), badgeType.getSpace().name());
         }
@@ -160,6 +165,8 @@ public class BadgeService {
         if (badgeType.getChoreTitle() != null) {
             return userBadgeStatsService.getTitleCount(user.getId(), badgeType.getChoreTitle());
         }
+
+
         return userBadgeStatsService.getCount(user.getId());
     }
 }
