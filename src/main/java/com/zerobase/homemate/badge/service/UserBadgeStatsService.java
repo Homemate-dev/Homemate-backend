@@ -78,8 +78,16 @@ public class UserBadgeStatsService {
 
 
     private long getLongValue(String key) {
+        // key가 없을 시, 0으로 초기화한다.
+        redisTemplate.opsForValue().setIfAbsent(key, "0");
+
+        // 값을 받아온다.
         String val = redisTemplate.opsForValue().get(key);
-        return val != null ? Long.parseLong(val) : 0L;
+
+        if(val == null){
+            return 0L;
+        }
+        return Long.parseLong(val);
     }
 
 
