@@ -15,6 +15,7 @@ services:
       TZ: Asia/Seoul
     volumes:
       - /opt/homemate_dev/homemate-firebase.json:/run/secrets/firebase.json:ro
+      - /opt/homemate_dev/logs:/logs
     depends_on:
       mysql:
         condition: service_healthy
