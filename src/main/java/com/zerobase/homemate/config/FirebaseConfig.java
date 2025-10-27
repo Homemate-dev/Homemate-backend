@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -17,11 +18,13 @@ public class FirebaseConfig {
 
     @PostConstruct
     public void init() {
-        /*
-        * TODO: 배포 서버에 서비스 계정 키 설정하기
-        * 참고: https://firebase.google.com/docs/admin/setup
-        * */
-        try (InputStream is = new ClassPathResource("homemate-firebase.json").getInputStream()) {
+        String secretKeyPath = System.getenv("FIREBASE_CREDENTIALS");
+        if (secretKeyPath == null) {
+            log.error("Firebase Credentials not set");
+            return;
+        }
+
+        try (InputStream is = new FileInputStream(secretKeyPath)) {
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(is))
                     .build();
