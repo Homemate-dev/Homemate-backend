@@ -1,5 +1,6 @@
 package com.zerobase.homemate.badge.service;
 
+import com.zerobase.homemate.entity.enums.Space;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -16,54 +17,67 @@ public class UserBadgeStatsService {
     private static final String PREFIX_MISSION = "user:chore:mission";
 
 
-    // 공간별, 집안일별이 아닌 아무 집안일이든 올라가는 횟수 증가
-    public void incrementCount(Long userId){
-        String key = String.format("%s:%d", PREFIX_ALL, userId);
-        redisTemplate.opsForValue().increment(key, 1);
+    private String buildKey(String prefix, Long userId) {
+        return String.format("%s:%d", prefix, userId);
     }
 
-    // 공간별 집안일 완료 횟수 증가
-    public void incrementSpaceCount(Long userId, String space) {
-        String key = String.format("%s:%d:%s", PREFIX_SPACE, userId, space);
-        redisTemplate.opsForValue().increment(key, 1);
+    private String buildKey(String prefix, Long userId, Object subKey) {
+        String subKeyStr;
+
+        // Enum은 name()으로 고정 변환 (toString 오버라이드 영향 방지)
+        if (subKey instanceof Enum<?>) {
+            subKeyStr = ((Enum<?>) subKey).name();
+        } else {
+            subKeyStr = subKey.toString();
+        }
+
+        return String.format("%s:%d:%s", prefix, userId, subKeyStr);
     }
 
-    // 특정 집안일별 완료 횟수 증가
+    /* ===============================
+       ✅ Count 증가 로직
+       =============================== */
+
+    // (1) 아무 집안일 완료 시
+    public void incrementCount(Long userId) {
+        redisTemplate.opsForValue().increment(buildKey(PREFIX_ALL, userId), 1);
+    }
+
+    // 공간 카테고리에 속한 집안일을 완료하면 그 카테고리에 속한 횟수가 늘어난다.
+    public void incrementSpaceCount(Long userId, Space space) {
+        redisTemplate.opsForValue().increment(buildKey(PREFIX_SPACE, userId, space), 1);
+    }
+
+    // 특정 이름을 가진 집안일은 완료 시 카운팅이 된다.
     public void incrementTitleCount(Long userId, String title) {
-        String key = String.format("%s:%d:%s", PREFIX_TITLE, userId, title);
-        redisTemplate.opsForValue().increment(key, 1);
+        redisTemplate.opsForValue().increment(buildKey(PREFIX_TITLE, userId, title), 1);
     }
 
-    // 미션 완료 횟수 증가
+    // 미션 완료 시 미션 카운팅이 된다.
     public void incrementMissionCount(Long userId) {
-        String key = String.format("%s:%d", PREFIX_MISSION, userId);
-        redisTemplate.opsForValue().increment(key, 1);
+        redisTemplate.opsForValue().increment(buildKey(PREFIX_MISSION, userId), 1);
     }
 
-    // 공간별, 집안일별이 아닌 아무 집안일이든 올라가는 횟수 조회
-    public long getCount(Long userId){
-        String key = String.format("%s:%d", PREFIX_ALL, userId);
-        String val = redisTemplate.opsForValue().get(key);
-        return val != null ? Long.parseLong(val) : 0L;
+
+    // Redis 횟수 조회 로직
+    public long getCount(Long userId) {
+        return getLongValue(buildKey(PREFIX_ALL, userId));
     }
 
-    // 공간별 완료 횟수 조회
-    public long getSpaceCount(Long userId, String space) {
-        String key = String.format("%s:%d:%s", PREFIX_SPACE, userId, space);
-        String val = redisTemplate.opsForValue().get(key);
-        return val != null ? Long.parseLong(val) : 0L;
+    public long getSpaceCount(Long userId, Space space) {
+        return getLongValue(buildKey(PREFIX_SPACE, userId, space));
     }
 
-    // 특정 집안일별 완료 횟수 조회
     public long getTitleCount(Long userId, String title) {
-        String key = String.format("%s:%d:%s", PREFIX_TITLE, userId, title);
-        String val = redisTemplate.opsForValue().get(key);
-        return val != null ? Long.parseLong(val) : 0L;
+        return getLongValue(buildKey(PREFIX_TITLE, userId, title));
     }
 
-    // 미션 완료 횟수 조회
-    public long getMissionCount(Long userId){
-        String key = String.format("%s:%d", PREFIX_MISSION, userId);
+    public long getMissionCount(Long userId) {
+        return getLongValue(buildKey(PREFIX_MISSION, userId));
+    }
+
+
+    private long getLongValue(String key) {
         String val = redisTemplate.opsForValue().get(key);
         return val != null ? Long.parseLong(val) : 0L;
     }

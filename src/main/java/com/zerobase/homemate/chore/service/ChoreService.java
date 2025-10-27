@@ -227,7 +227,7 @@ public class ChoreService {
 
         userBadgeStatsService.incrementCount(userId);
         if(chore.getSpace() != null) {
-            userBadgeStatsService.incrementSpaceCount(userId, chore.getSpace().name());
+            userBadgeStatsService.incrementSpaceCount(userId, chore.getSpace());
         }
 
         boolean isTitleBadgeTarget = Arrays.stream(BadgeType.values())

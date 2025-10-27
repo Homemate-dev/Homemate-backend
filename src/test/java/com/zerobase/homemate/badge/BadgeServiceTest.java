@@ -7,10 +7,7 @@ import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.Mission;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.UserMission;
-import com.zerobase.homemate.entity.enums.BadgeType;
-import com.zerobase.homemate.entity.enums.MissionType;
-import com.zerobase.homemate.entity.enums.UserRole;
-import com.zerobase.homemate.entity.enums.UserStatus;
+import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.mission.service.MissionAssignmentService;
 import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.repository.*;
@@ -31,21 +28,15 @@ class BadgeService30CompletionTest {
     private UserBadgeStatsService userBadgeStatsService;
     private BadgeService badgeService;
     private MissionService missionService;
-    private final MissionRepository missionRepository;
-    private final UserMissionRepository userMissionRepository;
-    private final MissionAssignmentService missionAssignmentService;
-    private final MissionProgressRepository missionProgressRepository;
+    private MissionRepository missionRepository;
+    private UserMissionRepository userMissionRepository;
+    private MissionAssignmentService missionAssignmentService;
+    private MissionProgressRepository missionProgressRepository;
 
     private User user;
     private UserMission userMission;
     private ChoreInstance choreInstance;
 
-    BadgeService30CompletionTest(MissionRepository missionRepository, UserMissionRepository userMissionRepository, MissionAssignmentService missionAssignmentService, MissionProgressRepository missionProgressRepository) {
-        this.missionRepository = missionRepository;
-        this.userMissionRepository = userMissionRepository;
-        this.missionAssignmentService = missionAssignmentService;
-        this.missionProgressRepository = missionProgressRepository;
-    }
 
     @BeforeEach
     void setUp() {
@@ -53,6 +44,12 @@ class BadgeService30CompletionTest {
         userRepository = mock(UserRepository.class);
         userBadgeStatsService = mock(UserBadgeStatsService.class);
         badgeService = new BadgeService(badgeRepository, userRepository, userBadgeStatsService);
+
+        missionRepository = mock(MissionRepository.class);
+        userMissionRepository = mock(UserMissionRepository.class);
+        missionAssignmentService = mock(MissionAssignmentService.class);
+        missionProgressRepository = mock(MissionProgressRepository.class);
+
 
         missionService = new MissionService(
                 missionRepository,
@@ -103,7 +100,7 @@ class BadgeService30CompletionTest {
 
         // Redis 기반 통계 값 모킹: 30회 완료
         when(userBadgeStatsService.getCount(user.getId())).thenReturn(30L);
-        when(userBadgeStatsService.getSpaceCount(user.getId(), "BATHROOM")).thenReturn(30L);
+        when(userBadgeStatsService.getSpaceCount(user.getId(), Space.BATHROOM)).thenReturn(30L);
         when(userBadgeStatsService.getTitleCount(user.getId(), "빨래하기")).thenReturn(30L);
 
         // when
@@ -128,7 +125,7 @@ class BadgeService30CompletionTest {
         when(badgeRepository.findAllByUser(user)).thenReturn(Collections.emptyList());
 
         when(userBadgeStatsService.getCount(user.getId())).thenReturn(30L);
-        when(userBadgeStatsService.getSpaceCount(user.getId(), "BATHROOM")).thenReturn(30L);
+        when(userBadgeStatsService.getSpaceCount(user.getId(), Space.BATHROOM)).thenReturn(30L);
         when(userBadgeStatsService.getTitleCount(user.getId(), "빨래하기")).thenReturn(30L);
 
         // when
@@ -136,7 +133,7 @@ class BadgeService30CompletionTest {
 
         // then
         when(userBadgeStatsService.getCount(user.getId())).thenReturn(30L); // 전체 배지
-        when(userBadgeStatsService.getSpaceCount(user.getId(), "BATHROOM")).thenReturn(30L);
+        when(userBadgeStatsService.getSpaceCount(user.getId(), Space.BATHROOM)).thenReturn(30L);
         when(userBadgeStatsService.getTitleCount(user.getId(), "빨래하기")).thenReturn(30L);
 
     }

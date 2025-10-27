@@ -25,9 +25,6 @@ public class BadgeController {
     // 내가 가진 배지 목록 조회
     @GetMapping("/acquired")
     public ResponseEntity<List<BadgeResponse>> getMyBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
-        if(userPrincipal == null){
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
 
         List<BadgeResponse> badges = badgeService.getAcquiredBadges(userPrincipal.id());
 

@@ -159,7 +159,7 @@ public class BadgeService {
         }
 
         if (badgeType.getSpace() != null) {
-            return userBadgeStatsService.getSpaceCount(user.getId(), badgeType.getSpace().name());
+            return userBadgeStatsService.getSpaceCount(user.getId(), badgeType.getSpace());
         }
 
         if (badgeType.getChoreTitle() != null) {

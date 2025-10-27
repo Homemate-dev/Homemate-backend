@@ -24,7 +24,7 @@ public class SpaceBadgeCondition implements BadgeCondition {
             return false;
         }
 
-        long completedCount = userBadgeStatsService.getSpaceCount(chore.getUser().getId(), targetSpace.name());
+        long completedCount = userBadgeStatsService.getSpaceCount(chore.getUser().getId(), targetSpace);
 
         return completedCount >= requiredCount;
     }
