@@ -13,7 +13,6 @@ services:
     env_file: .env
     environment:
       TZ: Asia/Seoul
-      FIREBASE_CREDENTIALS: ${FIREBASE_CREDENTIAL_PATH}
     volumes:
       - /opt/homemate_dev/homemate-firebase.json:/run/secrets/firebase.json:ro
     depends_on:
