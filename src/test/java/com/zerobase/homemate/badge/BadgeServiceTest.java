@@ -138,19 +138,4 @@ class BadgeService30CompletionTest {
 
     }
 
-//    @Test
-//    void whenMissionCompleted_ThenBadgeServiceShouldBeTriggered() {
-//        // given
-//        when(badgeRepository.existsByUserAndBadgeType(any(), any())).thenReturn(false);
-//        when(userBadgeStatsService.getCount(user.getId())).thenReturn(30L);
-//
-//        // when
-//        missionService.applyCompletion(userMission, null, choreInstance, new java.util.ArrayList<>(), null);
-//
-//        // then
-//        verify(userBadgeStatsService, times(1)).incrementMissionCount(user.getId());
-//        verify(badgeRepository, atLeastOnce()).save(any());
-//    }
-
-
 }
