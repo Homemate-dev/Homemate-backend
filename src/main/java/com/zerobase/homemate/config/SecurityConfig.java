@@ -56,7 +56,8 @@ public class SecurityConfig {
     String uri = request.getRequestURI();
     return uri.startsWith("/auth/login/")
         || uri.equals("/auth/refresh")
-        || uri.startsWith("/auth/dev/");
+        || uri.startsWith("/auth/dev/")
+        || uri.startsWith("/webhook/**");
   };
 
   // 보호해야 하는 주요 API 패턴
@@ -81,7 +82,7 @@ public class SecurityConfig {
             .authenticationEntryPoint(restAuthenticationEntryPoint)
             .accessDeniedHandler(restAccessDeniedHandler)
         )
-        .securityMatcher("/auth/login/**", "/auth/refresh", "/auth/dev/**")
+        .securityMatcher("/auth/login/**", "/auth/refresh", "/auth/dev/**", "/webhook/**")
         .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
         .logout(AbstractHttpConfigurer::disable);
     return http.build();
