@@ -1,8 +1,10 @@
 package com.zerobase.homemate.recommend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
+import com.zerobase.homemate.chore.dto.ChoreDto.Response;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.recommend.controller.CategoryController;
 import com.zerobase.homemate.recommend.dto.CategoryChoreDto;
@@ -15,7 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -87,60 +91,54 @@ class CategoryControllerTest {
 
     @Test
     @DisplayName("CategoryChore 기반 집안일 등록 테스트")
-    @WithMockCustomUser(id = 100L)
     void createChoreFromCategory_shouldReturnCreatedChore() throws Exception {
 
         Long categoryChoreId = 1L;
-        User mockUser = User.builder()
-                .id(100L)
-                .userStatus(UserStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
-                .userRole(UserRole.USER)
-                .build();
+
+        var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
+        var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
 
         // 요청 DTO
         CategoryChoreDto.CreateRequest request = new CategoryChoreDto.CreateRequest();
         request.setCategory(Category.WINTER);
 
         // Mock Response 생성
-        ChoreDto.Response mockResponse = ChoreDto.Response.builder()
-                .id(1L) // 필수
-                .title("청소하기")
-                .space(Space.KITCHEN)
-                .repeatType(RepeatType.DAILY)
-                .repeatInterval(3)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusDays(3))
-                .notificationYn(false)
-                .createdAt(LocalDateTime.now())
+        ApiResponse<ChoreDto.Response> mockResponse =
+            ApiResponse.<Response>builder()
+                .data(ChoreDto.Response.builder()
+                    .id(1L) // 필수
+                    .title("청소하기")
+                    .space(Space.KITCHEN)
+                    .repeatType(RepeatType.DAILY)
+                    .repeatInterval(3)
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(3))
+                    .notificationYn(false)
+                    .createdAt(LocalDateTime.now())
+                    .build())
                 .build();
 
         // Service Mock
         when(categoryChoreCreator.createChoreFromCategory(
-                eq(100L),
+                eq(1L),
                 any(Category.class),
                 eq(categoryChoreId)
         )).thenReturn(mockResponse);
 
         System.out.println(objectMapper.writeValueAsString(mockResponse));
 
-
         // SecurityContext에 userId를 주입
         mockMvc.perform(post("/recommend/categories/{categoryChoreId}/register", categoryChoreId)
-                        .with(csrf())
-                        .with(request1 -> {
-                            // Authentication에 userId 세팅
-                            request1.setUserPrincipal(() -> String.valueOf(mockUser.getId()));
-                            return request1;
-                        })
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .accept(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value(mockResponse.getTitle()))
-                .andExpect(jsonPath("$.space").value(mockResponse.getSpace().name()))
-                .andExpect(jsonPath("$.repeatType").value(mockResponse.getRepeatType().name()))
-                .andExpect(jsonPath("$.repeatInterval").value(mockResponse.getRepeatInterval()));
+                .andExpect(jsonPath("$.data.title").value(mockResponse.getData().getTitle()))
+                .andExpect(jsonPath("$.data.space").value(mockResponse.getData().getSpace().name()))
+                .andExpect(jsonPath("$.data.repeatType").value(mockResponse.getData().getRepeatType().name()))
+                .andExpect(jsonPath("$.data.repeatInterval").value(mockResponse.getData().getRepeatInterval()));
     }
 
 

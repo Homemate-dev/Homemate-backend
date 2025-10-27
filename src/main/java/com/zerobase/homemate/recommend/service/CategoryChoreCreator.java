@@ -1,11 +1,15 @@
 package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mission.dto.MissionDto;
+import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
@@ -32,10 +36,11 @@ public class CategoryChoreCreator {
     private final SpaceChoreRepository spaceChoreRepository;
     private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final RedisChoreStatsService redisChoreStatsService;
-
+    private final MissionService missionService;
 
     @Transactional
-    public ChoreDto.Response createChoreFromCategory(Long userId, Category category, Long categoryChoreId) {
+    public ApiResponse<ChoreDto.Response> createChoreFromCategory(Long userId,
+        Category category, Long categoryChoreId) {
         // 1. 사용자 유효성 검증
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -89,8 +94,15 @@ public class CategoryChoreCreator {
         // 7. Redis counting 반영
         redisChoreStatsService.increment(template.getCategory(), space);
 
+        List<MissionDto.Response> userMission =
+            missionService.increaseMissionCountForAction(userId,
+                UserActionType.CREATE_CHORE_RECOMMENDED)
+                .stream().filter(MissionDto.Response::isCompleted).toList();
 
-        return ChoreDto.Response.fromEntity(saved);
+        return ApiResponse.<ChoreDto.Response>builder()
+            .data(ChoreDto.Response.fromEntity(saved))
+            .missionResults(userMission)
+            .build();
     }
 
 
