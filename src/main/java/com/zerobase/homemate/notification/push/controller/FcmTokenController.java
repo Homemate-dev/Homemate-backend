@@ -3,6 +3,7 @@ package com.zerobase.homemate.notification.push.controller;
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.notification.push.dto.FcmTokenDto;
 import com.zerobase.homemate.notification.push.service.FcmTokenService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +23,7 @@ public class FcmTokenController {
     @PostMapping("/subscriptions")
     public ResponseEntity<FcmTokenDto.Response> subscribe(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody FcmTokenDto.Request request
+            @RequestBody @Valid FcmTokenDto.Request request
     ) {
         Long userId = userPrincipal.id();
 
