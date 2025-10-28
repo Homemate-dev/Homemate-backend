@@ -2,10 +2,7 @@ package com.zerobase.homemate.notification.service;
 
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.notification.dto.ChoreNotificationCreateDto;
-import com.zerobase.homemate.notification.dto.ChoreNotificationDto;
-import com.zerobase.homemate.notification.dto.NoticeDto;
-import com.zerobase.homemate.notification.dto.NotificationReadDto;
+import com.zerobase.homemate.notification.dto.*;
 import com.zerobase.homemate.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -128,5 +125,19 @@ public class NotificationService {
         ChoreNotification saved = choreNotificationRepository.save(notification);
 
         return NotificationReadDto.fromChoreNotification(saved);
+    }
+
+    @Transactional
+    public NoticeDto createNotice(NoticeCreateDto request) {
+        Notice notice = Notice.builder()
+                .title(request.getTitle())
+                .message(request.getMessage())
+                .url(request.getUrl())
+                .scheduledAt(request.getScheduledAt())
+                .build();
+
+        Notice saved = noticeRepository.save(notice);
+
+        return NoticeDto.fromEntity(saved, null);
     }
 }

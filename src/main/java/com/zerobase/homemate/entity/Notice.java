@@ -28,8 +28,11 @@ public class Notice {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "message", columnDefinition = "TEXT")
+    @Column(name = "message")
     private String message;
+
+    @Column(name = "url", columnDefinition = "TEXT")
+    private String url;
 
     @Column(name = "scheduled_at", nullable = false)
     private LocalDateTime scheduledAt;
