@@ -10,4 +10,5 @@ public interface ChoreRepository extends JpaRepository<Chore, Long> {
 
 
     boolean existsByUserIdAndTitle(Long userId, String title);
+
 }
