@@ -4,8 +4,6 @@ package com.zerobase.homemate.badge.controller;
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.badge.BadgeResponse;
 import com.zerobase.homemate.badge.service.BadgeService;
-import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,9 +32,6 @@ public class BadgeController {
     // 취득까지 얼마 안 남은 배지 상위 3개 조회
     @GetMapping("/closest")
     public ResponseEntity<List<BadgeResponse>> getClosestBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
-        if(userPrincipal == null){
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
 
         List<BadgeResponse> closest = badgeService.getClosestBadges(userPrincipal.id());
 
