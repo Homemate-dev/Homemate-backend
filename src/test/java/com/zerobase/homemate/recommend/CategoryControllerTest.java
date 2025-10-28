@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -49,6 +50,7 @@ class CategoryControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
 
     @DisplayName("카테고리 전체 조회 API 성공")
     @Test
@@ -97,6 +99,8 @@ class CategoryControllerTest {
 
         var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
         var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+
 
         // 요청 DTO
         CategoryChoreDto.CreateRequest request = new CategoryChoreDto.CreateRequest();
