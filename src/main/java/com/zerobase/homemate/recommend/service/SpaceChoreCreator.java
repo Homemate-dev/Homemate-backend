@@ -1,11 +1,15 @@
 package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mission.dto.MissionDto;
+import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
@@ -31,9 +35,11 @@ public class SpaceChoreCreator {
     private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final RedisChoreStatsService redisChoreStatsService;
     private final CategoryChoreRepository categoryChoreRepository;
+    private final MissionService missionService;
 
     @Transactional
-    public ChoreDto.Response createChoreFromSpace(Long userId, Space space, Long spaceChoreId){
+    public ApiResponse<ChoreDto.Response> createChoreFromSpace(Long userId,
+        Space space, Long spaceChoreId){
         // 1. 사용자 유효성 검증
         User user =  userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -82,7 +88,15 @@ public class SpaceChoreCreator {
 
         redisChoreStatsService.increment(category, template.getSpace());
 
-        return ChoreDto.Response.fromEntity(saved);
+        List<MissionDto.Response> userMission =
+            missionService.increaseMissionCountForAction(userId,
+            UserActionType.CREATE_CHORE_WITH_SPACE)
+                .stream().filter(MissionDto.Response::isCompleted).toList();
+
+        return ApiResponse.<ChoreDto.Response>builder()
+            .data(ChoreDto.Response.fromEntity(saved))
+            .missionResults(userMission)
+            .build();
     }
 
 }

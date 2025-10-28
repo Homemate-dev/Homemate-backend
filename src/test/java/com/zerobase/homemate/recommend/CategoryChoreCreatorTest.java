@@ -1,6 +1,7 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.SpaceChore;
@@ -8,8 +9,10 @@ import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
@@ -60,6 +63,9 @@ public class CategoryChoreCreatorTest {
     @Mock
     private RedisChoreStatsService redisChoreStatsService;
 
+    @Mock
+    private MissionService missionService;
+
     @Test
     void createChoreFromCategory_shouldCreateChoreWithMatchedSpace(){
         // given
@@ -92,12 +98,17 @@ public class CategoryChoreCreatorTest {
         when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
         when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
 
+        when(missionService.increaseMissionCountForAction(eq(userId), eq(
+            UserActionType.CREATE_CHORE_RECOMMENDED)))
+            .thenReturn(List.of());
+
         // when
-        ChoreDto.Response response = categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
+        ApiResponse<ChoreDto.Response> response =
+            categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
 
         // then
-        assertEquals("청소하기", response.getTitle());
-        assertEquals(Space.KITCHEN, response.getSpace());
+        assertEquals("청소하기", response.getData().getTitle());
+        assertEquals(Space.KITCHEN, response.getData().getSpace());
         verify(choreRepository).save(any(Chore.class));
         verify(choreInstanceRepository).saveAll(anyList());
     }
@@ -153,13 +164,20 @@ public class CategoryChoreCreatorTest {
         when(userNotificationSettingRepository.findByUserId(anyLong()))
                 .thenReturn(Optional.empty()); // 혹은 Optional.of(defaultSetting)
 
+        when(missionService.increaseMissionCountForAction(eq(user.getId()), eq(
+            UserActionType.CREATE_CHORE_RECOMMENDED)))
+            .thenReturn(List.of());
+
         // when
-        ChoreDto.Response response = categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
+        ApiResponse<ChoreDto.Response> response =
+            categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
 
         // then
-        assertTrue(response.getNotificationYn(), "알림은 켜져 있어야 한다");
-        assertNotNull(response.getNotificationTime(), "알림 시간은 기본값으로 세팅되어 있어야 한다");
-        assertEquals(LocalTime.of(9, 0), response.getNotificationTime(), "기본 알림 시간은 09:00");
+        assertTrue(response.getData().getNotificationYn(), "알림은 켜져 있어야 한다");
+        assertNotNull(response.getData().getNotificationTime(), "알림 시간은 기본값으로 세팅되어 "
+            + "있어야 한다");
+        assertEquals(LocalTime.of(9, 0), response.getData().getNotificationTime(),
+            "기본 알림 시간은 09:00");
     }
 
 }

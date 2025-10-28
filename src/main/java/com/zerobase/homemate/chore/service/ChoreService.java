@@ -4,6 +4,7 @@ import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreCounts;
 import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
@@ -15,6 +16,7 @@ import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mission.dto.MissionDto;
 import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
@@ -54,7 +56,7 @@ public class ChoreService {
     private final UserBadgeStatsService userBadgeStatsService;
 
     @Transactional
-    public ChoreDto.Response createChores(Long userId,
+    public ApiResponse<ChoreDto.Response> createChores(Long userId,
         ChoreDto.CreateRequest request) {
 
         if (request.getNotificationYn() && request.getNotificationTime() == null) {
@@ -98,8 +100,10 @@ public class ChoreService {
             savedChore);
         choreInstanceRepository.saveAll(instances);
 
-        missionService.increaseMissionCountForAction(
-            userId, UserActionType.CREATE_CHORE_MANUAL);
+        List<MissionDto.Response> userMission =
+            missionService.increaseMissionCountForAction(
+            userId, UserActionType.CREATE_CHORE_MANUAL)
+                .stream().filter(MissionDto.Response::isCompleted).toList();
 
         // 맞춤 알림 시간이 null일 경우 마이페이지 시간 -> 없으면 기본값(19:00) 사용
         LocalTime notificationTime = request.getNotificationTime();
@@ -120,13 +124,14 @@ public class ChoreService {
 
         redisChoreStatsService.increment(null, request.getSpace());
 
-        badgeService.evaluateBadgesOnCreate(userReference, savedChore);
-
-        return ChoreDto.Response.fromEntity(savedChore);
+        return ApiResponse.<ChoreDto.Response>builder()
+            .data(ChoreDto.Response.fromEntity(savedChore))
+            .missionResults(userMission)
+            .build();
     }
 
     @Transactional
-    public ChoreDto.Response updateChores(Long userId, Long choreInstanceId,
+    public ApiResponse<ChoreDto.Response> updateChores(Long userId, Long choreInstanceId,
         ChoreDto.UpdateRequest request) {
 
         ChoreInstance choreInstance =
@@ -162,7 +167,7 @@ public class ChoreService {
         }
     }
 
-    private ChoreDto.Response updateChoreInstance(Chore chore,
+    private ApiResponse<ChoreDto.Response> updateChoreInstance(Chore chore,
         ChoreInstance choreInstance, ChoreDto.UpdateRequest request) {
 
         if (request.getApplyToAfter()) {
@@ -190,7 +195,7 @@ public class ChoreService {
             .build());
     }
 
-    private ChoreDto.Response updateChoreOnly(Chore chore,
+    private ApiResponse<ChoreDto.Response> updateChoreOnly(Chore chore,
         ChoreInstance choreInstance, ChoreDto.UpdateRequest request) {
 
         if (!request.getNotificationYn()) {
@@ -217,11 +222,13 @@ public class ChoreService {
         chore.setNotificationYn(request.getNotificationYn());
         chore.setSpace(request.getSpace());
 
-        return ChoreDto.Response.fromEntity(chore);
+        return ApiResponse.<ChoreDto.Response>builder()
+            .data(ChoreDto.Response.fromEntity(chore))
+            .build();
     }
 
     @Transactional
-    public ChoreInstanceDto.Response completeChore(Long userId,
+    public ApiResponse<ChoreInstanceDto.Response> completeChore(Long userId,
         Long choreInstanceId) {
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)
@@ -232,15 +239,19 @@ public class ChoreService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
+        final List<MissionDto.Response> userMission;
+
         switch (choreInstance.getChoreStatus()) {
             case PENDING -> {
                 choreInstance.completeChore();
-                missionService.applyChoreCompletionByStatus(userId,
+                userMission =
+                    missionService.applyChoreCompletionByStatus(userId,
                     choreInstance, true);
             }
             case COMPLETED -> {
                 choreInstance.cancelCompleteChore();
-                missionService.applyChoreCompletionByStatus(userId,
+                userMission =
+                    missionService.applyChoreCompletionByStatus(userId,
                     choreInstance, false);
             }
             case CANCELLED, DELETED -> throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
@@ -260,8 +271,11 @@ public class ChoreService {
         }
 
         badgeService.evaluateBadges(chore.getUser());
-
-        return ChoreInstanceDto.Response.fromEntity(choreInstance);
+      
+        return ApiResponse.<ChoreInstanceDto.Response>builder()
+            .data(ChoreInstanceDto.Response.fromEntity(choreInstance))
+            .missionResults(userMission)
+            .build();
     }
 
     private boolean isStartAfterEnd(LocalDate startDate, LocalDate endDate) {

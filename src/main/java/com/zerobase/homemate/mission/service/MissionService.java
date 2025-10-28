@@ -15,6 +15,7 @@ import com.zerobase.homemate.repository.MissionRepository;
 import com.zerobase.homemate.repository.UserMissionRepository;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -70,7 +71,7 @@ public class MissionService {
     }
 
     @Transactional
-    public void applyChoreCompletionByStatus(Long userId,
+    public List<MissionDto.Response> applyChoreCompletionByStatus(Long userId,
         ChoreInstance choreInstance, boolean isPending) {
 
         YearMonth nowYm = YearMonth.now();
@@ -85,12 +86,12 @@ public class MissionService {
                 )
             );
 
-        if (monthlyMissions.isEmpty()) return;
+        if (monthlyMissions.isEmpty()) return List.of();
 
         List<UserMission> userMissions =
             userMissionRepository.findByUser_IdAndMissionIn(userId, monthlyMissions);
 
-        if (userMissions.isEmpty()) return;
+        if (userMissions.isEmpty()) return List.of();
 
         Map<Long, UserMission> userMissionByMissionId = userMissions.stream()
             .collect(Collectors.toMap(um -> um.getMission().getId(),
@@ -118,6 +119,7 @@ public class MissionService {
 
         List<MissionProgress> toSave = new ArrayList<>();
         List<MissionProgress> toDelete = new ArrayList<>();
+        List<MissionDto.Response> response = new ArrayList<>();
 
         for (Mission mission : monthlyMissions) {
             UserMission userMission = userMissionByMissionId.get(mission.getId());
@@ -130,6 +132,9 @@ public class MissionService {
             if (isPending) {
                 applyCompletion(userMission, missionProgress, choreInstance,
                     toSave, counterUserMission);
+                if (userMission.getIsCompleted()) {
+                    response.add(MissionDto.Response.of(mission, userMission));
+                }
             } else {
                 revertCompletion(userMission, missionProgress, choreInstance,
                     toDelete, counterUserMission);
@@ -142,6 +147,11 @@ public class MissionService {
         if (!toSave.isEmpty()) {
             missionProgressRepository.saveAll(toSave);
         }
+
+        return response
+            .stream()
+            .sorted(Comparator.comparing(MissionDto.Response::getTitle))
+            .toList();
     }
 
     private boolean qualifies(Mission mission, ChoreInstance choreInstance) {
@@ -209,7 +219,7 @@ public class MissionService {
     }
 
     @Transactional
-    public void increaseMissionCountForAction(Long userId,
+    public List<MissionDto.Response> increaseMissionCountForAction(Long userId,
         UserActionType userActionType) {
         Mission mission =
             missionRepository.findByMissionTypeAndUserActionTypeAndActiveYearMonth(
@@ -217,14 +227,14 @@ public class MissionService {
             );
 
         if (mission == null) {
-            return;
+            return List.of();
         }
 
         UserMission userMission = userMissionRepository.findByUser_IdAndMission(
             userId, mission);
 
         if (userMission == null) {
-            return;
+            return List.of();
         }
 
         userMission.incrementCount();
@@ -234,5 +244,7 @@ public class MissionService {
                 .userMission(userMission)
                 .build()
         );
+
+        return List.of(MissionDto.Response.of(mission, userMission));
     }
 }
