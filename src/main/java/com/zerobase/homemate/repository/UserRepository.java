@@ -29,12 +29,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
         u.id, sa.socialProvider, u.profileName, u.profileImageUrl,
         u.createdAt, u.lastLoginAt,
         s.masterEnabled, s.choreEnabled, s.noticeEnabled,
-        s.notificationTime, s.updatedAt
+        s.notificationTime, s.updatedAt,
+        :totalBadgeCount,
+        :acquiredBadgeCount
     )
     FROM User u
     LEFT JOIN UserSocialAccount sa ON sa.user = u
     LEFT JOIN UserNotificationSetting s ON s.user = u
     WHERE u.id = :id
     """)
-    Optional<MyPageResponseDto> findMyPageResponseById(Long id);
+    Optional<MyPageResponseDto> findMyPageResponseById(
+        @Param("id") Long id,
+        @Param("totalBadgeCount") int totalBadgeCount,
+        @Param("acquiredBadgeCount") int acquiredBadgeCount);
 }

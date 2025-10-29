@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-
+import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.entity.enums.SocialProvider;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -12,6 +12,7 @@ import com.zerobase.homemate.mypage.query.dto.MyPageResponseDto;
 import com.zerobase.homemate.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ class MyPageServiceTest {
   @InjectMocks
   private MyPageService myPageService;
 
+  @Mock
+  private BadgeService badgeService;
+
   @Test
   @DisplayName("마이페이지 조회 성공")
   void getMyPage() {
@@ -39,17 +43,23 @@ class MyPageServiceTest {
         LocalDateTime.of(2025, 9, 19, 7, 10),
         false, true, false,
         LocalTime.of(18, 0),
-        LocalDateTime.of(2025, 9, 19, 7, 10)
+        LocalDateTime.of(2025, 9, 19, 7, 10),
+        0,
+        0
     );
-    given(userRepository.findMyPageResponseById(userId))
+    given(userRepository.findMyPageResponseById(
+        userId, dto.totalBadgeCount(), dto.acquiredBadgeCount()))
         .willReturn(Optional.of(dto));
+    given(badgeService.getAcquiredBadges(userId))
+        .willReturn(List.of());
 
     // when
     MyPageResponseDto result = myPageService.getMyPage(userId);
 
     // then
     assertThat(result).isEqualTo(dto);
-    then(userRepository).should().findMyPageResponseById(userId);
+    then(userRepository).should().findMyPageResponseById(
+        userId, dto.totalBadgeCount(), dto.acquiredBadgeCount());
   }
 
   @Test
@@ -57,13 +67,13 @@ class MyPageServiceTest {
   void getMyPageUserNotFound() {
     // given
     Long userId = 999L;
-    given(userRepository.findMyPageResponseById(userId))
+    given(userRepository.findMyPageResponseById(userId, 0, 0))
         .willReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> myPageService.getMyPage(userId))
         .isInstanceOf(CustomException.class)
         .hasMessageContaining(ErrorCode.USER_NOT_FOUND.getMessage());
-    then(userRepository).should().findMyPageResponseById(userId);
+    then(userRepository).should().findMyPageResponseById(userId, 0, 0);
   }
 }
