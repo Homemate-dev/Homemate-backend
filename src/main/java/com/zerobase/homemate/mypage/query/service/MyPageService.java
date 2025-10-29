@@ -21,7 +21,7 @@ public class MyPageService {
   public MyPageResponseDto getMyPage(Long userId) {
     List<BadgeResponse> badges = badgeService.getAcquiredBadges(userId);
     int acquiredBadgesCount =
-        badges.stream().filter(BadgeResponse::acquired).toList().size();
+        (int) badges.stream().filter(BadgeResponse::acquired).count();
     return userRepository.findMyPageResponseById(userId, badges.size(), acquiredBadgesCount)
         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
   }
