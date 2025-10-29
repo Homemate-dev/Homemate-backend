@@ -67,8 +67,8 @@ class NotificationControllerTest {
         );
 
         noticeDtoList = List.of(
-                new NoticeDto(1L, "공지 1", "첫번째 공지입니다.", baseDateTime.minusDays(2), true, baseDateTime.minusDays(1), null),
-                new NoticeDto(2L, "공지 2", "두번째 공지입니다.", baseDateTime.minusDays(1), false, null, null)
+                new NoticeDto(1L, "공지 1", "첫번째 공지입니다.", "www.example.com/1", baseDateTime.minusDays(2), true, baseDateTime.minusDays(1), null),
+                new NoticeDto(2L, "공지 2", "두번째 공지입니다.", "www.example.com/2", baseDateTime.minusDays(1), false, null, null)
         );
     }
 
