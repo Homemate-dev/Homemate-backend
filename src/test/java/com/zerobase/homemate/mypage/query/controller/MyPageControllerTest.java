@@ -48,7 +48,9 @@ class MyPageControllerTest {
         true,   // choreEnabled
         false,  // noticeEnabled
         LocalTime.of(18, 0),
-        LocalDateTime.of(2025, 9, 19, 7, 10)
+        LocalDateTime.of(2025, 9, 19, 7, 10),
+        30,
+        1
     );
     given(myPageService.getMyPage(userId)).willReturn(dto);
 
@@ -67,7 +69,9 @@ class MyPageControllerTest {
         .andExpect(jsonPath("$.masterEnabled").value(false))
         .andExpect(jsonPath("$.choreEnabled").value(true))
         .andExpect(jsonPath("$.noticeEnabled").value(false))
-        .andExpect(jsonPath("$.notificationTime").value("18:00"));
+        .andExpect(jsonPath("$.notificationTime").value("18:00"))
+        .andExpect(jsonPath("$.totalBadgeCount").value(30))
+        .andExpect(jsonPath("$.acquiredBadgeCount").value(1));
 
     then(myPageService).should().getMyPage(userId);
     then(myPageService).shouldHaveNoMoreInteractions();

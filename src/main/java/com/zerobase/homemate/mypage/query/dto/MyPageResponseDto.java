@@ -12,12 +12,12 @@ public record MyPageResponseDto(
     String profileImgUrl,
     LocalDateTime createdAt,
     LocalDateTime lastLoginAt,
-    boolean masterEnabled,
-    boolean choreEnabled,
-    boolean noticeEnabled,
+    Boolean masterEnabled,
+    Boolean choreEnabled,
+    Boolean noticeEnabled,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime notificationTime,
-    LocalDateTime updatedAt
-
-    // TODO: 뱃지 엔티티 추가 시, 사용자 획득 뱃지 수 필드 추가
+    LocalDateTime updatedAt,
+    Integer totalBadgeCount,
+    Integer acquiredBadgeCount
 ) {}
