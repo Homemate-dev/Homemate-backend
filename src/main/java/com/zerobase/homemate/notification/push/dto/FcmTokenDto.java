@@ -2,6 +2,7 @@ package com.zerobase.homemate.notification.push.dto;
 
 import com.zerobase.homemate.entity.FcmToken;
 import com.zerobase.homemate.entity.enums.DeviceType;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +16,7 @@ public class FcmTokenDto {
     @NoArgsConstructor
     public static class Request {
 
+        @NotBlank
         private String token;
         private DeviceType deviceType;
     }

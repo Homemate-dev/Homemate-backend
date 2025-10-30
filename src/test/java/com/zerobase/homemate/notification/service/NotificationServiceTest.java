@@ -71,9 +71,9 @@ class NotificationServiceTest {
         );
 
         notices = List.of(
-                new Notice(1L, "공지 1", "첫번째 공지", baseDateTime.minusDays(2), null, null),
-                new Notice(2L, "공지 2", "두번째 공지", baseDateTime.minusDays(1), null, null),
-                new Notice(3L, "공지 3", "세번째 공지", baseDateTime, null, null)
+                new Notice(1L, "공지 1", "첫번째 공지", "www.example.com/1", baseDateTime.minusDays(2), null, null),
+                new Notice(2L, "공지 2", "두번째 공지", "www.example.com/2", baseDateTime.minusDays(1), null, null),
+                new Notice(3L, "공지 3", "세번째 공지", "www.example.com/3", baseDateTime, null, null)
         );
 
         noticeReads = List.of(

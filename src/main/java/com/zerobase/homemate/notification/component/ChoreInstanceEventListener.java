@@ -21,9 +21,4 @@ public class ChoreInstanceEventListener {
             // TODO: 예외 처리 구성
         }
     }
-
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleCancelled(ChoreInstanceCancelledEvent event) {
-        // TODO: ChoreInstance 취소 시 로직 구성
-    }
 }

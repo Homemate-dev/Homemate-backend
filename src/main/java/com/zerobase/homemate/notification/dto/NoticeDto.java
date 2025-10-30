@@ -18,6 +18,7 @@ public class NoticeDto {
     private Long id;
     private String title;
     private String message;
+    private String url;
     private LocalDateTime scheduledAt;
     private Boolean isRead;
     private LocalDateTime readAt;
@@ -28,6 +29,7 @@ public class NoticeDto {
                 .id(notice.getId())
                 .title(notice.getTitle())
                 .message(notice.getMessage())
+                .url(notice.getUrl())
                 .scheduledAt(notice.getScheduledAt())
                 .isRead(noticeRead != null)
                 .readAt(noticeRead != null ? noticeRead.getReadAt() : null)
