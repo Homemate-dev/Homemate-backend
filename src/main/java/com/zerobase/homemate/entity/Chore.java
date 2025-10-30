@@ -52,9 +52,11 @@ public class Chore {
     @Column(name = "repeat_interval")
     private Integer repeatInterval;
 
+    @Setter
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
+    @Setter
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 

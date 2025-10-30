@@ -93,7 +93,7 @@ class KakaoLoginTransactionTest {
     assertThat(saved.isMasterEnabled()).isTrue();
     assertThat(saved.isChoreEnabled()).isTrue();
     assertThat(saved.isNoticeEnabled()).isTrue();
-    assertThat(saved.getNotificationTime()).isEqualTo(LocalTime.of(9, 0));
+    assertThat(saved.getNotificationTime()).isEqualTo(LocalTime.of(19, 0));
 
     ArgumentCaptor<String> sidForAT = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> sidForRT = ArgumentCaptor.forClass(String.class);
