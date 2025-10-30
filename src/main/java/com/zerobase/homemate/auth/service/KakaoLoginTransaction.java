@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class KakaoLoginTransaction {
-  private static final LocalTime DEFAULT_NOTIFICATION_TIME = LocalTime.of(9, 0);
+  private static final LocalTime DEFAULT_NOTIFICATION_TIME = LocalTime.of(19, 0);
 
   private final JwtService jwtService;
   private final RefreshTokenStore refreshTokenStore;

@@ -360,6 +360,24 @@ public class ChoreService {
                 choreInstance.softDelete();
                 chore.softDelete();
             } else {
+                System.out.println("startDate : " + chore.getStartDate() +
+                    " endDate : " + chore.getEndDate() + " dueDate : " + choreInstance.getDueDate());
+                if (choreInstance.getDueDate().equals(chore.getStartDate())) {
+                    System.out.println("duedate=startdate : " + chore.getStartDate());
+                    chore.setStartDate(choreInstanceGenerator.getNextDate(
+                        choreInstance.getDueDate(),
+                        chore.getRepeatType(),
+                        chore.getRepeatInterval()));
+                    System.out.println("chore.getStartDate : " + chore.getStartDate());
+                } else if (choreInstance.getDueDate().equals(chore.getEndDate())) {
+                    System.out.println("duedate=enddate : " + chore.getEndDate());
+                    chore.setEndDate(choreInstanceGenerator.getBeforeDate(
+                        choreInstance.getDueDate(),
+                        chore.getRepeatType(),
+                        chore.getRepeatInterval()));
+                    System.out.println("chore.getEndDate : " + chore.getEndDate());
+                }
+
                 if (applyToAfter) {
                     choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
                         chore, choreInstance.getDueDate(),

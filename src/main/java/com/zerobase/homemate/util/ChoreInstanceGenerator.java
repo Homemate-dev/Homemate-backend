@@ -52,7 +52,7 @@ public class ChoreInstanceGenerator {
             .build();
     }
 
-    private LocalDate getNextDate(LocalDate currentDate,
+    public LocalDate getNextDate(LocalDate currentDate,
         RepeatType repeatType, Integer repeatInterval) {
         return switch (repeatType) {
             case DAILY -> currentDate.plusDays(repeatInterval);
@@ -60,6 +60,17 @@ public class ChoreInstanceGenerator {
             case MONTHLY -> currentDate.plusMonths(repeatInterval);
             case YEARLY -> currentDate.plusYears(repeatInterval);
             default -> currentDate.plusDays(1);
+        };
+    }
+
+    public LocalDate getBeforeDate(LocalDate currentDate,
+        RepeatType repeatType, Integer repeatInterval) {
+        return switch (repeatType) {
+            case DAILY -> currentDate.minusDays(repeatInterval);
+            case WEEKLY -> currentDate.minusWeeks(repeatInterval);
+            case MONTHLY -> currentDate.minusMonths(repeatInterval);
+            case YEARLY -> currentDate.minusYears(repeatInterval);
+            default -> currentDate.minusDays(1);
         };
     }
 }
