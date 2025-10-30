@@ -360,22 +360,34 @@ public class ChoreService {
                 choreInstance.softDelete();
                 chore.softDelete();
             } else {
-                System.out.println("startDate : " + chore.getStartDate() +
-                    " endDate : " + chore.getEndDate() + " dueDate : " + choreInstance.getDueDate());
                 if (choreInstance.getDueDate().equals(chore.getStartDate())) {
-                    System.out.println("duedate=startdate : " + chore.getStartDate());
-                    chore.setStartDate(choreInstanceGenerator.getNextDate(
+                    LocalDate nextDate = choreInstanceGenerator.getNextDate(
                         choreInstance.getDueDate(),
                         chore.getRepeatType(),
-                        chore.getRepeatInterval()));
-                    System.out.println("chore.getStartDate : " + chore.getStartDate());
+                        chore.getRepeatInterval());
+
+                    while(choreInstanceRepository.existsByChoreAndDueDate(chore, nextDate)) {
+                        nextDate = choreInstanceGenerator.getNextDate(
+                            nextDate,
+                            chore.getRepeatType(),
+                            chore.getRepeatInterval());
+                    }
+
+                    chore.setStartDate(nextDate);
                 } else if (choreInstance.getDueDate().equals(chore.getEndDate())) {
-                    System.out.println("duedate=enddate : " + chore.getEndDate());
-                    chore.setEndDate(choreInstanceGenerator.getBeforeDate(
+                    LocalDate beforeDate = choreInstanceGenerator.getBeforeDate(
                         choreInstance.getDueDate(),
                         chore.getRepeatType(),
-                        chore.getRepeatInterval()));
-                    System.out.println("chore.getEndDate : " + chore.getEndDate());
+                        chore.getRepeatInterval());
+
+                    while(choreInstanceRepository.existsByChoreAndDueDate(chore, beforeDate)) {
+                        beforeDate = choreInstanceGenerator.getNextDate(
+                            beforeDate,
+                            chore.getRepeatType(),
+                            chore.getRepeatInterval());
+                    }
+
+                    chore.setEndDate(beforeDate);
                 }
 
                 if (applyToAfter) {

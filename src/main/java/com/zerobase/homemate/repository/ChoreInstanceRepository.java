@@ -81,4 +81,6 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
         @Param("today") LocalDate date,
         @Param("included") Set<ChoreStatus> included
     );
+
+    boolean existsByChoreAndDueDate(Chore chore, LocalDate dueDate);
 }
