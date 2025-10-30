@@ -360,13 +360,15 @@ public class ChoreService {
                 choreInstance.softDelete();
                 chore.softDelete();
             } else {
+                EnumSet<ChoreStatus> includedStatuses =
+                    EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
                 if (choreInstance.getDueDate().equals(chore.getStartDate())) {
                     LocalDate nextDate = choreInstanceGenerator.getNextDate(
                         choreInstance.getDueDate(),
                         chore.getRepeatType(),
                         chore.getRepeatInterval());
 
-                    while(choreInstanceRepository.existsByChoreAndDueDate(chore, nextDate)) {
+                    while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, nextDate, includedStatuses)) {
                         nextDate = choreInstanceGenerator.getNextDate(
                             nextDate,
                             chore.getRepeatType(),
@@ -380,8 +382,8 @@ public class ChoreService {
                         chore.getRepeatType(),
                         chore.getRepeatInterval());
 
-                    while(choreInstanceRepository.existsByChoreAndDueDate(chore, beforeDate)) {
-                        beforeDate = choreInstanceGenerator.getNextDate(
+                    while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, beforeDate, includedStatuses)) {
+                        beforeDate = choreInstanceGenerator.getBeforeDate(
                             beforeDate,
                             chore.getRepeatType(),
                             chore.getRepeatInterval());
