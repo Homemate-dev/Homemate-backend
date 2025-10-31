@@ -32,6 +32,7 @@ class BadgeService30CompletionTest {
     private UserMissionRepository userMissionRepository;
     private MissionAssignmentService missionAssignmentService;
     private MissionProgressRepository missionProgressRepository;
+    private SpaceChoreRepository spaceChoreRepository;
 
     private User user;
     private UserMission userMission;
@@ -49,6 +50,7 @@ class BadgeService30CompletionTest {
         userMissionRepository = mock(UserMissionRepository.class);
         missionAssignmentService = mock(MissionAssignmentService.class);
         missionProgressRepository = mock(MissionProgressRepository.class);
+        spaceChoreRepository = mock(SpaceChoreRepository.class);
 
 
         missionService = new MissionService(
@@ -57,7 +59,8 @@ class BadgeService30CompletionTest {
                 missionAssignmentService,
                 missionProgressRepository,
                 userBadgeStatsService,
-                badgeService
+                badgeService,
+                spaceChoreRepository
         );
 
         user = User.builder()

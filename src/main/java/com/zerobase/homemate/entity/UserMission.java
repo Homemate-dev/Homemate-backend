@@ -68,11 +68,13 @@ public class UserMission {
     }
 
     public boolean incrementCount() {
-        int next = this.currentCount + 1;
-        this.currentCount = next;
-
         Integer target = this.mission.getTargetCount();
-        if (target != null && next >= target) {
+
+        if (target == null || this.currentCount < target) {
+            this.currentCount += 1;
+        }
+
+        if (target != null && this.currentCount >= target) {
             this.isCompleted = true;
             this.completedAt = LocalDateTime.now();
             return true;

@@ -23,9 +23,10 @@ public class MissionDto {
         private Integer targetCount;
         private Integer currentCount;
         private boolean isCompleted;
+        private boolean existsInRecommend;
 
         public static Response of(Mission mission,
-            @Nullable UserMission userMission) {
+            @Nullable UserMission userMission, boolean existsInRecommend) {
             int currentCount =
                 (userMission != null) ? userMission.getCurrentCount() : 0;
             boolean isCompleted =
@@ -37,6 +38,7 @@ public class MissionDto {
                 .targetCount(mission.getTargetCount())
                 .currentCount(currentCount)
                 .isCompleted(isCompleted)
+                .existsInRecommend(existsInRecommend)
                 .build();
         }
     }
