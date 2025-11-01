@@ -12,12 +12,14 @@ import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.mission.dto.MissionDto;
 import com.zerobase.homemate.repository.MissionProgressRepository;
 import com.zerobase.homemate.repository.MissionRepository;
+import com.zerobase.homemate.repository.SpaceChoreRepository;
 import com.zerobase.homemate.repository.UserMissionRepository;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ public class MissionService {
     private final MissionProgressRepository missionProgressRepository;
     private final UserBadgeStatsService userBadgeStatsService;
     private final BadgeService badgeService;
+    private final SpaceChoreRepository spaceChoreRepository;
 
     public List<MissionDto.Response> getMonthlyMissions(long userId) {
 
@@ -57,14 +60,17 @@ public class MissionService {
         return monthlyMissions.stream()
             .map(mission -> {
                 UserMission userMission = userMissionMap.get(mission.getId());
+                boolean existsInRecommend = existsInSpaceChores(mission.getTitle());
                 return (userMission != null)
-                    ? MissionDto.Response.of(mission, userMission)
+                    ? MissionDto.Response.of(mission, userMission,
+                    existsInRecommend)
                     : MissionDto.Response.builder()
                         .id(mission.getId())
                         .title(mission.getTitle())
                         .targetCount(mission.getTargetCount())
                         .currentCount(0)
                         .isCompleted(false)
+                        .existsInRecommend(existsInRecommend)
                         .build();
             })
             .toList();
@@ -129,11 +135,15 @@ public class MissionService {
             MissionProgress missionProgress =
                 progressByUserMissionId.get(userMission.getId());
 
+            boolean existsInRecommend = existsInSpaceChores(mission.getTitle());
+
             if (isPending) {
                 applyCompletion(userMission, missionProgress, choreInstance,
                     toSave, counterUserMission);
+                if (userMission.isAlreadyCompleted()) continue;
                 if (userMission.getIsCompleted()) {
-                    response.add(MissionDto.Response.of(mission, userMission));
+                    response.add(MissionDto.Response.of(mission, userMission,
+                     existsInRecommend));
                 }
             } else {
                 revertCompletion(userMission, missionProgress, choreInstance,
@@ -154,6 +164,12 @@ public class MissionService {
             .toList();
     }
 
+    private boolean existsInSpaceChores(String missionTitle) {
+        // TODO : 추천 카테고리 미션 집안일 추가되면 카테고리로 수정
+        List<String> spaceChoreTitles = spaceChoreRepository.findAllTitles();
+        return spaceChoreTitles.stream().anyMatch(t -> qualifiesChoreTitle(missionTitle, t));
+    }
+
     private boolean qualifies(Mission mission, ChoreInstance choreInstance) {
         UserActionType type = mission.getUserActionType();
         String missionTitle = mission.getTitle();
@@ -163,10 +179,28 @@ public class MissionService {
 
         return switch (type) {
             case COMPLETE_ANY_CHORE -> true;
-            case COMPLETE_CHORE -> missionTitle.equals(choreTitle);
+            case COMPLETE_CHORE -> qualifiesChoreTitle(missionTitle, choreTitle);
             case COMPLETE_CHORE_WITH_SPACE -> missionSpace.equals(choreSpace);
             default -> false;
         };
+    }
+
+    private boolean qualifiesChoreTitle(String missionTitle, String choreTitle) {
+        if (missionTitle == null || choreTitle == null) return false;
+
+        missionTitle = missionTitle.replaceAll("\\s+", "");
+        choreTitle = choreTitle.replaceAll("\\s+", "");
+
+        Set<Character> missionChars = missionTitle.chars()
+            .mapToObj(c -> (char) c)
+            .collect(Collectors.toSet());
+
+        for (char c : choreTitle.toCharArray()) {
+            if (!missionChars.contains(c)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void applyCompletion(UserMission userMission,
@@ -237,6 +271,10 @@ public class MissionService {
             return List.of();
         }
 
+        if (userMission.isAlreadyCompleted()) {
+            return List.of();
+        }
+
         userMission.incrementCount();
 
         missionProgressRepository.save(
@@ -245,6 +283,8 @@ public class MissionService {
                 .build()
         );
 
-        return List.of(MissionDto.Response.of(mission, userMission));
+        boolean existsInRecommend = existsInSpaceChores(mission.getTitle());
+
+        return List.of(MissionDto.Response.of(mission, userMission, existsInRecommend));
     }
 }

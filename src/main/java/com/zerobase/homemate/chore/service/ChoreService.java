@@ -356,7 +356,8 @@ public class ChoreService {
 
         if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
             choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
-            if (chore.getRepeatType() == RepeatType.NONE) {
+            if (chore.getRepeatType() == RepeatType.NONE ||
+                chore.getStartDate().equals(chore.getEndDate())) {
                 choreInstance.softDelete();
                 chore.softDelete();
             } else {

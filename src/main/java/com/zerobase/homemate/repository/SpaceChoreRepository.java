@@ -28,4 +28,7 @@ public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
     Optional<SpaceChore> findByTitleKo(String title);
 
     Long countBySpace(Space space);
+
+    @Query("SELECT sc.titleKo FROM SpaceChore sc")
+    List<String> findAllTitles();
 }
