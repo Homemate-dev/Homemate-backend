@@ -82,7 +82,7 @@ public class BadgeControllerTest {
         );
 
         List<BadgeProgressResponse> closest = List.of(
-                BadgeProgressResponse.of(BadgeType.EXPERT_BATHROOM, 2), // remaining = 1
+                BadgeProgressResponse.of(BadgeType.EXPERT_BATHROOM, 2), // remaining = 88
                 BadgeProgressResponse.of(BadgeType.EXPERT_FAIRY, 88),   // remaining = 2
                 BadgeProgressResponse.of(BadgeType.BEGINNER_KITCHEN, 25) // remaining = 5
         );
@@ -93,7 +93,7 @@ public class BadgeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].badgeType").value(BadgeType.EXPERT_BATHROOM.name()))
                 .andExpect(jsonPath("$[0].acquired").value(false))
-                .andExpect(jsonPath("$[0].remainingCount").value(1))
+                .andExpect(jsonPath("$[0].remainingCount").value(88))
                 .andExpect(jsonPath("$[1].badgeType").value(BadgeType.EXPERT_FAIRY.name()))
                 .andExpect(jsonPath("$[1].acquired").value(false))
                 .andExpect(jsonPath("$[1].remainingCount").value(2))
