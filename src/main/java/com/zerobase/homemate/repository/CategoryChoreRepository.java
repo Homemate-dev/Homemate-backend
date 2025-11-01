@@ -26,6 +26,8 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
 
     Long countByCategory(Category category);
 
+    List<CategoryChore> findAllByCategory(Category category);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM CategoryChore c WHERE c.category = :category")
     void deleteByCategory(@Param("category") Category category);

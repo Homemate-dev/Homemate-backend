@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -169,8 +168,7 @@ public class MissionService {
 
     private boolean existsInCategoryChores(String missionTitle) {
         List<CategoryChore> monthlyMissionCategoryChores =
-            categoryChoreRepository.findByCategory(Category.MISSIONS,
-                Pageable.ofSize(3));
+            categoryChoreRepository.findAllByCategory(Category.MISSIONS);
 
         return monthlyMissionCategoryChores
             .stream()
