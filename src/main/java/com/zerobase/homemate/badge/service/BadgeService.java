@@ -1,9 +1,10 @@
 package com.zerobase.homemate.badge.service;
 
-import com.zerobase.homemate.badge.BadgeResponse;
+import com.zerobase.homemate.badge.BadgeProgressResponse;
 import com.zerobase.homemate.entity.Badge;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.enums.BadgeCategory;
 import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -29,29 +30,51 @@ public class BadgeService {
 
     // 집안일 완료 시 호출
     @Transactional
-    public void evaluateBadges(User user){
-        for(BadgeType badgeType : BadgeType.values()){
-            if(badgeRepository.existsByUserAndBadgeType(user, badgeType)){
-                continue;
-            }
+    public void evaluateBadges(User user, Chore chore) {
+        List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
+                // 아직 획득하지 않은 배지만
+                .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
+                // MISSION, TITLE, SPACE 배지만 필터링
+                .filter(type -> type.getCategory() == BadgeCategory.MISSION
+                        || type.getCategory() == BadgeCategory.TITLE
+                        || type.getCategory() == BadgeCategory.SPACE)
+                // 각 뱃지 조건 생성 후 충족 여부 검사
+                .filter(type -> {
+                    BadgeCondition condition = createCondition(type);
+                    return condition != null && condition.matchesCondition(user, chore);
+                })
 
-            Long completedCount = countCompleted(user, badgeType);
-            if(completedCount >= badgeType.getRequireCount()){
-                badgeRepository.save(new Badge(user, badgeType));
-            }
+                // 충족 시 배지 생성
+                .map(type -> new Badge(user, type))
+                .toList();
+        evaluateAllBadges(user);
+
+        if (!badgesToSave.isEmpty()) {
+            badgeRepository.saveAll(badgesToSave);
         }
     }
+
+    // 어떤 집안일이든 완료했을 때 호출
+    public void evaluateAllBadges(User user) {
+        List<Badge> allBadgesToSave = Arrays.stream(BadgeType.values())
+                .filter(type -> type.getCategory() == BadgeCategory.ALL)
+                .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
+                .map(type -> new Badge(user, type))
+                .toList();
+
+
+        if (!allBadgesToSave.isEmpty()) {
+            badgeRepository.saveAll(allBadgesToSave);
+        }
+    }
+
 
     // 집안일 등록 시 호출
     @Transactional
     public void evaluateBadgesOnCreate(User user, Chore chore){
         List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
                 .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
-                .filter(BadgeType::isRegisterBadge)
-                .filter(type -> {
-                    BadgeCondition condition = createCondition(type);
-                    return condition != null && condition.matchesCondition(chore);
-                })
+                .filter(type -> type.getCategory() == BadgeCategory.REGISTER)
                 .map(type -> new Badge(user, type))
                 .toList();
 
@@ -61,112 +84,55 @@ public class BadgeService {
     }
 
     public BadgeCondition createCondition(BadgeType type) {
-        if(type.isMissionBadge()){
-            return new MissionBadgeCondition(type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
-        }
-
-        if(type.getChoreTitle() != null){
-            return new NameBadgeCondition(type.getChoreTitle(),  type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
-        }
-
-        if(type.getSpace() != null){
-            return new SpaceBadgeCondition(type.getSpace(), type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
-        }
-
-
-
-        return null;
+        return switch (type.getCategory()) {
+            case MISSION -> new MissionBadgeCondition(type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
+            case TITLE -> new NameBadgeCondition(type.getChoreTitle(), type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
+            case SPACE -> new SpaceBadgeCondition(type.getSpace(), type.getRequireCount(), type.getBadgeName(), userBadgeStatsService);
+            default -> null; // ALL, REGISTER
+        };
     }
 
     // 유저의 획득한 배지 목록
     @Transactional(readOnly = true)
-    public List<BadgeResponse> getAcquiredBadges(Long userId){
+    public List<BadgeProgressResponse> getAcquiredBadges(Long userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        List<BadgeType> acquiredTypes = badgeRepository.findAllByUser(user)
-                .stream()
-                .map(Badge::getBadgeType)
+        List<BadgeProgressResponse> allBadges = Arrays.stream(BadgeType.values())
+                .map(type -> {
+                    int currentCount = (int) userBadgeStatsService.getCountByCategory(userId, type);
+                    return BadgeProgressResponse.of(type, currentCount);
+                })
                 .toList();
 
-        // 전체 배지를 순회하며 acquired 여부 체크
-        List<BadgeResponse> allBadges = Arrays.stream(BadgeType.values())
-                .map(type -> new BadgeResponse(
-                        type,
-                        acquiredTypes.contains(type),
-                        countRemaining(user, type)
-                ))
+        List<BadgeProgressResponse> acquiredBadges = allBadges.stream()
+                .filter(BadgeProgressResponse::acquired)
+                .sorted(Comparator.comparing(b -> b.badgeType().getBadgeName()))
                 .toList();
 
-        // 획득한 배지 / 잠금 배지로 분리
-        List<BadgeResponse> acquiredBadges = allBadges.stream()
-                .filter(BadgeResponse::acquired)
-                .sorted(Comparator.comparing(b -> b.type().getBadgeName()))
-                .toList();
-
-        List<BadgeResponse> lockedBadges = allBadges.stream()
+        List<BadgeProgressResponse> lockedBadges = allBadges.stream()
                 .filter(b -> !b.acquired())
-                .sorted(Comparator.comparing(b -> b.type().getBadgeName()))
+                .sorted(Comparator.comparing(b -> b.badgeType().getBadgeName()))
                 .toList();
 
-        // 합쳐서 반환 (획득 배지 먼저, 잠금 배지 나중)
-        List<BadgeResponse> result = new ArrayList<>();
+        List<BadgeProgressResponse> result = new ArrayList<>();
         result.addAll(acquiredBadges);
         result.addAll(lockedBadges);
 
         return result;
     }
 
-    private int countRemaining(User user, BadgeType type) {
-
-        // 이미 획득한 뱃지는 0으로 계산한다.
-        if(badgeRepository.existsByUserAndBadgeType(user, type)){
-            return 0;
-        }
-
-        Long completedCount = countCompleted(user, type);
-
-        return Math.max(0, type.getRequireCount()) - completedCount.intValue();
-    }
-
     // 아직 획득하지 못한 배지들 중 남은 횟수가 가장 적은 3개 리스트 반환
     @Transactional(readOnly = true)
-    public List<BadgeResponse> getClosestBadges(Long userId){
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        List<BadgeType> acquiredTypes = badgeRepository.findAllByUser(user).stream()
-                .map(Badge::getBadgeType).toList();
+    public List<BadgeProgressResponse> getClosestBadges(Long userId) {
 
         return Arrays.stream(BadgeType.values())
-                .filter(type -> !acquiredTypes.contains(type))
                 .map(type -> {
-                    Long completed = countCompleted(user, type);
-                    int remaining = Math.max(0, type.getRequireCount()) - completed.intValue();
-                    return new  BadgeResponse(type, false, remaining);
+                    int currentCount = (int) userBadgeStatsService.getCountByCategory(userId, type);
+                    return BadgeProgressResponse.of(type, currentCount);
                 })
-                .sorted(Comparator.comparingInt(BadgeResponse::remainingCount))
+                .filter(b -> !b.acquired()) // 아직 획득하지 않은 배지만
+                .sorted(Comparator.comparingInt(BadgeProgressResponse::remainingCount)) // 남은 횟수 적은 순
                 .limit(3)
                 .toList();
     }
 
-    // 완료된 집안일 카운트 계산
-    private Long countCompleted(User user, BadgeType badgeType){
-        if(badgeType.isMissionBadge()){
-            return userBadgeStatsService.getMissionCount(user.getId());
-        }
-
-        if (badgeType.getSpace() != null) {
-            return userBadgeStatsService.getSpaceCount(user.getId(), badgeType.getSpace());
-        }
-
-        if (badgeType.getChoreTitle() != null) {
-            return userBadgeStatsService.getTitleCount(user.getId(), badgeType.getChoreTitle());
-        }
-
-
-        return userBadgeStatsService.getCount(user.getId());
-    }
 }

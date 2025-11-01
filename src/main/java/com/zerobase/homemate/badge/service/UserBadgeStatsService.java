@@ -1,5 +1,6 @@
 package com.zerobase.homemate.badge.service;
 
+import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.entity.enums.Space;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -15,7 +16,7 @@ public class UserBadgeStatsService {
     private static final String PREFIX_TITLE = "user:chore:title";
     private static final String PREFIX_ALL = "user:chore:all";
     private static final String PREFIX_MISSION = "user:chore:mission";
-
+    private static final String PREFIX_REGISTER = "user:chore:register";
 
     private String buildKey(String prefix, Long userId) {
         return String.format("%s:%d", prefix, userId);
@@ -38,9 +39,13 @@ public class UserBadgeStatsService {
        ✅ Count 증가 로직
        =============================== */
 
-    // (1) 아무 집안일 완료 시
+    // 아무 집안일 완료 시
     public void incrementCount(Long userId) {
         redisTemplate.opsForValue().increment(buildKey(PREFIX_ALL, userId), 1);
+    }
+
+    public void incrementRegisterCount(Long userId) {
+        redisTemplate.opsForValue().increment(buildKey(PREFIX_REGISTER, userId), 1);
     }
 
     // 공간 카테고리에 속한 집안일을 완료하면 그 카테고리에 속한 횟수가 늘어난다.
@@ -59,9 +64,23 @@ public class UserBadgeStatsService {
     }
 
 
+    public long getCountByCategory(Long userId, BadgeType type) {
+        return switch (type.getCategory()) {
+            case MISSION -> getMissionCount(userId);
+            case SPACE -> getSpaceCount(userId, type.getSpace());
+            case TITLE -> getTitleCount(userId, type.getChoreTitle());
+            case REGISTER -> getRegisterCount(userId);
+            case ALL -> getCount(userId);
+        };
+    }
+
     // Redis 횟수 조회 로직
     public long getCount(Long userId) {
         return getLongValue(buildKey(PREFIX_ALL, userId));
+    }
+
+    public long getRegisterCount(Long userId) {
+        return getLongValue(buildKey(PREFIX_REGISTER, userId));
     }
 
     public long getSpaceCount(Long userId, Space space) {

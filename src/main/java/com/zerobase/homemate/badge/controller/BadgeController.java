@@ -2,7 +2,7 @@ package com.zerobase.homemate.badge.controller;
 
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
-import com.zerobase.homemate.badge.BadgeResponse;
+import com.zerobase.homemate.badge.BadgeProgressResponse;
 import com.zerobase.homemate.badge.service.BadgeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,18 +22,18 @@ public class BadgeController {
 
     // 내가 가진 배지 목록 조회
     @GetMapping("/acquired")
-    public ResponseEntity<List<BadgeResponse>> getMyBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
+    public ResponseEntity<List<BadgeProgressResponse>> getMyBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
 
-        List<BadgeResponse> badges = badgeService.getAcquiredBadges(userPrincipal.id());
+        List<BadgeProgressResponse> badges = badgeService.getAcquiredBadges(userPrincipal.id());
 
         return ResponseEntity.ok(badges);
     }
 
     // 취득까지 얼마 안 남은 배지 상위 3개 조회
     @GetMapping("/closest")
-    public ResponseEntity<List<BadgeResponse>> getClosestBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
+    public ResponseEntity<List<BadgeProgressResponse>> getClosestBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
 
-        List<BadgeResponse> closest = badgeService.getClosestBadges(userPrincipal.id());
+        List<BadgeProgressResponse> closest = badgeService.getClosestBadges(userPrincipal.id());
 
         return ResponseEntity.ok(closest);
     }
