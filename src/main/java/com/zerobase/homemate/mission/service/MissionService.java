@@ -2,17 +2,19 @@ package com.zerobase.homemate.mission.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
+import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.Mission;
 import com.zerobase.homemate.entity.MissionProgress;
 import com.zerobase.homemate.entity.UserMission;
+import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.MissionType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.mission.dto.MissionDto;
+import com.zerobase.homemate.repository.CategoryChoreRepository;
 import com.zerobase.homemate.repository.MissionProgressRepository;
 import com.zerobase.homemate.repository.MissionRepository;
-import com.zerobase.homemate.repository.SpaceChoreRepository;
 import com.zerobase.homemate.repository.UserMissionRepository;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -37,7 +39,7 @@ public class MissionService {
     private final MissionProgressRepository missionProgressRepository;
     private final UserBadgeStatsService userBadgeStatsService;
     private final BadgeService badgeService;
-    private final SpaceChoreRepository spaceChoreRepository;
+    private final CategoryChoreRepository categoryChoreRepository;
 
     public List<MissionDto.Response> getMonthlyMissions(long userId) {
 
@@ -60,7 +62,7 @@ public class MissionService {
         return monthlyMissions.stream()
             .map(mission -> {
                 UserMission userMission = userMissionMap.get(mission.getId());
-                boolean existsInRecommend = existsInSpaceChores(mission.getTitle());
+                boolean existsInRecommend = existsInCategoryChores(mission.getTitle());
                 return (userMission != null)
                     ? MissionDto.Response.of(mission, userMission,
                     existsInRecommend)
@@ -135,7 +137,7 @@ public class MissionService {
             MissionProgress missionProgress =
                 progressByUserMissionId.get(userMission.getId());
 
-            boolean existsInRecommend = existsInSpaceChores(mission.getTitle());
+            boolean existsInRecommend = existsInCategoryChores(mission.getTitle());
 
             if (isPending) {
                 applyCompletion(userMission, missionProgress, choreInstance,
@@ -164,10 +166,14 @@ public class MissionService {
             .toList();
     }
 
-    private boolean existsInSpaceChores(String missionTitle) {
-        // TODO : 추천 카테고리 미션 집안일 추가되면 카테고리로 수정
-        List<String> spaceChoreTitles = spaceChoreRepository.findAllTitles();
-        return spaceChoreTitles.stream().anyMatch(t -> qualifiesChoreTitle(missionTitle, t));
+    private boolean existsInCategoryChores(String missionTitle) {
+        List<CategoryChore> monthlyMissionCategoryChores =
+            categoryChoreRepository.findAllByCategory(Category.MISSIONS);
+
+        return monthlyMissionCategoryChores
+            .stream()
+            .anyMatch(categoryChore -> qualifiesChoreTitle(missionTitle,
+                categoryChore.getTitle()));
     }
 
     private boolean qualifies(Mission mission, ChoreInstance choreInstance) {
@@ -185,7 +191,7 @@ public class MissionService {
         };
     }
 
-    private boolean qualifiesChoreTitle(String missionTitle, String choreTitle) {
+    public boolean qualifiesChoreTitle(String missionTitle, String choreTitle) {
         if (missionTitle == null || choreTitle == null) return false;
 
         missionTitle = missionTitle.replaceAll("\\s+", "");
@@ -283,7 +289,7 @@ public class MissionService {
                 .build()
         );
 
-        boolean existsInRecommend = existsInSpaceChores(mission.getTitle());
+        boolean existsInRecommend = existsInCategoryChores(mission.getTitle());
 
         return List.of(MissionDto.Response.of(mission, userMission, existsInRecommend));
     }
