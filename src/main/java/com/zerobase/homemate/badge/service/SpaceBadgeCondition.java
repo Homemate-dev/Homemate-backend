@@ -1,6 +1,7 @@
 package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.Space;
 
 public class SpaceBadgeCondition implements BadgeCondition {
@@ -18,16 +19,17 @@ public class SpaceBadgeCondition implements BadgeCondition {
     }
 
     @Override
-    public boolean matchesCondition(Chore chore) {
-
-        if(chore.getSpace() != targetSpace) {
-            return false;
-        }
+    public boolean matchesCondition(User user, Chore chore) {
+        // 예상 및 실제 space
+        Space choreSpace = chore.getSpace();
+        boolean sameSpace = (choreSpace == targetSpace);
 
         long completedCount = userBadgeStatsService.getSpaceCount(chore.getUser().getId(), targetSpace);
+        boolean meetsCount = completedCount >= requiredCount;
 
-        return completedCount >= requiredCount;
+        return sameSpace && meetsCount;
     }
+
 
     @Override
     public String getBadgeName() {

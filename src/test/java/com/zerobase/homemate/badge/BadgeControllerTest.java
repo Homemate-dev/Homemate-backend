@@ -40,12 +40,19 @@ public class BadgeControllerTest {
         );
 
         // BadgeService mocking
-        given(badgeService.getAcquiredBadges(principal.id())).willReturn(List.of(new BadgeResponse(BadgeType.START_HALF, true, 0)));
+        given(badgeService.getAcquiredBadges(principal.id())).willReturn(
+                List.of(
+                        BadgeProgressResponse.of(BadgeType.START_HALF, 1) // currentCount=1 → acquired=true, remainingCount=0
+                )
+        );
 
         mockMvc.perform(get("/badges/acquired"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].type").value(BadgeType.START_HALF.name()))
+                .andExpect(jsonPath("$[0].badgeType").value(BadgeType.START_HALF.name()))
                 .andExpect(jsonPath("$[0].acquired").value(true))
+                .andExpect(jsonPath("$[0].description").value("아무 집안일 1회 완료"))
+                .andExpect(jsonPath("$[0].currentCount").value(1))
+                .andExpect(jsonPath("$[0].requiredCount").value(1))
                 .andExpect(jsonPath("$[0].remainingCount").value(0));
     }
 
@@ -74,25 +81,23 @@ public class BadgeControllerTest {
                 new UsernamePasswordAuthenticationToken(principal, null, principal.authorities())
         );
 
-        List<BadgeResponse> closest = List.of(
-                new BadgeResponse(BadgeType.EXPERT_BATHROOM, false, 1),
-                new BadgeResponse(BadgeType.EXPERT_FAIRY, false, 2),
-                new BadgeResponse(BadgeType.BEGINNER_KITCHEN, false, 5)
+        List<BadgeProgressResponse> closest = List.of(
+                BadgeProgressResponse.of(BadgeType.EXPERT_BATHROOM, 2), // remaining = 88
+                BadgeProgressResponse.of(BadgeType.EXPERT_FAIRY, 88),   // remaining = 2
+                BadgeProgressResponse.of(BadgeType.BEGINNER_KITCHEN, 25) // remaining = 5
         );
 
         given(badgeService.getClosestBadges(principal.id())).willReturn(closest);
 
         mockMvc.perform(get("/badges/closest"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$[0].type").value(BadgeType.EXPERT_BATHROOM.name()))
+                .andExpect(jsonPath("$[0].badgeType").value(BadgeType.EXPERT_BATHROOM.name()))
                 .andExpect(jsonPath("$[0].acquired").value(false))
-                .andExpect(jsonPath("$[0].remainingCount").value(1))
-                .andExpect(jsonPath("$[1].type").value(BadgeType.EXPERT_FAIRY.name()))
+                .andExpect(jsonPath("$[0].remainingCount").value(88))
+                .andExpect(jsonPath("$[1].badgeType").value(BadgeType.EXPERT_FAIRY.name()))
                 .andExpect(jsonPath("$[1].acquired").value(false))
                 .andExpect(jsonPath("$[1].remainingCount").value(2))
-                .andExpect(jsonPath("$[2].type").value(BadgeType.BEGINNER_KITCHEN.name()))
+                .andExpect(jsonPath("$[2].badgeType").value(BadgeType.BEGINNER_KITCHEN.name()))
                 .andExpect(jsonPath("$[2].acquired").value(false))
                 .andExpect(jsonPath("$[2].remainingCount").value(5));
     }

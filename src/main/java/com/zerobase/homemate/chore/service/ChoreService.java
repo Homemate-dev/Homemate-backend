@@ -123,6 +123,8 @@ public class ChoreService {
         }
 
         redisChoreStatsService.increment(null, request.getSpace());
+        userBadgeStatsService.incrementRegisterCount(userId);
+        badgeService.evaluateBadgesOnCreate(chore.getUser(), chore);
 
         return ApiResponse.<ChoreDto.Response>builder()
             .data(ChoreDto.Response.fromEntity(savedChore))
@@ -270,7 +272,7 @@ public class ChoreService {
             userBadgeStatsService.incrementTitleCount(userId, chore.getTitle());
         }
 
-        badgeService.evaluateBadges(chore.getUser());
+        badgeService.evaluateBadges(chore.getUser(), chore);
       
         return ApiResponse.<ChoreInstanceDto.Response>builder()
             .data(ChoreInstanceDto.Response.fromEntity(choreInstance))

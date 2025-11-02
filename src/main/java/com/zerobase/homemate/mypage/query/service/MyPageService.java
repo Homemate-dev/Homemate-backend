@@ -1,6 +1,6 @@
 package com.zerobase.homemate.mypage.query.service;
 
-import com.zerobase.homemate.badge.BadgeResponse;
+import com.zerobase.homemate.badge.BadgeProgressResponse;
 import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -19,9 +19,9 @@ public class MyPageService {
 
   @Transactional(readOnly = true)
   public MyPageResponseDto getMyPage(Long userId) {
-    List<BadgeResponse> badges = badgeService.getAcquiredBadges(userId);
+    List<BadgeProgressResponse> badges = badgeService.getAcquiredBadges(userId);
     int acquiredBadgesCount =
-        (int) badges.stream().filter(BadgeResponse::acquired).count();
+        (int) badges.stream().filter(BadgeProgressResponse::acquired).count();
     return userRepository.findMyPageResponseById(userId, badges.size(), acquiredBadgesCount)
         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
   }

@@ -45,7 +45,7 @@ public class Badge {
     public Badge(User user, BadgeType badgeType) {
         this.user = user;
         this.badgeType = badgeType;
-        this.acquiredAt = LocalDateTime.now();
+        this.acquiredAt = null;
         this.space = badgeType.getSpace();
     }
 }

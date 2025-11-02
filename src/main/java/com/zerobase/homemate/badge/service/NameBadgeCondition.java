@@ -1,6 +1,7 @@
 package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.User;
 
 public class NameBadgeCondition implements BadgeCondition {
 
@@ -18,7 +19,7 @@ public class NameBadgeCondition implements BadgeCondition {
     }
 
     @Override
-    public boolean matchesCondition(Chore chore) {
+    public boolean matchesCondition(User user, Chore chore) {
 
         // 이 집안일은 해당 키워드와 관련이 있는가 확인
         if(chore.getTitle() == null || !chore.getTitle().equals(keyword)){

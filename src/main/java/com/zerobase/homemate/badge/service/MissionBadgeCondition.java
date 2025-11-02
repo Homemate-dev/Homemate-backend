@@ -1,6 +1,7 @@
 package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.User;
 
 public class MissionBadgeCondition implements BadgeCondition{
 
@@ -15,7 +16,7 @@ public class MissionBadgeCondition implements BadgeCondition{
     }
 
     @Override
-    public boolean matchesCondition(Chore chore) {
+    public boolean matchesCondition(User user, Chore chore) {
         Long userId = chore.getUser().getId();
         long completedCount = userBadgeStatsService.getMissionCount(userId);
         return completedCount >= requiredCount;

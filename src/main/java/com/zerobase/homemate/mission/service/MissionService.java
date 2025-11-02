@@ -231,7 +231,7 @@ public class MissionService {
 
         if(missionCompleted){
             userBadgeStatsService.incrementMissionCount(userMission.getUser().getId());
-            badgeService.evaluateBadges(userMission.getUser());
+            badgeService.evaluateBadges(userMission.getUser(), choreInstance.getChore());
         }
     }
 

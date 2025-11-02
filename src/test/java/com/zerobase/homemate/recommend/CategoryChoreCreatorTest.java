@@ -1,5 +1,6 @@
 package com.zerobase.homemate.recommend;
 
+import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.entity.CategoryChore;
@@ -65,6 +66,9 @@ public class CategoryChoreCreatorTest {
 
     @Mock
     private MissionService missionService;
+
+    @Mock
+    private UserBadgeStatsService userBadgeStatsService;
 
     @Test
     void createChoreFromCategory_shouldCreateChoreWithMatchedSpace(){
