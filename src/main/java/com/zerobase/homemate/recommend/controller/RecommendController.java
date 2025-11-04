@@ -1,6 +1,6 @@
 package com.zerobase.homemate.recommend.controller;
 
-import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.recommend.service.RecommendService;
@@ -31,8 +31,8 @@ public class RecommendController {
 
     @GetMapping("/trend")
     public List<TopItemDto> getTopOverall(
-            @AuthenticationPrincipal User user,
-            @RequestParam(defaultValue = "5") int topN){
-        return choreStatsService.getTopOverallWithMissions(user.getId(), topN);
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestParam(defaultValue = "5") int topN) {
+        return choreStatsService.getTopOverallWithMissions(user.id(), topN);
     }
 }
