@@ -63,7 +63,7 @@ public enum BadgeType {
     private final BadgeCategory category;
     private final String imageName;
 
-    private static final String BASE_URL = "http://homemate.io.kr/badges/";
+    private static final String BASE_URL = "https://homemate.io.kr/badges/";
 
     public String getBadgeImageUrl(){
         return BASE_URL + imageName;
