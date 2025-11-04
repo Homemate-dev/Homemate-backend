@@ -1,5 +1,6 @@
 package com.zerobase.homemate.recommend;
 
+import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserRole;
@@ -17,12 +18,14 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -74,15 +77,11 @@ public class RecommendControllerTest {
     @DisplayName("유저별 미션 달성 집안일 + Top N 조회 (집안일 개수 포함)")
     void testGetTopOverall() throws Exception {
         // given
-        User user = User.builder()
-                .userRole(UserRole.USER)
-                .id(1L)
-                .userStatus(UserStatus.ACTIVE)
-                .profileName("테스트")
-                .build();
+        Long userId = 1L;
 
+        var principal = new UserPrincipal(1L, "tester", "USER");
         UsernamePasswordAuthenticationToken auth =
-                new UsernamePasswordAuthenticationToken(user, null, List.of());
+                new UsernamePasswordAuthenticationToken(principal, null, List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
 
@@ -94,12 +93,11 @@ public class RecommendControllerTest {
                 new TopItemDto("주방", "KITCHEN", 2L)
         );
 
-        when(choreStatsService.getTopOverallWithMissions(user.getId(), 5))
+        when(choreStatsService.getTopOverallWithMissions(userId, 5))
                 .thenReturn(topList);
 
         // when & then
         mockMvc.perform(get("/recommend/trend")
-                        .param("userId", String.valueOf(user.getId()))
                         .param("topN", "5")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -116,7 +114,7 @@ public class RecommendControllerTest {
                 .andExpect(jsonPath("$[1].count").value(8))
                 .andExpect(jsonPath("$[2].count").value(6));
 
-        verify(choreStatsService, times(1)).getTopOverallWithMissions(user.getId(), 5);
+        verify(choreStatsService, times(1)).getTopOverallWithMissions(userId, 5);
     }
 
 
