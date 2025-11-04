@@ -9,7 +9,8 @@ public record BadgeProgressResponse (
         boolean acquired,
         int currentCount,
         int requiredCount,
-        int remainingCount
+        int remainingCount,
+        String badgeImageUrl
 ){
     public static BadgeProgressResponse of(
             BadgeType type,
@@ -26,7 +27,8 @@ public record BadgeProgressResponse (
                 acquired,
                 currentCount,
                 type.getRequireCount(),
-                remainingCount
+                remainingCount,
+                type.getBadgeImageUrl()
         );
     }
 
