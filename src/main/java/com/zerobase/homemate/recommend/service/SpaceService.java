@@ -6,6 +6,7 @@ import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
+import com.zerobase.homemate.recommend.dto.SpaceChoreDto;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -63,5 +64,11 @@ public class SpaceService {
         return Arrays.stream(Space.values())
                 .map(space -> new SpaceResponse(space.name(), space))
                 .toList();
+    }
+
+    public SpaceChoreDto.Response getSpaceChore(Long spaceChoreId) {
+        SpaceChore spaceChore = spaceChoreRepository.findById(spaceChoreId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
+        return SpaceChoreDto.Response.fromEntity(spaceChore);
     }
 }

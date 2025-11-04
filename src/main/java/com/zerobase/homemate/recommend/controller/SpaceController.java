@@ -53,5 +53,10 @@ public class SpaceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
+    @GetMapping("/{spaceChoreId}")
+    public ResponseEntity<SpaceChoreDto.Response> getSpaceChore(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable Long spaceChoreId) {
+        return ResponseEntity.ok(spaceService.getSpaceChore(spaceChoreId));
+    }
 }
