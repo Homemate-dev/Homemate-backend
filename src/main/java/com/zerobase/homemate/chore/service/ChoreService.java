@@ -363,43 +363,15 @@ public class ChoreService {
                 choreInstance.softDelete();
                 chore.softDelete();
             } else {
-                EnumSet<ChoreStatus> includedStatuses =
-                    EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
-                if (choreInstance.getDueDate().equals(chore.getStartDate())) {
-                    LocalDate nextDate = choreInstanceGenerator.getNextDate(
-                        choreInstance.getDueDate(),
-                        chore.getRepeatType(),
-                        chore.getRepeatInterval());
-
-                    while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, nextDate, includedStatuses)) {
-                        nextDate = choreInstanceGenerator.getNextDate(
-                            nextDate,
-                            chore.getRepeatType(),
-                            chore.getRepeatInterval());
-                    }
-
-                    chore.setStartDate(nextDate);
-                } else if (choreInstance.getDueDate().equals(chore.getEndDate())) {
-                    LocalDate beforeDate = choreInstanceGenerator.getBeforeDate(
-                        choreInstance.getDueDate(),
-                        chore.getRepeatType(),
-                        chore.getRepeatInterval());
-
-                    while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, beforeDate, includedStatuses)) {
-                        beforeDate = choreInstanceGenerator.getBeforeDate(
-                            beforeDate,
-                            chore.getRepeatType(),
-                            chore.getRepeatInterval());
-                    }
-
-                    chore.setEndDate(beforeDate);
-                }
-
                 if (applyToAfter) {
+                    if (!choreInstance.getDueDate().equals(chore.getStartDate())) {
+                        setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
+                    }
                     choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
                         chore, choreInstance.getDueDate(),
                         ChoreStatus.DELETED, LocalDateTime.now());
                 } else {
+                    setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
                     choreInstance.softDelete();
                 }
             }
@@ -407,6 +379,41 @@ public class ChoreService {
             softDeleteChoreIfAllInstancesDeleted(chore);
         } else {
             throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        }
+    }
+
+    private void setStartDateEndDateForCase(
+        Chore chore, ChoreInstance choreInstance, boolean applyToAfter) {
+        EnumSet<ChoreStatus> includedStatuses =
+            EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
+        if (choreInstance.getDueDate().equals(chore.getStartDate())) {
+            LocalDate nextDate = choreInstanceGenerator.getNextDate(
+                choreInstance.getDueDate(),
+                chore.getRepeatType(),
+                chore.getRepeatInterval());
+
+            while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, nextDate, includedStatuses)) {
+                nextDate = choreInstanceGenerator.getNextDate(
+                    nextDate,
+                    chore.getRepeatType(),
+                    chore.getRepeatInterval());
+            }
+
+            chore.setStartDate(nextDate);
+        } else if (choreInstance.getDueDate().equals(chore.getEndDate()) || applyToAfter) {
+            LocalDate beforeDate = choreInstanceGenerator.getBeforeDate(
+                choreInstance.getDueDate(),
+                chore.getRepeatType(),
+                chore.getRepeatInterval());
+
+            while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, beforeDate, includedStatuses)) {
+                beforeDate = choreInstanceGenerator.getBeforeDate(
+                    beforeDate,
+                    chore.getRepeatType(),
+                    chore.getRepeatInterval());
+            }
+
+            chore.setEndDate(beforeDate);
         }
     }
 
