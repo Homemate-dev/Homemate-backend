@@ -44,26 +44,27 @@ public class ChoreStatsService {
         // 미션 집안일 수
         Long missionCount = (long) missionService.getMonthlyMissions(userId).size();
 
-        // 미션 달성 집안일 먼저 추가
-        result.add(new TopItemDto("미션 달성 집안일", "MISSIONS", missionCount));
+        // 3. 미션 카테고리 (Category.MISSIONS)
+        result.add(new TopItemDto(Category.MISSIONS.getCategoryName(), Category.MISSIONS.name(), missionCount));
 
+        // 4. 나머지 TOP N
         topOverall.stream()
-                .filter(name -> !"MISSIONS".equals(name))
+                .filter(name -> !Category.MISSIONS.name().equals(name))
                 .limit(topN)
                 .forEach(code -> {
                     String displayName;
                     Long count;
                     try {
                         Category category = Category.valueOf(code);
-                        displayName = Category.valueOf(code).getCategoryName();  // Category Enum의 이름
+                        displayName = category.getCategoryName();
                         count = categoryChoreRepository.countByCategory(category);
                     } catch (IllegalArgumentException e1) {
                         try {
                             Space space = Space.valueOf(code);
-                            displayName = Space.valueOf(code).getSpaceName();  // Space Enum의 이름
+                            displayName = space.getSpaceName();
                             count = spaceChoreRepository.countBySpace(space);
                         } catch (IllegalArgumentException e2) {
-                            displayName = code; // 혹시 Enum 아닌 경우
+                            displayName = code; // 혹시 Enum이 아닌 경우
                             count = 0L;
                         }
                     }
