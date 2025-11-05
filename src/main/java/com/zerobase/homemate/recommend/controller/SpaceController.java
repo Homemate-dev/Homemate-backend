@@ -57,6 +57,7 @@ public class SpaceController {
     public ResponseEntity<SpaceChoreDto.Response> getSpaceChore(
         @AuthenticationPrincipal UserPrincipal user,
         @PathVariable Long spaceChoreId) {
-        return ResponseEntity.ok(spaceService.getSpaceChore(spaceChoreId));
+        return ResponseEntity.ok(
+            spaceService.getSpaceChore(user.id(), spaceChoreId));
     }
 }

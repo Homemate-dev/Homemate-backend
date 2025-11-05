@@ -1,6 +1,7 @@
 package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.entity.SpaceChore;
+import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
@@ -9,6 +10,9 @@ import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceChoreDto;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
+import com.zerobase.homemate.util.ChoreDateUtils;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +25,7 @@ import java.util.*;
 public class SpaceService {
 
     private final SpaceChoreRepository spaceChoreRepository;
+    private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final int DEFAULT_LIMIT = 5;
 
     private static final Map<RepeatType, Integer> REPEAT_PRIORITY = Map.of(
@@ -66,9 +71,15 @@ public class SpaceService {
                 .toList();
     }
 
-    public SpaceChoreDto.Response getSpaceChore(Long spaceChoreId) {
+    public SpaceChoreDto.Response getSpaceChore(
+        Long userId, Long spaceChoreId) {
         SpaceChore spaceChore = spaceChoreRepository.findById(spaceChoreId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
-        return SpaceChoreDto.Response.fromEntity(spaceChore);
+        UserNotificationSetting userNotificationSetting =
+            userNotificationSettingRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        LocalDate endDate = ChoreDateUtils.calculateEndDate(LocalDate.now(),
+            spaceChore.getRepeatType(),
+            spaceChore.getRepeatInterval());
+        return SpaceChoreDto.Response.of(spaceChore, userNotificationSetting, endDate);
     }
 }

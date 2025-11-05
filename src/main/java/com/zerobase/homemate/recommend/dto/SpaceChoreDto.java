@@ -3,8 +3,10 @@ package com.zerobase.homemate.recommend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zerobase.homemate.entity.SpaceChore;
+import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,15 +38,23 @@ public class SpaceChoreDto {
         private RepeatType repeatType;
         private Integer repeatInterval;
         private Space space;
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private boolean choreEnabled;
 
-        public static SpaceChoreDto.Response fromEntity(SpaceChore spaceChore) {
-            return SpaceChoreDto.Response.builder()
+        public static SpaceChoreDto.Response of(SpaceChore spaceChore,
+            UserNotificationSetting userNotificationSetting,
+            LocalDate endDate) {
+            return Response.builder()
                 .id(spaceChore.getId())
                 .code(spaceChore.getCode())
                 .titleKo(spaceChore.getTitleKo())
                 .repeatType(spaceChore.getRepeatType())
                 .repeatInterval(spaceChore.getRepeatInterval())
                 .space(spaceChore.getSpace())
+                .startDate(LocalDate.now())
+                .endDate(endDate)
+                .choreEnabled(userNotificationSetting.isChoreEnabled())
                 .build();
         }
     }
