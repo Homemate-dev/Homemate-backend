@@ -5,7 +5,6 @@ import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.recommend.service.stats.ChoreStatsService;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
-import com.zerobase.homemate.repository.SpaceChoreRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,20 +21,17 @@ public class ChoreStatsServiceTest {
     private RedisChoreStatsService redisChoreStatsService;
     private ChoreStatsService choreStatsService;
     private CategoryChoreRepository categoryChoreRepository;
-    private SpaceChoreRepository spaceChoreRepository;
     private MissionService missionService;
 
     @BeforeEach
     void setUp() {
         redisChoreStatsService = mock(RedisChoreStatsService.class);
         categoryChoreRepository = mock(CategoryChoreRepository.class);
-        spaceChoreRepository = mock(SpaceChoreRepository.class);
         missionService = mock(MissionService.class);
 
         choreStatsService = new ChoreStatsService(
                 redisChoreStatsService,
                 categoryChoreRepository,
-                spaceChoreRepository,
                 missionService
         );
     }

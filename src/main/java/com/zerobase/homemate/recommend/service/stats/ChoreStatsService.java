@@ -2,11 +2,9 @@ package com.zerobase.homemate.recommend.service.stats;
 
 
 import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
-import com.zerobase.homemate.repository.SpaceChoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +19,6 @@ public class ChoreStatsService {
 
     private final RedisChoreStatsService redisChoreStatsService;
     private final CategoryChoreRepository categoryChoreRepository;
-    private final SpaceChoreRepository spaceChoreRepository;
     private final MissionService missionService;
 
     public List<TopItemDto> getTopOverallWithMissions(Long userId, int topN){
@@ -44,30 +41,23 @@ public class ChoreStatsService {
         // 미션 집안일 수
         Long missionCount = (long) missionService.getMonthlyMissions(userId).size();
 
-        // 미션 달성 집안일 먼저 추가
-        result.add(new TopItemDto("미션 달성 집안일", "MISSIONS", missionCount));
+        // 3. 미션 카테고리 (Category.MISSIONS)
+        result.add(new TopItemDto(Category.MISSIONS.getCategoryName(), Category.MISSIONS.name(), missionCount));
 
+        // 4. 나머지 TOP N
         topOverall.stream()
-                .filter(name -> !"MISSIONS".equals(name))
+                .filter(name -> !Category.MISSIONS.name().equals(name))
                 .limit(topN)
                 .forEach(code -> {
-                    String displayName;
-                    Long count;
                     try {
                         Category category = Category.valueOf(code);
-                        displayName = Category.valueOf(code).getCategoryName();  // Category Enum의 이름
-                        count = categoryChoreRepository.countByCategory(category);
-                    } catch (IllegalArgumentException e1) {
-                        try {
-                            Space space = Space.valueOf(code);
-                            displayName = Space.valueOf(code).getSpaceName();  // Space Enum의 이름
-                            count = spaceChoreRepository.countBySpace(space);
-                        } catch (IllegalArgumentException e2) {
-                            displayName = code; // 혹시 Enum 아닌 경우
-                            count = 0L;
-                        }
+                        String displayName = category.getCategoryName();
+                        Long count = categoryChoreRepository.countByCategory(category);
+                        result.add(new TopItemDto(displayName, code, count));
+                    } catch (IllegalArgumentException e) {
+                        // 해당되는 enum이 없을 경우 code를 그대로 노출시킨다.
+                        result.add(new TopItemDto(code, code, 0L));
                     }
-                    result.add(new TopItemDto(displayName, code, count));
                 });
 
         return result;
