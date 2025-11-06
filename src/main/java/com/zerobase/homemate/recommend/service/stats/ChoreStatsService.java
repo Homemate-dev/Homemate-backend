@@ -2,11 +2,9 @@ package com.zerobase.homemate.recommend.service.stats;
 
 
 import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
-import com.zerobase.homemate.repository.SpaceChoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +19,6 @@ public class ChoreStatsService {
 
     private final RedisChoreStatsService redisChoreStatsService;
     private final CategoryChoreRepository categoryChoreRepository;
-    private final SpaceChoreRepository spaceChoreRepository;
     private final MissionService missionService;
 
     public List<TopItemDto> getTopOverallWithMissions(Long userId, int topN){
@@ -52,23 +49,15 @@ public class ChoreStatsService {
                 .filter(name -> !Category.MISSIONS.name().equals(name))
                 .limit(topN)
                 .forEach(code -> {
-                    String displayName;
-                    Long count;
                     try {
                         Category category = Category.valueOf(code);
-                        displayName = category.getCategoryName();
-                        count = categoryChoreRepository.countByCategory(category);
-                    } catch (IllegalArgumentException e1) {
-                        try {
-                            Space space = Space.valueOf(code);
-                            displayName = space.getSpaceName();
-                            count = spaceChoreRepository.countBySpace(space);
-                        } catch (IllegalArgumentException e2) {
-                            displayName = code; // 혹시 Enum이 아닌 경우
-                            count = 0L;
-                        }
+                        String displayName = category.getCategoryName();
+                        Long count = categoryChoreRepository.countByCategory(category);
+                        result.add(new TopItemDto(displayName, code, count));
+                    } catch (IllegalArgumentException e) {
+                        // 해당되는 enum이 없을 경우 code를 그대로 노출시킨다.
+                        result.add(new TopItemDto(code, code, 0L));
                     }
-                    result.add(new TopItemDto(displayName, code, count));
                 });
 
         return result;
