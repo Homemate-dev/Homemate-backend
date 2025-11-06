@@ -53,7 +53,12 @@ public enum BadgeType {
 
     BEGINNER_TRASH_BIN("쓰레기 텅", "쓰레기통 비우기 30회 완료",  null, "쓰레기통 비우기", 30, BadgeCategory.TITLE, "beginner_empty_trash.png"),
     EXPERT_TRASH_BIN("쓰레기 텅텅", "쓰레기통 비우기 90회 완료",  null, "쓰레기통 비우기", 90, BadgeCategory.TITLE, "expert_empty_trash.png"),
-    MASTER_TRASH_BIN("텅텅 비움이", "쓰레기통 비우기 180회 완료",  null, "쓰레기통 비우기", 180, BadgeCategory.TITLE, "master_empty_trash.png");
+    MASTER_TRASH_BIN("텅텅 비움이", "쓰레기통 비우기 180회 완료",  null, "쓰레기통 비우기", 180, BadgeCategory.TITLE, "master_empty_trash.png"),
+
+    BEGINNER_BEDROOM("침실 깔끔이", "침실 집안일 30회 완료", Space.BEDROOM, null, 30, BadgeCategory.SPACE, "beginner_bedroom.png"),
+    EXPERT_BEDROOM("침실 반짝이", "침실 집안일 90회 완료", Space.BEDROOM, null, 90, BadgeCategory.SPACE, "expert_bedroom.png"),
+    MASTER_BEDROOM("침실 번쩍이", "침실 집안일 180회 완료", Space.BEDROOM, null, 180, BadgeCategory.SPACE, "master_bedroom.png");
+
 
     private final String badgeName;
     private final String description;
