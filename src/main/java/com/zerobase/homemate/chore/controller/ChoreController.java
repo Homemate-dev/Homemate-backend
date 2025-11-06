@@ -101,12 +101,13 @@ public class ChoreController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/today-rate")
+    @GetMapping("/today-rate/{today}")
     public ResponseEntity<Map<String, Double>> getTodayCompleteRate(
-        @AuthenticationPrincipal UserPrincipal user
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable LocalDate today
     ) {
 
-        double rate = choreService.getTodayCompleteRate(user.id());
+        double rate = choreService.getTodayCompleteRate(user.id(), today);
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("rate", rate));
     }

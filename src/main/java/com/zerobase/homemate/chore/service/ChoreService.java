@@ -428,13 +428,13 @@ public class ChoreService {
         }
     }
 
-    public double getTodayCompleteRate(Long userId) {
+    public double getTodayCompleteRate(Long userId, LocalDate today) {
         EnumSet<ChoreStatus> includedStatuses =
             EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
 
         ChoreCounts counts =
             choreInstanceRepository.countTodayTotalsAndCompleted(
-                userId, LocalDate.now(), includedStatuses);
+                userId, today, includedStatuses);
 
         long total = counts.total();
         if (total == 0) {
