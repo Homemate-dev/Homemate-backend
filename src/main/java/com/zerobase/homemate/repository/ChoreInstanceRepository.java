@@ -78,7 +78,7 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
     """)
     ChoreCounts countTodayTotalsAndCompleted(
         @Param("userId") Long userId,
-        @Param("today") LocalDate date,
+        @Param("today") LocalDate today,
         @Param("included") Set<ChoreStatus> included
     );
 

@@ -7,6 +7,7 @@ import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -41,6 +42,7 @@ public class SpaceChoreDto {
         private LocalDate startDate;
         private LocalDate endDate;
         private boolean choreEnabled;
+        private LocalTime notificationTime;
 
         public static SpaceChoreDto.Response of(SpaceChore spaceChore,
             UserNotificationSetting userNotificationSetting,
@@ -55,6 +57,7 @@ public class SpaceChoreDto {
                 .startDate(LocalDate.now())
                 .endDate(endDate)
                 .choreEnabled(userNotificationSetting.isChoreEnabled())
+                .notificationTime(userNotificationSetting.getNotificationTime())
                 .build();
         }
     }
