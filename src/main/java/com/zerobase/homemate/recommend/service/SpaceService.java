@@ -14,8 +14,6 @@ import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import com.zerobase.homemate.util.ChoreDateUtils;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -26,7 +24,7 @@ public class SpaceService {
 
     private final SpaceChoreRepository spaceChoreRepository;
     private final UserNotificationSettingRepository userNotificationSettingRepository;
-    private final int DEFAULT_LIMIT = 5;
+    private final int DEFAULT_LIMIT = 15;
 
     private static final Map<RepeatType, Integer> REPEAT_PRIORITY = Map.of(
             RepeatType.DAILY, 1,
@@ -38,18 +36,12 @@ public class SpaceService {
 
 
 
-    public List<ClassifyChoreResponse> getChoresBySpace(Space space, int page){
+    public List<ClassifyChoreResponse> getChoresBySpace(Space space){
         if (space == null) {
             throw new CustomException(ErrorCode.SPACE_NOT_FOUND);
         }
 
-        if (page < 0 || page > 2) {
-            throw new CustomException(ErrorCode.PAGE_UNAVAILABLE);
-        }
-
-        Pageable pageable = PageRequest.of(page, DEFAULT_LIMIT);
-
-        List<SpaceChore> randomChores = spaceChoreRepository.findBySpace(space, pageable);
+        List<SpaceChore> randomChores = spaceChoreRepository.findBySpace(space);
 
         if (randomChores.isEmpty()) {
             throw new CustomException(ErrorCode.CHORE_NOT_FOUND);
@@ -58,6 +50,7 @@ public class SpaceService {
         // 페이지 내에서 RepeatType 우선순위 정렬
         List<SpaceChore> pageSpaceChores = randomChores.stream()
                 .sorted(Comparator.comparingInt(c -> REPEAT_PRIORITY.get(c.getRepeatType())))
+                .limit(DEFAULT_LIMIT)
                 .toList();
 
         return pageSpaceChores.stream()

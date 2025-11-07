@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -81,7 +80,7 @@ class SpaceControllerTest {
                 new ClassifyChoreResponse(2L, "설거지", "매일", space, null)
         );
         int page = 0;
-        when(spaceService.getChoresBySpace(space, page)).thenReturn(mockChores);
+        when(spaceService.getChoresBySpace(space)).thenReturn(mockChores);
 
         // when & then
         mockMvc.perform(get("/recommend/spaces/{space}/chores", space.name())
