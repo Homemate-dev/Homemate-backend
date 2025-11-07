@@ -62,7 +62,7 @@ class CategoryServiceTest {
                 .category(Category.WINTER)
                 .title("옷장 정리하기")
                 .repeatType(DAILY)
-                .repeatInterval(3)
+                .repeatInterval(1)
                 .build();
 
         CategoryChore cc4 = CategoryChore.builder()
@@ -86,10 +86,10 @@ class CategoryServiceTest {
 
         // then
         assertThat(result).hasSize(4);
-        assertThat(result.get(0).frequency()).isEqualTo("3일");      // cc3
+        assertThat(result.get(0).frequency()).isEqualTo("매일");      // cc3
         assertThat(result.get(1).frequency()).isEqualTo("2주");      // cc2
-        assertThat(result.get(2).frequency()).isEqualTo("3달");      // cc1
-        assertThat(result.get(3).frequency()).isEqualTo("반복 없음"); // cc4
+        assertThat(result.get(2).frequency()).isEqualTo("3개월");      // cc1
+        assertThat(result.get(3).frequency()).isEqualTo("한번"); // cc4
 
         verify(categoryChoreRepository, times(1))
                 .findByCategory (eq(category), any(Pageable.class));
