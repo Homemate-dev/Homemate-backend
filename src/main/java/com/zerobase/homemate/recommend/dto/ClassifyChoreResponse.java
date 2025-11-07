@@ -5,6 +5,8 @@ import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ClassifyChoreResponse(Long choreId,
@@ -25,26 +27,23 @@ public record ClassifyChoreResponse(Long choreId,
     }
 
     private static String formatFrequency(RepeatType repeatType, Integer repeatInterval) {
-        if(repeatType == null)  return "반복 없음";
+        if(repeatType == null)  return "한번";
 
-        // interval이 1일 시, 매일, 매주, 매달, 매년마다로 표시
-        if(repeatInterval == null || repeatInterval == 1){
-            return switch(repeatType){
-                case NONE -> "반복 없음";
-                case DAILY -> "매일";
-                case MONTHLY -> "매달";
-                case WEEKLY -> "매주";
-                case YEARLY -> "매년";
-            };
+        int interval = (repeatInterval == null) ? 0 : repeatInterval;
 
-        }
+        String frequencyKey = repeatType.name() + "_" + interval;
 
-        return switch(repeatType){
-            case NONE -> "반복 없음";
-            case DAILY -> repeatInterval + "일";
-            case MONTHLY -> repeatInterval + "달";
-            case WEEKLY -> repeatInterval + "주";
-            case YEARLY -> repeatInterval + "년";
+        return switch(frequencyKey){
+            case "NONE_0" -> "한번";
+            case "DAILY_1" -> "매일";
+            case "WEEKLY_1" -> "1주";
+            case "WEEKLY_2" -> "2주";
+            case "MONTHLY_1" -> "매달";
+            case "MONTHLY_3" -> "3개월";
+            case "MONTHLY_6" -> "6개월";
+            case "YEARLY_1" -> "매년";
+
+            default -> throw new CustomException(ErrorCode.INVALID_FREQUENCY);
         };
 
     }

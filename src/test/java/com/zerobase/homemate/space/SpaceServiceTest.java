@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +44,7 @@ public class SpaceServiceTest {
                 .id(1L)
                 .titleKo("청소")
                 .repeatType(RepeatType.WEEKLY)
+                .repeatInterval(2)
                 .space(Space.KITCHEN)
                 .build();
 
@@ -52,14 +52,15 @@ public class SpaceServiceTest {
                 .id(2L)
                 .titleKo("설거지")
                 .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
                 .space(Space.KITCHEN)
                 .build();
 
-        when(spaceChoreRepository.findBySpace(eq(Space.KITCHEN), any(Pageable.class)))
+        when(spaceChoreRepository.findBySpace(eq(Space.KITCHEN)))
                 .thenReturn(List.of(chore1, chore2));
 
         // when
-        List<ClassifyChoreResponse> result = spaceService.getChoresBySpace(Space.KITCHEN, 0);
+        List<ClassifyChoreResponse> result = spaceService.getChoresBySpace(Space.KITCHEN);
 
         // then
         assertThat(result).hasSize(2);
@@ -68,7 +69,7 @@ public class SpaceServiceTest {
         assertThat(result.get(1).title()).isEqualTo("청소");
 
         verify(spaceChoreRepository, times(1))
-                .findBySpace(eq(Space.KITCHEN), any(Pageable.class));
+                .findBySpace(eq(Space.KITCHEN));
     }
 
     @Test
@@ -76,7 +77,7 @@ public class SpaceServiceTest {
     void getChoresBySpace_ShouldThrowExceptionIfSpaceNull() {
         // when & then
         CustomException exception = assertThrows(CustomException.class,
-                () -> spaceService.getChoresBySpace(null, 0));
+                () -> spaceService.getChoresBySpace(null));
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.SPACE_NOT_FOUND);
     }
