@@ -1,10 +1,8 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
-import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.Space;
-import com.zerobase.homemate.entity.enums.UserRole;
-import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.recommend.controller.RecommendController;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
@@ -18,14 +16,12 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -86,11 +82,11 @@ public class RecommendControllerTest {
 
 
         List<TopItemDto> topList = List.of(
-                new TopItemDto("미션 달성 집안일", "MISSIONS", 3L),
-                new TopItemDto("기타 집안일", "ETC", 8L),
-                new TopItemDto("15분 청소", "FIFTEEN", 6L),
-                new TopItemDto("겨울철 집안일", "WINTER", 4L),
-                new TopItemDto("주방", "KITCHEN", 2L)
+                new TopItemDto("미션 달성 집안일", Category.MISSIONS, 3L),
+                new TopItemDto("기타 집안일", Category.ETC, 8L),
+                new TopItemDto("15분 청소", Category.WEEKEND_WHOLE_ROUTINE, 6L),
+                new TopItemDto("겨울철 집안일", Category.WINTER, 4L),
+                new TopItemDto("주방", Category.ETC, 2L)
         );
 
         when(choreStatsService.getTopOverallWithMissions(userId, 5))
@@ -105,10 +101,10 @@ public class RecommendControllerTest {
                 .andExpect(jsonPath("$[0].name").value("미션 달성 집안일"))
                 .andExpect(jsonPath("$[1].name").value("기타 집안일"))
                 .andExpect(jsonPath("$[2].name").value("15분 청소"))
-                // code 검증
-                .andExpect(jsonPath("$[0].code").value("MISSIONS"))
-                .andExpect(jsonPath("$[1].code").value("ETC"))
-                .andExpect(jsonPath("$[2].code").value("FIFTEEN"))
+                // category 검증 (code → category)
+                .andExpect(jsonPath("$[0].category").value("MISSIONS"))
+                .andExpect(jsonPath("$[1].category").value("ETC"))
+                .andExpect(jsonPath("$[2].category").value("WEEKEND_WHOLE_ROUTINE"))
                 // count 검증
                 .andExpect(jsonPath("$[0].count").value(3))
                 .andExpect(jsonPath("$[1].count").value(8))

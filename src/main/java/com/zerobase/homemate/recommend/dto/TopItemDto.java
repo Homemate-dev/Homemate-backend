@@ -1,9 +1,11 @@
 package com.zerobase.homemate.recommend.dto;
 
 
+import com.zerobase.homemate.entity.enums.Category;
+
 public record TopItemDto (
         String name,
-        String code,
+        Category category,
         Long count
 ){
 
