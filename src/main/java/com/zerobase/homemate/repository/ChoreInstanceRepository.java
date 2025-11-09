@@ -84,4 +84,8 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
 
     boolean existsByChoreAndDueDateAndChoreStatusIn(Chore chore,
         LocalDate dueDate, Collection<ChoreStatus> choreStatuses);
+
+    boolean existsByUserIdAndTitle(Long userId, String titleKo);
+
+    Object existsByChore(Chore any);
 }

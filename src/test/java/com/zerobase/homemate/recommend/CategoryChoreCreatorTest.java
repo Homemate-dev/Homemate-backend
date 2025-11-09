@@ -1,16 +1,10 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
-import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
-import com.zerobase.homemate.entity.CategoryChore;
-import com.zerobase.homemate.entity.Chore;
-import com.zerobase.homemate.entity.SpaceChore;
-import com.zerobase.homemate.entity.User;
-import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.RepeatType;
-import com.zerobase.homemate.entity.enums.Space;
-import com.zerobase.homemate.entity.enums.UserActionType;
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
+import com.zerobase.homemate.entity.*;
+import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.service.MissionService;
@@ -25,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -71,9 +66,9 @@ public class CategoryChoreCreatorTest {
     private UserBadgeStatsService userBadgeStatsService;
 
     @Test
-    void createChoreFromCategory_shouldCreateChoreWithMatchedSpace(){
+    @DisplayName("CategoryChore 기반 집안일 등록 테스트 - Space 매칭")
+    void createChoreFromCategory_shouldCreateChoreWithMatchedSpace() {
         // given
-
         Long userId = 1L;
         Long categoryChoreId = 1L;
 
@@ -85,7 +80,6 @@ public class CategoryChoreCreatorTest {
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(3)
                 .build();
-        categoryChoreRepository.save(categoryChore);
 
         SpaceChore spaceChore = SpaceChore.builder()
                 .space(Space.KITCHEN)
@@ -94,28 +88,34 @@ public class CategoryChoreCreatorTest {
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(3)
                 .build();
-        spaceChoreRepository.save(spaceChore);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(categoryChoreRepository.findById(categoryChoreId)).thenReturn(Optional.of(categoryChore));
-        when(spaceChoreRepository.findByTitleKo(spaceChore.getTitleKo())).thenReturn(Optional.of(spaceChore));
+        when(spaceChoreRepository.findByTitleKo(categoryChore.getTitle())).thenReturn(Optional.of(spaceChore));
         when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
-        when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
-
-        when(missionService.increaseMissionCountForAction(eq(userId), eq(
-            UserActionType.CREATE_CHORE_RECOMMENDED)))
-            .thenReturn(List.of());
+        when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of(
+                ChoreInstance.builder()
+                        .id(1L)
+                        .titleSnapshot(categoryChore.getTitle())
+                        .dueDate(LocalDate.now())
+                        .chore(Chore.builder().id(10L).build())
+                        .build()
+        ));
+        when(missionService.increaseMissionCountForAction(eq(userId), eq(UserActionType.CREATE_CHORE_RECOMMENDED)))
+                .thenReturn(List.of());
 
         // when
-        ApiResponse<ChoreDto.Response> response =
-            categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
+        ApiResponse<List<ChoreInstanceDto.Response>> response =
+                categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
 
         // then
-        assertEquals("청소하기", response.getData().getTitle());
-        assertEquals(Space.KITCHEN, response.getData().getSpace());
+        assertNotNull(response.getData());
+        assertFalse(response.getData().isEmpty());
+        assertEquals("청소하기", response.getData().get(0).getTitleSnapshot());
         verify(choreRepository).save(any(Chore.class));
         verify(choreInstanceRepository).saveAll(anyList());
     }
+
 
     @Test
     @DisplayName("이미 등록된 추천 집안일 재등록 시 실패")
@@ -150,7 +150,7 @@ public class CategoryChoreCreatorTest {
     }
 
     @Test
-    @DisplayName("notificationYn 기본값 세팅 notificationTime 기본값 세팅 확인")
+    @DisplayName("notificationTime 기본값 세팅 확인")
     void createChore_shouldSetDefaultNotificationTimeEvenIfDisabled() {
         // given
         User user = User.builder().id(1L).build();
@@ -162,26 +162,32 @@ public class CategoryChoreCreatorTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(categoryChoreRepository.findById(1L)).thenReturn(Optional.of(template));
-        when(choreRepository.existsByUserIdAndTitle(anyLong(), anyString())).thenReturn(false);
         when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
-        when(choreInstanceGenerator.generateInstances(any())).thenReturn(List.of());
+        when(choreInstanceGenerator.generateInstances(any())).thenReturn(List.of(
+                ChoreInstance.builder()
+                        .id(1L)
+                        .titleSnapshot("청소하기")
+                        .dueDate(LocalDate.now())
+                        .notificationTime(LocalTime.of(19, 0))
+                        .choreStatus(ChoreStatus.PENDING)
+                        .build()
+        ));
         when(userNotificationSettingRepository.findByUserId(anyLong()))
-                .thenReturn(Optional.empty()); // 혹은 Optional.of(defaultSetting)
-
-        when(missionService.increaseMissionCountForAction(eq(user.getId()), eq(
-            UserActionType.CREATE_CHORE_RECOMMENDED)))
-            .thenReturn(List.of());
+                .thenReturn(Optional.empty()); // 기본값 사용
+        when(missionService.increaseMissionCountForAction(eq(user.getId()),
+                eq(UserActionType.CREATE_CHORE_RECOMMENDED)))
+                .thenReturn(List.of());
 
         // when
-        ApiResponse<ChoreDto.Response> response =
-            categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
+        ApiResponse<List<ChoreInstanceDto.Response>> response =
+                categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
 
         // then
-        assertTrue(response.getData().getNotificationYn(), "알림은 켜져 있어야 한다");
-        assertNotNull(response.getData().getNotificationTime(), "알림 시간은 기본값으로 세팅되어 "
-            + "있어야 한다");
-        assertEquals(LocalTime.of(9, 0), response.getData().getNotificationTime(),
-            "기본 알림 시간은 09:00");
+        assertNotNull(response.getData().get(0).getNotificationTime(),
+                "알림 시간은 기본값으로 세팅되어 있어야 한다");
+        assertEquals(LocalTime.of(9, 0), response.getData().get(0).getNotificationTime(),
+                "기본 알림 시간은 09:00");
     }
+
 
 }

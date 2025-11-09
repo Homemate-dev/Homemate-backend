@@ -3,7 +3,8 @@ package com.zerobase.homemate.space;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
+import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.recommend.controller.SpaceController;
@@ -25,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -98,47 +100,65 @@ class SpaceControllerTest {
 
         Long spaceChoreId = 10L;
 
+        // 인증 principal 설정
         var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
         var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
 
         // 요청 DTO
-        SpaceChoreDto.CreateRequest request = new  SpaceChoreDto.CreateRequest();
+        SpaceChoreDto.CreateRequest request = new SpaceChoreDto.CreateRequest();
         request.setSpace(Space.KITCHEN);
 
-        // Mock Response 생성
-        ApiResponse<ChoreDto.Response> mockResponse =
-            ApiResponse.<ChoreDto.Response>builder().data(ChoreDto.Response.builder()
+        // Mock Response 생성: ApiResponse 안에 List<ChoreInstanceDto.Response> 담기
+        ChoreInstanceDto.Response instance1 = ChoreInstanceDto.Response.builder()
                 .id(1L)
-                .title("주방 싱크대 정리하기")
-                .space(request.getSpace())
+                .choreId(100L)
+                .titleSnapshot("주방 싱크대 정리하기")
+                .dueDate(LocalDate.now())
+                .notificationTime(LocalTime.of(9, 0))
+                .choreStatus(ChoreStatus.PENDING)
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(1)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now())
                 .createdAt(LocalDateTime.now())
-                .notificationYn(false)
-                .build())
-            .build();
+                .build();
 
+        ChoreInstanceDto.Response instance2 = ChoreInstanceDto.Response.builder()
+                .id(2L)
+                .choreId(101L)
+                .titleSnapshot("주방 바닥 청소하기")
+                .dueDate(LocalDate.now())
+                .notificationTime(LocalTime.of(19, 0))
+                .choreStatus(ChoreStatus.PENDING)
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> mockResponse =
+                ChoreDto.ApiResponse.<List<ChoreInstanceDto.Response>>builder()
+                        .data(List.of(instance1, instance2))
+                        .build();
+
+        // 서비스 목킹
         when(spaceChoreCreator.createChoreFromSpace(
                 eq(1L),
                 any(Space.class),
                 eq(spaceChoreId)
         )).thenReturn(mockResponse);
 
-        System.out.println(objectMapper.writeValueAsString(mockResponse));
-
+        // MockMvc 수행
         mockMvc.perform(post("/recommend/spaces/{spaceChoreId}/register", spaceChoreId)
-                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .accept(MediaType.APPLICATION_JSON))
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.title").value(mockResponse.getData().getTitle()))
-                .andExpect(jsonPath("$.data.space").value(mockResponse.getData().getSpace().name()))
-                .andExpect(jsonPath("$.data.repeatType").value(mockResponse.getData().getRepeatType().name()))
-                .andExpect(jsonPath("$.data.repeatInterval").value(mockResponse.getData().getRepeatInterval()));
+                .andExpect(jsonPath("$.data[0].titleSnapshot").value("주방 싱크대 정리하기"))
+                .andExpect(jsonPath("$.data[0].repeatType").value("DAILY"))
+                .andExpect(jsonPath("$.data[0].choreStatus").value("PENDING"))
+                .andExpect(jsonPath("$.data[1].titleSnapshot").value("주방 바닥 청소하기"));
     }
+
+
 
 }
