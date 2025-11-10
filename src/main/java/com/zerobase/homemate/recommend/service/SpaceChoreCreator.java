@@ -15,7 +15,6 @@ import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +26,6 @@ import static com.zerobase.homemate.util.ChoreDateUtils.calculateEndDate;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class SpaceChoreCreator {
 
     private final UserRepository userRepository;
