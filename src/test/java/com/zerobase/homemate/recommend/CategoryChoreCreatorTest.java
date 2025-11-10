@@ -136,14 +136,13 @@ public class CategoryChoreCreatorTest {
                         .chore(chore) // 여기 추가
                         .titleSnapshot(chore.getTitle())
                         .dueDate(LocalDate.now())
-                        .notificationTime(LocalTime.of(17, 0))
+                        .notificationTime(LocalTime.of(19, 0))
                         .choreStatus(ChoreStatus.PENDING)
                         .build()
         ));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(categoryChoreRepository.findById(1L)).thenReturn(Optional.of(template));
-        when(choreRepository.findByUserIdAndTitle(1L, template.getTitle())).thenReturn(Optional.empty());
         when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
         when(userNotificationSettingRepository.findByUserId(anyLong()))
                 .thenReturn(Optional.empty()); // 기본값 사용
@@ -158,8 +157,8 @@ public class CategoryChoreCreatorTest {
         // then
         assertNotNull(response.get(0).getNotificationTime(),
                 "알림 시간은 기본값으로 세팅되어 있어야 한다");
-        assertEquals(LocalTime.of(17, 0), response.get(0).getNotificationTime(),
-                "기본 알림 시간은 17:00");
+        assertEquals(LocalTime.of(19, 0), response.get(0).getNotificationTime(),
+                "기본 알림 시간은 19:00");
         verify(choreInstanceRepository).saveAll(anyList());
     }
 
