@@ -2,7 +2,6 @@ package com.zerobase.homemate.recommend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerobase.homemate.auth.security.UserPrincipal;
-import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.recommend.controller.CategoryController;
@@ -116,10 +115,8 @@ class CategoryControllerTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        ApiResponse<List<ChoreInstanceDto.Response>> mockResponse =
-                ApiResponse.<List<ChoreInstanceDto.Response>>builder()
-                        .data(List.of(instanceResponse))
-                        .build();
+        // 이제 ApiResponse가 아닌, 그냥 List 반환
+        List<ChoreInstanceDto.Response> mockResponse = List.of(instanceResponse);
 
         // Service Mock
         when(categoryChoreCreator.createChoreFromCategory(
@@ -135,10 +132,11 @@ class CategoryControllerTest {
                         .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data[0].titleSnapshot").value("청소하기"))
-                .andExpect(jsonPath("$.data[0].repeatType").value("DAILY"))
-                .andExpect(jsonPath("$.data[0].repeatInterval").value(3))
-                .andExpect(jsonPath("$.data[0].notificationTime").value("09:00:00"));
+                // 이제 루트에 바로 배열이므로 $.data 제거
+                .andExpect(jsonPath("$[0].titleSnapshot").value("청소하기"))
+                .andExpect(jsonPath("$[0].repeatType").value("DAILY"))
+                .andExpect(jsonPath("$[0].repeatInterval").value(3))
+                .andExpect(jsonPath("$[0].notificationTime").value("09:00:00"));
     }
 
 

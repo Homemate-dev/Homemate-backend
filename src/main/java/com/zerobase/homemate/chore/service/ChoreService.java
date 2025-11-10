@@ -32,6 +32,7 @@ import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class ChoreService {
 
     private final ChoreRepository choreRepository;
@@ -347,39 +349,41 @@ public class ChoreService {
     public void deleteChore(Long userId, Long choreInstanceId,
         boolean applyToAfter) {
 
-        ChoreInstance choreInstance =
-            choreInstanceRepository.findById(choreInstanceId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
-        Chore chore = choreInstance.getChore();
+        ChoreInstance choreInstance = choreInstanceRepository.findById(choreInstanceId)
+                .orElseThrow(() -> {
+                    return new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND);
+                });
 
+        Chore chore = choreInstance.getChore();
         if (!chore.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
-            choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
-            if (chore.getRepeatType() == RepeatType.NONE ||
-                chore.getStartDate().equals(chore.getEndDate())) {
-                choreInstance.softDelete();
-                chore.softDelete();
-            } else {
-                if (applyToAfter) {
-                    if (!choreInstance.getDueDate().equals(chore.getStartDate())) {
-                        setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
-                    }
-                    choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
-                        chore, choreInstance.getDueDate(),
-                        ChoreStatus.DELETED, LocalDateTime.now());
-                } else {
-                    setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
-                    choreInstance.softDelete();
-                }
-            }
 
-            softDeleteChoreIfAllInstancesDeleted(chore);
-        } else {
+        if (choreInstance.getChoreStatus() != ChoreStatus.PENDING &&
+                choreInstance.getChoreStatus() != ChoreStatus.COMPLETED) {
             throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
         }
+
+
+        if (chore.getRepeatType() == RepeatType.NONE ||
+                chore.getStartDate().equals(chore.getEndDate())) {
+            choreInstance.softDelete();
+            chore.softDelete();
+        } else {
+            if (applyToAfter) {
+                if (!choreInstance.getDueDate().equals(chore.getStartDate())) {
+                    setStartDateEndDateForCase(chore, choreInstance, true);
+                }
+
+                choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses( chore, choreInstance.getDueDate(), ChoreStatus.DELETED, LocalDateTime.now());
+            } else {
+                setStartDateEndDateForCase(chore, choreInstance, false);
+                choreInstance.softDelete();
+            }
+        }
+
+        softDeleteChoreIfAllInstancesDeleted(chore);
     }
 
     private void setStartDateEndDateForCase(

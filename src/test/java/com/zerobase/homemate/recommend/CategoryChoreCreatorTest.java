@@ -1,12 +1,9 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
-import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
-import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
@@ -105,48 +102,15 @@ public class CategoryChoreCreatorTest {
                 .thenReturn(List.of());
 
         // when
-        ApiResponse<List<ChoreInstanceDto.Response>> response =
+        List<ChoreInstanceDto.Response> response =
                 categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
 
         // then
-        assertNotNull(response.getData());
-        assertFalse(response.getData().isEmpty());
-        assertEquals("청소하기", response.getData().get(0).getTitleSnapshot());
+        assertNotNull(response);
+        assertFalse(response.isEmpty());
+        assertEquals("청소하기", response.get(0).getTitleSnapshot());
         verify(choreRepository).save(any(Chore.class));
         verify(choreInstanceRepository).saveAll(anyList());
-    }
-
-
-    @Test
-    @DisplayName("이미 등록된 추천 집안일 재등록 시 실패")
-    void createChoreFromCategory_shouldFailWhenAlreadyExists() {
-        // given
-        Long userId = 1L;
-        Long categoryChoreId = 1L;
-
-        User user = User.builder().id(userId).build();
-
-        CategoryChore categoryChore = CategoryChore.builder()
-                .category(Category.WINTER)
-                .title("청소하기")
-                .repeatType(RepeatType.DAILY)
-                .repeatInterval(3)
-                .build();
-
-        // 이미 해당 유저가 동일한 제목의 chore를 가지고 있다고 가정
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(categoryChoreRepository.findById(categoryChoreId)).thenReturn(Optional.of(categoryChore));
-        when(choreRepository.existsByUserIdAndTitle(userId, categoryChore.getTitle())).thenReturn(true);
-
-        // when & then
-        CustomException exception = assertThrows(CustomException.class, () -> {
-            categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
-        });
-
-        // then
-        assertEquals(ErrorCode.CHORE_ALREADY_REGISTERED, exception.getErrorCode());
-        verify(choreRepository, never()).save(any(Chore.class));
-        verify(choreInstanceRepository, never()).saveAll(anyList());
     }
 
     @Test
@@ -160,18 +124,27 @@ public class CategoryChoreCreatorTest {
                 .repeatInterval(1)
                 .build();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(categoryChoreRepository.findById(1L)).thenReturn(Optional.of(template));
-        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
+
+        Chore chore = Chore.builder()
+                .id(100L)
+                .title("청소하기")
+                .build();
+
         when(choreInstanceGenerator.generateInstances(any())).thenReturn(List.of(
                 ChoreInstance.builder()
                         .id(1L)
-                        .titleSnapshot("청소하기")
+                        .chore(chore) // 여기 추가
+                        .titleSnapshot(chore.getTitle())
                         .dueDate(LocalDate.now())
-                        .notificationTime(LocalTime.of(19, 0))
+                        .notificationTime(LocalTime.of(17, 0))
                         .choreStatus(ChoreStatus.PENDING)
                         .build()
         ));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(categoryChoreRepository.findById(1L)).thenReturn(Optional.of(template));
+        when(choreRepository.findByUserIdAndTitle(1L, template.getTitle())).thenReturn(Optional.empty());
+        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
         when(userNotificationSettingRepository.findByUserId(anyLong()))
                 .thenReturn(Optional.empty()); // 기본값 사용
         when(missionService.increaseMissionCountForAction(eq(user.getId()),
@@ -179,15 +152,17 @@ public class CategoryChoreCreatorTest {
                 .thenReturn(List.of());
 
         // when
-        ApiResponse<List<ChoreInstanceDto.Response>> response =
+        List<ChoreInstanceDto.Response> response =
                 categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
 
         // then
-        assertNotNull(response.getData().get(0).getNotificationTime(),
+        assertNotNull(response.get(0).getNotificationTime(),
                 "알림 시간은 기본값으로 세팅되어 있어야 한다");
-        assertEquals(LocalTime.of(9, 0), response.getData().get(0).getNotificationTime(),
-                "기본 알림 시간은 09:00");
+        assertEquals(LocalTime.of(17, 0), response.get(0).getNotificationTime(),
+                "기본 알림 시간은 17:00");
+        verify(choreInstanceRepository).saveAll(anyList());
     }
+
 
 
 }

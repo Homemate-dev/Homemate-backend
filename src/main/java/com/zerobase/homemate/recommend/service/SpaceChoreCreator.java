@@ -1,10 +1,10 @@
 package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
-import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
@@ -15,6 +15,7 @@ import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ import static com.zerobase.homemate.util.ChoreDateUtils.calculateEndDate;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SpaceChoreCreator {
 
     private final UserRepository userRepository;
@@ -40,25 +42,19 @@ public class SpaceChoreCreator {
     private final UserBadgeStatsService userBadgeStatsService;
 
     @Transactional
-    public ApiResponse<List<ChoreInstanceDto.Response>> createChoreFromSpace(Long userId,
-                                                                             Space space,
-                                                                             Long spaceChoreId) {
+    public List<ChoreInstanceDto.Response> createChoreFromSpace(
+            Long userId, Space space, Long spaceChoreId) {
 
-        // 1️⃣ 사용자 유효성 검증
+        // 사용자 유효성 검증
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 2️⃣ SpaceChore 조회
+
+        // SpaceChore 조회
         SpaceChore template = spaceChoreRepository.findById(spaceChoreId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
-        // 3️⃣ 이미 동일한 ChoreInstance 존재 여부 확인
-        boolean existsInstance = choreInstanceRepository.existsByUserIdAndTitle(userId, template.getTitleKo());
-        if (existsInstance) {
-            throw new CustomException(ErrorCode.CHORE_ALREADY_REGISTERED);
-        }
-
-        // 4️⃣ Chore 조회 또는 새로 생성
+        // Chore 조회 또는 생성
         Chore chore = choreRepository.findByUserIdAndTitle(userId, template.getTitleKo())
                 .orElseGet(() -> {
                     UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
@@ -76,42 +72,41 @@ public class SpaceChoreCreator {
                             .notificationTime(setting.getNotificationTime())
                             .isDeleted(false)
                             .build();
-
                     return choreRepository.save(newChore);
                 });
 
-        // 5️⃣ ChoreInstance 생성 및 저장
-        List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(chore);
-        choreInstanceRepository.saveAll(instances);
+        // fetch join으로 안전하게 조회
+        List<ChoreInstance> instances = choreInstanceRepository.findByChoreIdWithChore(
+                chore.getId(), ChoreStatus.DELETED);
 
-        // 6️⃣ Category 소속 조회
+        // ChoreInstance가 없으면 생성
+        if (instances.isEmpty()) {
+            instances = choreInstanceGenerator.generateInstances(chore)
+                    .stream()
+                    .limit(1)
+                    .toList();
+            choreInstanceRepository.saveAll(instances);
+        }
+
+        // Category 소속 조회
         CategoryChore matchedCategoryChore = categoryChoreRepository.findByTitle(template.getTitleKo())
                 .orElse(null);
-        Category category = (matchedCategoryChore != null)
-                ? matchedCategoryChore.getCategory()
-                : Category.ETC;
+        Category category = (matchedCategoryChore != null) ? matchedCategoryChore.getCategory() : Category.ETC;
 
-        // 7️⃣ Redis 통계 증가
+        // Redis 통계 증가
         redisChoreStatsService.increment(category, template.getSpace());
 
-        // 8️⃣ 미션 / 뱃지 처리
+        // 미션 / 뱃지 처리
         List<MissionDto.Response> userMission =
                 missionService.increaseMissionCountForAction(userId, UserActionType.CREATE_CHORE_WITH_SPACE)
                         .stream()
                         .filter(MissionDto.Response::isCompleted)
                         .toList();
-
         userBadgeStatsService.incrementRegisterCount(userId);
 
-        // 9️⃣ DTO 변환 및 반환
-        List<ChoreInstanceDto.Response> responses = instances.stream()
+        return instances.stream()
                 .map(ChoreInstanceDto.Response::fromEntity)
                 .toList();
-
-        return ApiResponse.<List<ChoreInstanceDto.Response>>builder()
-                .data(responses)
-                .missionResults(userMission)
-                .build();
     }
 
 }

@@ -2,7 +2,6 @@ package com.zerobase.homemate.space;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerobase.homemate.auth.security.UserPrincipal;
-import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.RepeatType;
@@ -133,17 +132,15 @@ class SpaceControllerTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> mockResponse =
-                ChoreDto.ApiResponse.<List<ChoreInstanceDto.Response>>builder()
-                        .data(List.of(instance1, instance2))
-                        .build();
+        List<ChoreInstanceDto.Response> mockResponse = List.of(instance1, instance2);
 
-        // 서비스 목킹
+
         when(spaceChoreCreator.createChoreFromSpace(
-                eq(1L),
-                any(Space.class),
-                eq(spaceChoreId)
+                eq(principal.id()),   // userId 전달
+                eq(request.getSpace()), // Space 전달
+                eq(spaceChoreId)       // spaceChoreId
         )).thenReturn(mockResponse);
+
 
         // MockMvc 수행
         mockMvc.perform(post("/recommend/spaces/{spaceChoreId}/register", spaceChoreId)
@@ -153,10 +150,10 @@ class SpaceControllerTest {
                         .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data[0].titleSnapshot").value("주방 싱크대 정리하기"))
-                .andExpect(jsonPath("$.data[0].repeatType").value("DAILY"))
-                .andExpect(jsonPath("$.data[0].choreStatus").value("PENDING"))
-                .andExpect(jsonPath("$.data[1].titleSnapshot").value("주방 바닥 청소하기"));
+                .andExpect(jsonPath("$[0].titleSnapshot").value("주방 싱크대 정리하기"))
+                .andExpect(jsonPath("$[0].repeatType").value("DAILY"))
+                .andExpect(jsonPath("$[0].choreStatus").value("PENDING"))
+                .andExpect(jsonPath("$[1].titleSnapshot").value("주방 바닥 청소하기"));
     }
 
 

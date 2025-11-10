@@ -5,12 +5,7 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.User;
-import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.RepeatType;
-import com.zerobase.homemate.entity.enums.Space;
-import com.zerobase.homemate.entity.enums.UserActionType;
-import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.SpaceChoreCreator;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
@@ -108,7 +103,6 @@ public class SpaceChoreCreatorTest {
         // Mocking
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(spaceChoreRepository.findById(spaceChoreId)).thenReturn(Optional.of(template));
-        when(choreInstanceRepository.existsByUserIdAndTitle(userId, template.getTitleKo())).thenReturn(false);
         when(choreRepository.findByUserIdAndTitle(userId, template.getTitleKo())).thenReturn(Optional.of(chore));
         when(choreInstanceGenerator.generateInstances(chore)).thenReturn(List.of(instance));
         when(missionService.increaseMissionCountForAction(userId, UserActionType.CREATE_CHORE_WITH_SPACE))
@@ -119,35 +113,36 @@ public class SpaceChoreCreatorTest {
 
         // 검증
         assertNotNull(response);
-        assertEquals(1, response.getData().size());
-        assertEquals("주방 싱크대 정리하기", response.getData().get(0).getTitleSnapshot());
+        assertEquals(1, response.size());
+        assertEquals("주방 싱크대 정리하기", response.get(0).getTitleSnapshot());
         verify(choreInstanceRepository).saveAll(List.of(instance));
         verify(redisChoreStatsService).increment(any(Category.class), eq(Space.KITCHEN));
         verify(userBadgeStatsService).incrementRegisterCount(userId);
     }
 
     @Test
-    @DisplayName("이미 등록된 추천 집안일 재등록 시 실패")
-    void createChoreFromSpace_shouldFailWhenAlreadyExists() {
+    @DisplayName("이미 존재하는 ChoreInstance가 있으면 새로 생성하지 않고 반환")
+    void createChoreFromSpace_shouldReturnExistingInstance() {
         Long userId = 1L;
         Long spaceChoreId = 10L;
 
         User user = User.builder().id(userId).build();
-        SpaceChore template = SpaceChore.builder()
-                .titleKo("주방 싱크대 정리하기")
-                .space(Space.KITCHEN)
-                .build();
+        Chore chore = Chore.builder().id(100L).user(user).title("주방 싱크대 정리하기").build();
+        SpaceChore template = SpaceChore.builder().titleKo("주방 싱크대 정리하기").space(Space.KITCHEN).build();
+        ChoreInstance existingInstance = ChoreInstance.builder().id(1L).chore(chore).build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(spaceChoreRepository.findById(spaceChoreId)).thenReturn(Optional.of(template));
-        when(choreInstanceRepository.existsByUserIdAndTitle(userId, template.getTitleKo())).thenReturn(true);
+        when(choreRepository.findByUserIdAndTitle(userId, template.getTitleKo())).thenReturn(Optional.of(chore));
+        when(choreInstanceRepository.findByChoreIdWithChore(chore.getId(), ChoreStatus.DELETED))
+                .thenReturn(List.of(existingInstance));
 
-        CustomException exception = assertThrows(CustomException.class,
-                () -> spaceChoreCreator.createChoreFromSpace(userId, Space.KITCHEN, spaceChoreId));
+        var response = spaceChoreCreator.createChoreFromSpace(userId, Space.KITCHEN, spaceChoreId);
 
-        assertEquals(ErrorCode.CHORE_ALREADY_REGISTERED, exception.getErrorCode());
-
-        verify(choreRepository, never()).save(any());
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(existingInstance.getId(), response.get(0).getId());
         verify(choreInstanceRepository, never()).saveAll(anyList());
     }
+
 }
