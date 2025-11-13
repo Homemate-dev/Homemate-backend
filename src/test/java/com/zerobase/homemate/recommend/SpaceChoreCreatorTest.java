@@ -113,8 +113,8 @@ public class SpaceChoreCreatorTest {
 
         // 검증
         assertNotNull(response);
-        assertEquals(1, response.size());
-        assertEquals("주방 싱크대 정리하기", response.get(0).getTitleSnapshot());
+        assertEquals(1, response.getData().size());
+        assertEquals("주방 싱크대 정리하기", response.getData().get(0).getTitleSnapshot());
         verify(choreInstanceRepository).saveAll(List.of(instance));
         verify(redisChoreStatsService).increment(any(Category.class), eq(Space.KITCHEN));
         verify(userBadgeStatsService).incrementRegisterCount(userId);
@@ -140,8 +140,8 @@ public class SpaceChoreCreatorTest {
         var response = spaceChoreCreator.createChoreFromSpace(userId, Space.KITCHEN, spaceChoreId);
 
         assertNotNull(response);
-        assertEquals(1, response.size());
-        assertEquals(existingInstance.getId(), response.get(0).getId());
+        assertEquals(1, response.getData().size());
+        assertEquals(existingInstance.getId(), response.getData().get(0).getId());
         verify(choreInstanceRepository, never()).saveAll(anyList());
     }
 

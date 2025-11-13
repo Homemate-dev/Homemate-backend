@@ -1,6 +1,7 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
+import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
@@ -86,6 +87,10 @@ public class CategoryChoreCreatorTest {
                 .repeatInterval(3)
                 .build();
 
+        when(userNotificationSettingRepository.save(any(UserNotificationSetting.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(categoryChoreRepository.findById(categoryChoreId)).thenReturn(Optional.of(categoryChore));
         when(spaceChoreRepository.findByTitleKo(categoryChore.getTitle())).thenReturn(Optional.of(spaceChore));
@@ -102,13 +107,13 @@ public class CategoryChoreCreatorTest {
                 .thenReturn(List.of());
 
         // when
-        List<ChoreInstanceDto.Response> response =
+        ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> response =
                 categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
 
         // then
         assertNotNull(response);
-        assertFalse(response.isEmpty());
-        assertEquals("청소하기", response.get(0).getTitleSnapshot());
+        assertFalse(response.getData().isEmpty());
+        assertEquals("청소하기", response.getData().get(0).getTitleSnapshot());
         verify(choreRepository).save(any(Chore.class));
         verify(choreInstanceRepository).saveAll(anyList());
     }
@@ -149,15 +154,17 @@ public class CategoryChoreCreatorTest {
         when(missionService.increaseMissionCountForAction(eq(user.getId()),
                 eq(UserActionType.CREATE_CHORE_RECOMMENDED)))
                 .thenReturn(List.of());
+        when(userNotificationSettingRepository.save(any(UserNotificationSetting.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        List<ChoreInstanceDto.Response> response =
+        ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> response =
                 categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
 
         // then
-        assertNotNull(response.get(0).getNotificationTime(),
+        assertNotNull(response.getData().get(0).getNotificationTime(),
                 "알림 시간은 기본값으로 세팅되어 있어야 한다");
-        assertEquals(LocalTime.of(19, 0), response.get(0).getNotificationTime(),
+        assertEquals(LocalTime.of(19, 0), response.getData().get(0).getNotificationTime(),
                 "기본 알림 시간은 19:00");
         verify(choreInstanceRepository).saveAll(anyList());
     }

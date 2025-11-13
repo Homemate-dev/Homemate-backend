@@ -1,6 +1,7 @@
 package com.zerobase.homemate.recommend.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
+import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.recommend.dto.CategoryChoreDto;
@@ -42,12 +43,12 @@ public class CategoryController {
     }
 
     @PostMapping("/{categoryChoreId}/register")
-    public ResponseEntity<List<ChoreInstanceDto.Response>> createChoreFromCategory(
+    public ResponseEntity<ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>>> createChoreFromCategory(
             @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long categoryChoreId,
             @RequestBody CategoryChoreDto.CreateRequest request
     ) {
-        List<ChoreInstanceDto.Response> response = categoryChoreCreator.createChoreFromCategory(
+        ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> response = categoryChoreCreator.createChoreFromCategory(
                 user.id(),
                 request.getCategory(),
                 categoryChoreId

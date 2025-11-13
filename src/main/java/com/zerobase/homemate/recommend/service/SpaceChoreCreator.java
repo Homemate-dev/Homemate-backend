@@ -1,6 +1,7 @@
 package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
+import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.Category;
@@ -40,7 +41,7 @@ public class SpaceChoreCreator {
     private final UserBadgeStatsService userBadgeStatsService;
 
     @Transactional
-    public List<ChoreInstanceDto.Response> createChoreFromSpace(
+    public ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> createChoreFromSpace(
             Long userId, Space space, Long spaceChoreId) {
 
         // 사용자 유효성 검증
@@ -55,8 +56,13 @@ public class SpaceChoreCreator {
         // Chore 조회 또는 생성
         Chore chore = choreRepository.findByUserIdAndTitle(userId, template.getTitleKo())
                 .orElseGet(() -> {
+                    // 🕒 알림 설정 조회 or 생성
                     UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-                            .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(19, 0)));
+                            .orElseGet(() -> {
+                                UserNotificationSetting defaultSetting =
+                                        UserNotificationSetting.createDefault(user, LocalTime.of(19, 0));
+                                return userNotificationSettingRepository.save(defaultSetting);
+                            });
 
                     Chore newChore = Chore.builder()
                             .user(user)
@@ -65,13 +71,17 @@ public class SpaceChoreCreator {
                             .repeatType(template.getRepeatType())
                             .repeatInterval(template.getRepeatInterval())
                             .startDate(LocalDate.now())
-                            .endDate(calculateEndDate(LocalDate.now(), template.getRepeatType(), template.getRepeatInterval()))
+                            .endDate(calculateEndDate(LocalDate.now(),
+                                    template.getRepeatType(),
+                                    template.getRepeatInterval()))
                             .notificationYn(setting.isChoreEnabled())
                             .notificationTime(setting.getNotificationTime())
                             .isDeleted(false)
                             .build();
+
                     return choreRepository.save(newChore);
                 });
+
 
         // fetch join으로 안전하게 조회
         List<ChoreInstance> instances = choreInstanceRepository.findByChoreIdWithChore(
@@ -102,9 +112,13 @@ public class SpaceChoreCreator {
                         .toList();
         userBadgeStatsService.incrementRegisterCount(userId);
 
-        return instances.stream()
-                .map(ChoreInstanceDto.Response::fromEntity)
-                .toList();
+
+        return ChoreDto.ApiResponse.<List<ChoreInstanceDto.Response>>builder()
+                .data(instances.stream()
+                        .map(ChoreInstanceDto.Response::fromEntity)
+                        .toList())
+                .missionResults(userMission)
+                .build();
     }
 
 }

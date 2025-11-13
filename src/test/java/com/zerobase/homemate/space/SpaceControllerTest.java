@@ -2,6 +2,7 @@ package com.zerobase.homemate.space;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerobase.homemate.auth.security.UserPrincipal;
+import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.RepeatType;
@@ -96,18 +97,15 @@ class SpaceControllerTest {
     @Test
     @DisplayName("SpaceChore 기반 집안일 등록 테스트")
     void createChoreFromSpace_shouldReturnCreatedChore() throws Exception {
-
         Long spaceChoreId = 10L;
 
-        // 인증 principal 설정
         var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
         var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
 
-        // 요청 DTO
         SpaceChoreDto.CreateRequest request = new SpaceChoreDto.CreateRequest();
         request.setSpace(Space.KITCHEN);
 
-        // Mock Response 생성: ApiResponse 안에 List<ChoreInstanceDto.Response> 담기
+        // Mock Response 생성
         ChoreInstanceDto.Response instance1 = ChoreInstanceDto.Response.builder()
                 .id(1L)
                 .choreId(100L)
@@ -134,13 +132,18 @@ class SpaceControllerTest {
 
         List<ChoreInstanceDto.Response> mockResponse = List.of(instance1, instance2);
 
+        // ApiResponse로 감싸기
+        ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> apiResponse =
+                ChoreDto.ApiResponse.<List<ChoreInstanceDto.Response>>builder()
+                        .data(mockResponse)
+                        .missionResults(List.of())
+                        .build();
 
         when(spaceChoreCreator.createChoreFromSpace(
-                eq(principal.id()),   // userId 전달
-                eq(request.getSpace()), // Space 전달
-                eq(spaceChoreId)       // spaceChoreId
-        )).thenReturn(mockResponse);
-
+                eq(principal.id()),
+                eq(request.getSpace()),
+                eq(spaceChoreId)
+        )).thenReturn(apiResponse);
 
         // MockMvc 수행
         mockMvc.perform(post("/recommend/spaces/{spaceChoreId}/register", spaceChoreId)
@@ -150,12 +153,11 @@ class SpaceControllerTest {
                         .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$[0].titleSnapshot").value("주방 싱크대 정리하기"))
-                .andExpect(jsonPath("$[0].repeatType").value("DAILY"))
-                .andExpect(jsonPath("$[0].choreStatus").value("PENDING"))
-                .andExpect(jsonPath("$[1].titleSnapshot").value("주방 바닥 청소하기"));
+                .andExpect(jsonPath("$.data[0].titleSnapshot").value("주방 싱크대 정리하기"))
+                .andExpect(jsonPath("$.data[0].repeatType").value("DAILY"))
+                .andExpect(jsonPath("$.data[0].choreStatus").value("PENDING"))
+                .andExpect(jsonPath("$.data[1].titleSnapshot").value("주방 바닥 청소하기"));
     }
-
 
 
 }
