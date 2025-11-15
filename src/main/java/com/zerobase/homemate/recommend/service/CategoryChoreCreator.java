@@ -92,18 +92,15 @@ public class CategoryChoreCreator {
                     return choreRepository.save(newChore);
                 });
 
-        // 인스턴스 생성 및 저장
+        // 인스턴스 생성 및 저장 & fetch join
         List<ChoreInstance> instances = choreInstanceRepository.findByChoreIdWithChore(
                 chore.getId(), ChoreStatus.DELETED);
 
-        // ChoreInstance가 없으면 생성
-        if (instances.isEmpty()) {
-            instances = choreInstanceGenerator.generateInstances(chore)
-                    .stream()
-                    .limit(1)
-                    .toList();
-            choreInstanceRepository.saveAll(instances);
-        }
+        instances = choreInstanceGenerator.generateInstances(chore)
+                .stream()
+                .limit(1)
+                .toList();
+        choreInstanceRepository.saveAll(instances);
 
         // 통계 업데이트
         redisChoreStatsService.increment(template.getCategory(), space);
@@ -118,6 +115,7 @@ public class CategoryChoreCreator {
         return ChoreDto.ApiResponse.<List<ChoreInstanceDto.Response>>builder()
                 .data(instances.stream()
                         .map(ChoreInstanceDto.Response::fromEntity)
+                        .filter(ci -> ci.getChoreStatus() != ChoreStatus.COMPLETED)
                         .toList())
                 .missionResults(userMission)
                 .build();

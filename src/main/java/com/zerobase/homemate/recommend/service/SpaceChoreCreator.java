@@ -87,14 +87,11 @@ public class SpaceChoreCreator {
         List<ChoreInstance> instances = choreInstanceRepository.findByChoreIdWithChore(
                 chore.getId(), ChoreStatus.DELETED);
 
-        // ChoreInstance가 없으면 생성
-        if (instances.isEmpty()) {
-            instances = choreInstanceGenerator.generateInstances(chore)
-                    .stream()
-                    .limit(1)
-                    .toList();
-            choreInstanceRepository.saveAll(instances);
-        }
+        instances = choreInstanceGenerator.generateInstances(chore)
+                .stream()
+                .limit(1)
+                .toList();
+        choreInstanceRepository.saveAll(instances);
 
         // Category 소속 조회
         CategoryChore matchedCategoryChore = categoryChoreRepository.findByTitle(template.getTitleKo())
@@ -116,6 +113,7 @@ public class SpaceChoreCreator {
         return ChoreDto.ApiResponse.<List<ChoreInstanceDto.Response>>builder()
                 .data(instances.stream()
                         .map(ChoreInstanceDto.Response::fromEntity)
+                        .filter(ci ->  ci.getChoreStatus() != ChoreStatus.COMPLETED)
                         .toList())
                 .missionResults(userMission)
                 .build();
