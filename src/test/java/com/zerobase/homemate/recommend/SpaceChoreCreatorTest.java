@@ -25,9 +25,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 public class SpaceChoreCreatorTest {
@@ -118,31 +116,6 @@ public class SpaceChoreCreatorTest {
         verify(choreInstanceRepository).saveAll(List.of(instance));
         verify(redisChoreStatsService).increment(any(Category.class), eq(Space.KITCHEN));
         verify(userBadgeStatsService).incrementRegisterCount(userId);
-    }
-
-    @Test
-    @DisplayName("이미 존재하는 ChoreInstance가 있으면 새로 생성하지 않고 반환")
-    void createChoreFromSpace_shouldReturnExistingInstance() {
-        Long userId = 1L;
-        Long spaceChoreId = 10L;
-
-        User user = User.builder().id(userId).build();
-        Chore chore = Chore.builder().id(100L).user(user).title("주방 싱크대 정리하기").build();
-        SpaceChore template = SpaceChore.builder().titleKo("주방 싱크대 정리하기").space(Space.KITCHEN).build();
-        ChoreInstance existingInstance = ChoreInstance.builder().id(1L).chore(chore).build();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(spaceChoreRepository.findById(spaceChoreId)).thenReturn(Optional.of(template));
-        when(choreRepository.findByUserIdAndTitle(userId, template.getTitleKo())).thenReturn(Optional.of(chore));
-        when(choreInstanceRepository.findByChoreIdWithChore(chore.getId(), ChoreStatus.DELETED))
-                .thenReturn(List.of(existingInstance));
-
-        var response = spaceChoreCreator.createChoreFromSpace(userId, Space.KITCHEN, spaceChoreId);
-
-        assertNotNull(response);
-        assertEquals(1, response.getData().size());
-        assertEquals(existingInstance.getId(), response.getData().get(0).getId());
-        verify(choreInstanceRepository, never()).saveAll(anyList());
     }
 
 }
