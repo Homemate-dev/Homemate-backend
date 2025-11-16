@@ -50,16 +50,16 @@ public class CategoryChoreCreator {
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
 
-        // 1. 동일한 집안일 찾기 (title 기준)
+        // 3. 동일한 집안일 찾기 (title 기준)
         SpaceChore matchedSpaceChore = spaceChoreRepository.findByTitleKo(template.getTitle())
                 .orElse(null);
 
-        // 2. Space 결정: 매칭된 항목이 없으면 ETC
+        // 4. Space 결정: 매칭된 항목이 없으면 ETC
         Space space = (matchedSpaceChore != null) ? matchedSpaceChore.getSpace() : Space.ETC;
 
-        // 3. 사용자 설정으로부터 Notification 여부, notification time의 기본 설정을 가져온다.
+        // 5. 사용자 설정으로부터 Notification 여부, notification time의 기본 설정을 가져온다.
         UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-                .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(9, 0)));
+                .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(19, 0)));
 
 
         // 4. Chore 생성

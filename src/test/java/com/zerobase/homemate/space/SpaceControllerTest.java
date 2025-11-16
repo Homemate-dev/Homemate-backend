@@ -7,7 +7,6 @@ import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.recommend.controller.SpaceController;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
-import com.zerobase.homemate.recommend.dto.SpaceChoreDto;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.recommend.service.SpaceChoreCreator;
 import com.zerobase.homemate.recommend.service.SpaceService;
@@ -99,9 +98,6 @@ class SpaceControllerTest {
         var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
         var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
 
-        SpaceChoreDto.CreateRequest request = new SpaceChoreDto.CreateRequest();
-        request.setSpace(Space.KITCHEN);
-
         // Mock 응답: ChoreDto.Response (단일 객체)
         ChoreDto.Response response = ChoreDto.Response.builder()
                 .id(100L)
@@ -134,7 +130,6 @@ class SpaceControllerTest {
                         .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.title").value("주방 싱크대 정리하기"))

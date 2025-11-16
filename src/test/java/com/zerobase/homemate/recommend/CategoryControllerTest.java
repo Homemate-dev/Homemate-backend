@@ -5,7 +5,6 @@ import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.recommend.controller.CategoryController;
-import com.zerobase.homemate.recommend.dto.CategoryChoreDto;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
@@ -96,9 +95,6 @@ class CategoryControllerTest {
         var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
         var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
 
-        // 요청 DTO
-        CategoryChoreDto.CreateRequest request = new CategoryChoreDto.CreateRequest();
-        request.setCategory(Category.WINTER);
 
         ChoreDto.Response responseData = ChoreDto.Response.builder()
                 .id(100L)
@@ -123,7 +119,6 @@ class CategoryControllerTest {
                         .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.title").value("청소하기"))
