@@ -159,53 +159,67 @@ public class CategoryChoreCreatorTest {
 
 
     @Test
-    @DisplayName("notificationTime 기본값 세팅 확인")
+    @DisplayName("notificationTime 기본값 세팅 확인 (UserNotificationSetting 없음 → 19:00 적용)")
     void createChore_shouldSetDefaultNotificationTimeEvenIfDisabled() {
-        // given
-        User user = User.builder().id(1L).build();
+        // --- given ---
+        User user = User.builder()
+                .id(1L)
+                .build();
+
         CategoryChore template = CategoryChore.builder()
                 .title("청소하기")
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(1)
                 .build();
 
+        // choreRepository.save() 호출 시 ID를 부여하도록 설정
+        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> {
+            Chore c = inv.getArgument(0);
+            ReflectionTestUtils.setField(c, "id", 100L);
+            return c;
+        });
 
-        Chore chore = Chore.builder()
-                .id(100L)
-                .title("청소하기")
-                .build();
+        // generateInstances(saved) → saved를 정확히 참조하는 Instance 반환
+        when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenAnswer(inv -> {
+            Chore saved = inv.getArgument(0);
 
-        when(choreInstanceGenerator.generateInstances(any())).thenReturn(List.of(
-                ChoreInstance.builder()
-                        .id(1L)
-                        .chore(chore) // 여기 추가
-                        .titleSnapshot(chore.getTitle())
-                        .dueDate(LocalDate.now())
-                        .notificationTime(LocalTime.of(19, 0))
-                        .choreStatus(ChoreStatus.PENDING)
-                        .build()
-        ));
+            return List.of(
+                    ChoreInstance.builder()
+                            .id(1L)
+                            .chore(saved) // saved 객체 참조(테스트용 chore 아님)
+                            .titleSnapshot(saved.getTitle())
+                            .dueDate(LocalDate.now())
+                            .notificationTime(LocalTime.of(19, 0)) // 기본 알람 시간
+                            .choreStatus(ChoreStatus.PENDING)
+                            .build()
+            );
+        });
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(categoryChoreRepository.findById(1L)).thenReturn(Optional.of(template));
-        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
-        when(userNotificationSettingRepository.findByUserId(anyLong()))
-                .thenReturn(Optional.empty()); // 기본값 사용
-        when(missionService.increaseMissionCountForAction(eq(user.getId()),
+        // 기본 설정 조회 시 빈 값 → default 생성 로직 타게 함
+        when(userNotificationSettingRepository.findByUserId(1L))
+                .thenReturn(Optional.empty());
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        when(categoryChoreRepository.findById(1L))
+                .thenReturn(Optional.of(template));
+
+        when(missionService.increaseMissionCountForAction(eq(1L),
                 eq(UserActionType.CREATE_CHORE_RECOMMENDED)))
                 .thenReturn(List.of());
-        when(userNotificationSettingRepository.save(any(UserNotificationSetting.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        // when
+        // --- when ---
         ChoreDto.ApiResponse<ChoreDto.Response> response =
                 categoryChoreCreator.createChoreFromCategory(1L, 1L);
 
-        // then
+        // --- then ---
         assertNotNull(response.getData().getNotificationTime(),
                 "알림 시간은 기본값으로 세팅되어 있어야 한다");
+
         assertEquals(LocalTime.of(19, 0), response.getData().getNotificationTime(),
-                "기본 알림 시간은 19:00");
+                "기본 알림 시간은 19:00 이어야 한다");
+
         verify(choreInstanceRepository).saveAll(anyList());
     }
 
