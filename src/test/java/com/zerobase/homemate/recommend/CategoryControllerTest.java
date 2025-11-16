@@ -3,7 +3,6 @@ package com.zerobase.homemate.recommend;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.recommend.controller.CategoryController;
 import com.zerobase.homemate.recommend.dto.CategoryChoreDto;
@@ -22,8 +21,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -103,34 +100,24 @@ class CategoryControllerTest {
         CategoryChoreDto.CreateRequest request = new CategoryChoreDto.CreateRequest();
         request.setCategory(Category.WINTER);
 
-        // Mock Response 생성 (List<ChoreInstanceDto.Response>)
-        ChoreInstanceDto.Response instanceResponse = ChoreInstanceDto.Response.builder()
-                .id(1L)
-                .choreId(100L)
-                .titleSnapshot("청소하기")
-                .dueDate(LocalDate.now())
-                .notificationTime(LocalTime.of(9, 0))
-                .choreStatus(ChoreStatus.PENDING)
+        ChoreDto.Response responseData = ChoreDto.Response.builder()
+                .id(100L)
+                .title("청소하기")
+                .space(Space.KITCHEN)
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(3)
-                .createdAt(LocalDateTime.now())
+                .notificationYn(true)
+                .notificationTime(LocalTime.of(9, 0))
                 .build();
 
-        // 이제 ApiResponse가 아닌, 그냥 List 반환
-        List<ChoreInstanceDto.Response> mockResponse = List.of(instanceResponse);
-
-        // ✅ ApiResponse 객체로 감싸기
-        ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> apiResponse =
-                ChoreDto.ApiResponse.<List<ChoreInstanceDto.Response>>builder()
-                        .data(mockResponse)
+        ChoreDto.ApiResponse<ChoreDto.Response> apiResponse =
+                ChoreDto.ApiResponse.<ChoreDto.Response>builder()
+                        .data(responseData)
                         .build();
 
-        // ✅ 올바른 반환 설정
-        when(categoryChoreCreator.createChoreFromCategory(
-                eq(1L),
-                any(Category.class),
-                eq(categoryChoreId)
-        )).thenReturn(apiResponse);
+        when(categoryChoreCreator.createChoreFromCategory(principal.id(), categoryChoreId))
+                .thenReturn(apiResponse);
+
 
         mockMvc.perform(post("/recommend/categories/{categoryChoreId}/register", categoryChoreId)
                         .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
@@ -139,10 +126,10 @@ class CategoryControllerTest {
                         .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data[0].titleSnapshot").value("청소하기"))
-                .andExpect(jsonPath("$.data[0].repeatType").value("DAILY"))
-                .andExpect(jsonPath("$.data[0].repeatInterval").value(3))
-                .andExpect(jsonPath("$.data[0].notificationTime").value("09:00:00"));
+                .andExpect(jsonPath("$.data.title").value("청소하기"))
+                .andExpect(jsonPath("$.data.repeatType").value("DAILY"))
+                .andExpect(jsonPath("$.data.repeatInterval").value(3))
+                .andExpect(jsonPath("$.data.notificationTime").value("09:00:00"));
     }
 
 

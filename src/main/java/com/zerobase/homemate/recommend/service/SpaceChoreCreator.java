@@ -2,11 +2,8 @@ package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.ChoreStatus;
-import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -41,80 +38,61 @@ public class SpaceChoreCreator {
     private final UserBadgeStatsService userBadgeStatsService;
 
     @Transactional
-    public ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> createChoreFromSpace(
-            Long userId, Space space, Long spaceChoreId) {
-
-        // 사용자 유효성 검증
-        User user = userRepository.findById(userId)
+    public ChoreDto.ApiResponse<ChoreDto.Response> createChoreFromSpace(Long userId,
+                                                                        Long spaceChoreId){
+        // 1. 사용자 유효성 검증
+        User user =  userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-
-        // SpaceChore 조회
+        // 2. SpaceChore 조회
         SpaceChore template = spaceChoreRepository.findById(spaceChoreId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
-        // Chore 조회 또는 생성
-        Chore chore = choreRepository.findByUserIdAndTitle(userId, template.getTitleKo())
-                .orElseGet(() -> {
-                    // 🕒 알림 설정 조회 or 생성
-                    UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-                            .orElseGet(() -> {
-                                UserNotificationSetting defaultSetting =
-                                        UserNotificationSetting.createDefault(user, LocalTime.of(19, 0));
-                                return userNotificationSettingRepository.save(defaultSetting);
-                            });
 
-                    Chore newChore = Chore.builder()
-                            .user(user)
-                            .title(template.getTitleKo())
-                            .space(template.getSpace())
-                            .repeatType(template.getRepeatType())
-                            .repeatInterval(template.getRepeatInterval())
-                            .startDate(LocalDate.now())
-                            .endDate(calculateEndDate(LocalDate.now(),
-                                    template.getRepeatType(),
-                                    template.getRepeatInterval()))
-                            .notificationYn(setting.isChoreEnabled())
-                            .notificationTime(setting.getNotificationTime())
-                            .isDeleted(false)
-                            .build();
+        // 4. 사용자 설정으로부터 Notification 여부, notification time의 Chore에 대한 기본 설정을 가져오기
+        UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
+                .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(19, 0)));
 
-                    return choreRepository.save(newChore);
-                });
+        // 5. Chore 생성
+        Chore chore = Chore.builder()
+                .user(user)
+                .title(template.getTitleKo())
+                .space(template.getSpace())
+                .repeatType(template.getRepeatType())
+                .repeatInterval(template.getRepeatInterval())
+                .startDate(LocalDate.now())
+                .endDate(calculateEndDate(
+                        LocalDate.now(),
+                        template.getRepeatType(),
+                        template.getRepeatInterval()
+                ))
+                .notificationYn(setting.isChoreEnabled())
+                .notificationTime(setting.getNotificationTime())
+                .isDeleted(false)
+                .build();
 
+        Chore saved = choreRepository.save(chore);
 
-        // fetch join으로 안전하게 조회
-        List<ChoreInstance> instances = choreInstanceRepository.findByChoreIdWithChore(
-                chore.getId(), ChoreStatus.DELETED);
-
-        instances = choreInstanceGenerator.generateInstances(chore)
-                .stream()
-                .limit(1)
-                .toList();
+        List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
 
-        // Category 소속 조회
+
         CategoryChore matchedCategoryChore = categoryChoreRepository.findByTitle(template.getTitleKo())
                 .orElse(null);
+
         Category category = (matchedCategoryChore != null) ? matchedCategoryChore.getCategory() : Category.ETC;
 
-        // Redis 통계 증가
         redisChoreStatsService.increment(category, template.getSpace());
 
-        // 미션 / 뱃지 처리
         List<MissionDto.Response> userMission =
-                missionService.increaseMissionCountForAction(userId, UserActionType.CREATE_CHORE_WITH_SPACE)
-                        .stream()
-                        .filter(MissionDto.Response::isCompleted)
-                        .toList();
+                missionService.increaseMissionCountForAction(userId,
+                                UserActionType.CREATE_CHORE_WITH_SPACE)
+                        .stream().filter(MissionDto.Response::isCompleted).toList();
+
         userBadgeStatsService.incrementRegisterCount(userId);
 
-
-        return ChoreDto.ApiResponse.<List<ChoreInstanceDto.Response>>builder()
-                .data(instances.stream()
-                        .map(ChoreInstanceDto.Response::fromEntity)
-                        .filter(ci ->  ci.getChoreStatus() != ChoreStatus.COMPLETED)
-                        .toList())
+        return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
+                .data(ChoreDto.Response.fromEntity(saved))
                 .missionResults(userMission)
                 .build();
     }

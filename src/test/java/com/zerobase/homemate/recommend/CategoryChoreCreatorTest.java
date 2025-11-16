@@ -2,7 +2,6 @@ package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.mission.service.MissionService;
@@ -16,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -66,6 +66,7 @@ public class CategoryChoreCreatorTest {
     @Test
     @DisplayName("CategoryChore 기반 집안일 등록 테스트 - Space 매칭")
     void createChoreFromCategory_shouldCreateChoreWithMatchedSpace() {
+
         // given
         Long userId = 1L;
         Long categoryChoreId = 1L;
@@ -73,6 +74,7 @@ public class CategoryChoreCreatorTest {
         User user = User.builder().id(userId).build();
 
         CategoryChore categoryChore = CategoryChore.builder()
+                .id(categoryChoreId)
                 .category(Category.WINTER)
                 .title("청소하기")
                 .repeatType(RepeatType.DAILY)
@@ -80,6 +82,7 @@ public class CategoryChoreCreatorTest {
                 .build();
 
         SpaceChore spaceChore = SpaceChore.builder()
+                .id(100L)
                 .space(Space.KITCHEN)
                 .titleKo("청소하기")
                 .code("주방")
@@ -87,36 +90,73 @@ public class CategoryChoreCreatorTest {
                 .repeatInterval(3)
                 .build();
 
-        when(userNotificationSettingRepository.save(any(UserNotificationSetting.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        // ✔ UserNotificationSetting mock 추가
+        UserNotificationSetting defaultSetting =
+                UserNotificationSetting.createDefault(user, LocalTime.of(9, 0));
 
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(user));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(categoryChoreRepository.findById(categoryChoreId)).thenReturn(Optional.of(categoryChore));
-        when(spaceChoreRepository.findByTitleKo(categoryChore.getTitle())).thenReturn(Optional.of(spaceChore));
-        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
-        when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of(
-                ChoreInstance.builder()
-                        .id(1L)
-                        .titleSnapshot(categoryChore.getTitle())
-                        .dueDate(LocalDate.now())
-                        .chore(Chore.builder().id(10L).build())
-                        .build()
-        ));
-        when(missionService.increaseMissionCountForAction(eq(userId), eq(UserActionType.CREATE_CHORE_RECOMMENDED)))
+        when(categoryChoreRepository.findById(categoryChoreId))
+                .thenReturn(Optional.of(categoryChore));
+
+        when(spaceChoreRepository.findByTitleKo(categoryChore.getTitle()))
+                .thenReturn(Optional.of(spaceChore));
+
+        when(userNotificationSettingRepository.findByUserId(userId))
+                .thenReturn(Optional.of(defaultSetting));
+
+        // ✔ choreRepository.save() → ID 부여해서 반환
+        when(choreRepository.save(any(Chore.class)))
+                .thenAnswer(inv -> {
+                    Chore c = inv.getArgument(0);
+                    ReflectionTestUtils.setField(c, "id", 10L);
+                    return c;
+                });
+
+        // ✔ generateInstances() → 저장된 Chore와 연동된 인스턴스 반환
+        when(choreInstanceGenerator.generateInstances(any(Chore.class)))
+                .thenAnswer(inv -> {
+                    Chore savedChore = inv.getArgument(0);
+                    return List.of(
+                            ChoreInstance.builder()
+                                    .id(1L)
+                                    .titleSnapshot(savedChore.getTitle())
+                                    .dueDate(LocalDate.now())
+                                    .chore(savedChore)
+                                    .build()
+                    );
+                });
+
+        when(missionService.increaseMissionCountForAction(
+                eq(userId), eq(UserActionType.CREATE_CHORE_RECOMMENDED)))
                 .thenReturn(List.of());
 
         // when
-        ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> response =
-                categoryChoreCreator.createChoreFromCategory(userId, Category.WINTER, categoryChoreId);
+        ChoreDto.ApiResponse<ChoreDto.Response> response =
+                categoryChoreCreator.createChoreFromCategory(userId, categoryChoreId);
 
         // then
         assertNotNull(response);
-        assertFalse(response.getData().isEmpty());
-        assertEquals("청소하기", response.getData().get(0).getTitleSnapshot());
+        assertNotNull(response.getData());
+
+        ChoreDto.Response data = response.getData();
+
+        // ✔ 핵심 검증 1: 제목 올바르게 설정
+        assertEquals("청소하기", data.getTitle());
+
+        // ✔ 핵심 검증 2: Space 매칭 성공
+        assertEquals(Space.KITCHEN, data.getSpace());
+
+        // ✔ 핵심 검증 3: Notification 설정 반영 여부
+        assertEquals(defaultSetting.isChoreEnabled(), data.getNotificationYn());
+        assertEquals(defaultSetting.getNotificationTime(), data.getNotificationTime());
+
+        // ✔ Repository 호출 검증
         verify(choreRepository).save(any(Chore.class));
         verify(choreInstanceRepository).saveAll(anyList());
     }
+
 
     @Test
     @DisplayName("notificationTime 기본값 세팅 확인")
@@ -158,17 +198,114 @@ public class CategoryChoreCreatorTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> response =
-                categoryChoreCreator.createChoreFromCategory(1L, Category.WINTER, 1L);
+        ChoreDto.ApiResponse<ChoreDto.Response> response =
+                categoryChoreCreator.createChoreFromCategory(1L, 1L);
 
         // then
-        assertNotNull(response.getData().get(0).getNotificationTime(),
+        assertNotNull(response.getData().getNotificationTime(),
                 "알림 시간은 기본값으로 세팅되어 있어야 한다");
-        assertEquals(LocalTime.of(19, 0), response.getData().get(0).getNotificationTime(),
+        assertEquals(LocalTime.of(19, 0), response.getData().getNotificationTime(),
                 "기본 알림 시간은 19:00");
         verify(choreInstanceRepository).saveAll(anyList());
     }
 
+    @Test
+    @DisplayName("CategoryChore 기반 집안일 등록 - 중복 Title 있어도 새로운 Chore 생성 + ChoreInstance 생성")
+    void createChoreFromCategory_shouldCreateNewChoreAndInstancesEvenIfTitleExists() {
+
+        // given
+        Long userId = 1L;
+        Long categoryChoreId = 1L;
+
+        User user = User.builder().id(userId).build();
+
+        CategoryChore categoryChore = CategoryChore.builder()
+                .id(categoryChoreId)
+                .title("청소하기")
+                .category(Category.WINTER)
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(3)
+                .build();
+
+        // 이미 존재하는 SpaceChore (중복 title)
+        SpaceChore existingSpaceChore = SpaceChore.builder()
+                .id(100L)
+                .space(Space.KITCHEN)
+                .titleKo("청소하기")
+                .build();
+
+        // UserNotificationSetting
+        UserNotificationSetting setting = UserNotificationSetting.createDefault(user, LocalTime.of(19, 0));
+
+        // Mocks
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(categoryChoreRepository.findById(categoryChoreId)).thenReturn(Optional.of(categoryChore));
+        when(spaceChoreRepository.findByTitleKo(categoryChore.getTitle())).thenReturn(Optional.of(existingSpaceChore));
+        when(userNotificationSettingRepository.findByUserId(userId)).thenReturn(Optional.of(setting));
+
+        // choreRepository.save -> id 주입
+        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> {
+            Chore c = inv.getArgument(0);
+            ReflectionTestUtils.setField(c, "id", 10L); // private id 세팅
+            return c;
+        });
+
+        // choreInstanceGenerator.generateInstances -> 새 Chore 기반
+        when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenAnswer(inv -> {
+            Chore savedChore = inv.getArgument(0);
+            return List.of(
+                    ChoreInstance.builder()
+                            .id(1L)
+                            .titleSnapshot(savedChore.getTitle())
+                            .dueDate(LocalDate.now())
+                            .chore(savedChore)
+                            .build()
+            );
+        });
+
+        when(missionService.increaseMissionCountForAction(eq(userId), eq(UserActionType.CREATE_CHORE_RECOMMENDED)))
+                .thenReturn(List.of());
+
+        // when
+        ChoreDto.ApiResponse<ChoreDto.Response> response =
+                categoryChoreCreator.createChoreFromCategory(userId, categoryChoreId);
+
+        // then
+        assertNotNull(response);
+        ChoreDto.Response data = response.getData();
+
+        // 새로운 Chore 생성 확인
+        assertEquals("청소하기", data.getTitle());
+        assertEquals(Space.KITCHEN, data.getSpace());
+
+        // choreRepository.save 호출 확인
+        verify(choreRepository, times(1)).save(any(Chore.class));
+
+        // choreInstanceRepository.saveAll 호출 확인
+        verify(choreInstanceRepository, times(1)).saveAll(anyList());
+
+        // 새 ChoreInstance와 새 Chore 연결 확인
+        // → DTO가 아니라 실제 저장된 Chore 객체 사용
+        Chore savedChore = choreRepository.save(
+                Chore.builder()
+                        .user(user)
+                        .title(categoryChore.getTitle())
+                        .space(existingSpaceChore.getSpace())
+                        .repeatType(categoryChore.getRepeatType())
+                        .repeatInterval(categoryChore.getRepeatInterval())
+                        .startDate(LocalDate.now())
+                        .endDate(LocalDate.now().plusDays(categoryChore.getRepeatInterval())) // 예시
+                        .notificationYn(setting.isChoreEnabled())
+                        .notificationTime(setting.getNotificationTime())
+                        .isDeleted(false)
+                        .build()
+        );
+
+        List<ChoreInstance> savedInstances = choreInstanceGenerator.generateInstances(savedChore);
+        assertFalse(savedInstances.isEmpty());
+        assertEquals(data.getTitle(), savedInstances.get(0).getTitleSnapshot());
+        assertEquals(data.getId(), savedInstances.get(0).getChore().getId());
+    }
 
 
 }

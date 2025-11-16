@@ -1,10 +1,8 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
-import com.zerobase.homemate.entity.Chore;
-import com.zerobase.homemate.entity.ChoreInstance;
-import com.zerobase.homemate.entity.SpaceChore;
-import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.service.SpaceChoreCreator;
@@ -64,58 +62,131 @@ public class SpaceChoreCreatorTest {
     private UserBadgeStatsService userBadgeStatsService;
 
     @Test
-    @DisplayName("SpaceChore 기반 집안일 등록 성공")
-    void createChoreFromSpace_success() {
+    void createChoreFromSpace_success(){
+        // given
+
+        Long userId = 1L;
+        Long spaceChoreId = 1L;
+
+        User user = User.builder()
+                .id(userId)
+                .build();
+
+        SpaceChore spaceChore = SpaceChore.builder()
+                .space(Space.KITCHEN)
+                .titleKo("주방 싱크대 정리하기")
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .code("주방")
+                .build();
+        spaceChoreRepository.save(spaceChore);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(spaceChoreRepository.findById(spaceChoreId)).thenReturn(Optional.of(spaceChore));
+        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
+        when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
+
+        when(missionService.increaseMissionCountForAction(eq(userId), eq(
+                UserActionType.CREATE_CHORE_WITH_SPACE)))
+                .thenReturn(List.of());
+
+        // when
+        ChoreDto.ApiResponse<ChoreDto.Response> response = spaceChoreCreator.createChoreFromSpace(userId, spaceChoreId);
+
+        // then
+        assertEquals("주방 싱크대 정리하기", response.getData().getTitle());
+        assertEquals(Space.KITCHEN, response.getData().getSpace());
+        verify(choreRepository).save(any(Chore.class));
+        verify(choreInstanceRepository).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("동일 추천 집안일 재등록 시에도 새 Chore 및 Instance 생성")
+    void createChoreFromSpace_shouldAlwaysCreateNewChore() {
+        // given
         Long userId = 1L;
         Long spaceChoreId = 10L;
 
         User user = User.builder().id(userId).build();
+
         SpaceChore template = SpaceChore.builder()
-                .titleKo("주방 싱크대 정리하기")
+                .titleKo("주방 정리하기")
                 .space(Space.KITCHEN)
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(1)
                 .build();
-        Chore chore = Chore.builder()
+
+        UserNotificationSetting setting = UserNotificationSetting.createDefault(user, LocalTime.of(19, 0));
+
+        Chore savedChore = Chore.builder()
                 .id(100L)
+                .title("주방 정리하기")
                 .user(user)
-                .title("주방 싱크대 정리하기")
                 .space(Space.KITCHEN)
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(1)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(1))
-                .notificationYn(true)
-                .notificationTime(LocalTime.of(9,0))
-                .isDeleted(false)
+                .notificationTime(LocalTime.of(19, 0))
                 .build();
 
-        ChoreInstance instance = ChoreInstance.builder()
-                .id(1L)
-                .chore(chore)
-                .titleSnapshot(chore.getTitle())
-                .dueDate(LocalDate.now())
-                .notificationTime(LocalTime.of(9,0))
-                .build();
+        List<ChoreInstance> generatedInstances = List.of(
+                ChoreInstance.builder().id(1L).chore(savedChore).dueDate(LocalDate.now()).build(),
+                ChoreInstance.builder().id(2L).chore(savedChore).dueDate(LocalDate.now().plusDays(1)).build()
+        );
 
-        // Mocking
+        // Stubbing
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(spaceChoreRepository.findById(spaceChoreId)).thenReturn(Optional.of(template));
-        when(choreRepository.findByUserIdAndTitle(userId, template.getTitleKo())).thenReturn(Optional.of(chore));
-        when(choreInstanceGenerator.generateInstances(chore)).thenReturn(List.of(instance));
-        when(missionService.increaseMissionCountForAction(userId, UserActionType.CREATE_CHORE_WITH_SPACE))
-                .thenReturn(List.of());
+        when(userNotificationSettingRepository.findByUserId(userId)).thenReturn(Optional.of(setting));
+        when(choreRepository.save(any(Chore.class))).thenReturn(savedChore);
+        when(choreInstanceGenerator.generateInstances(savedChore)).thenReturn(generatedInstances);
 
-        // 실행
-        var response = spaceChoreCreator.createChoreFromSpace(userId, Space.KITCHEN, spaceChoreId);
+        // when
+        ChoreDto.ApiResponse<ChoreDto.Response> response =
+                spaceChoreCreator.createChoreFromSpace(userId, spaceChoreId);
 
-        // 검증
-        assertNotNull(response);
-        assertEquals(1, response.getData().size());
-        assertEquals("주방 싱크대 정리하기", response.getData().get(0).getTitleSnapshot());
-        verify(choreInstanceRepository).saveAll(List.of(instance));
-        verify(redisChoreStatsService).increment(any(Category.class), eq(Space.KITCHEN));
-        verify(userBadgeStatsService).incrementRegisterCount(userId);
+        // then
+        assertEquals("주방 정리하기", response.getData().getTitle());
+        verify(choreRepository, times(1)).save(any());
+        verify(choreInstanceRepository, times(1)).saveAll(anyList());
+        verify(redisChoreStatsService, times(1)).increment(any(), any());
+        verify(missionService, times(1)).increaseMissionCountForAction(eq(userId), any());
+        verify(userBadgeStatsService, times(1)).incrementRegisterCount(userId);
     }
 
+
+    @Test
+    @DisplayName("기본 설정이 없을 때, 알림은 ON 상태이며 시간은 19시로 설정된다.")
+    void createChore_shouldSetDefaultNotificationTimeAndYn(){
+        // given
+        User user = User.builder().id(1L).build();
+
+        SpaceChore template = SpaceChore.builder()
+                .titleKo("주방 설거지하기")
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .code("주방")
+                .space(Space.KITCHEN)
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(spaceChoreRepository.findById(anyLong())).thenReturn(Optional.of(template));
+        when(choreRepository.save(any(Chore.class))).thenAnswer(inv -> inv.getArguments()[0]);
+        when(choreInstanceGenerator.generateInstances(any(Chore.class))).thenReturn(List.of());
+        when(userNotificationSettingRepository.findByUserId(anyLong()))
+                .thenReturn(Optional.empty());
+
+        when(missionService.increaseMissionCountForAction(eq(user.getId()), eq(
+                UserActionType.CREATE_CHORE_WITH_SPACE)))
+                .thenReturn(List.of());
+
+        // when
+        ChoreDto.ApiResponse<ChoreDto.Response> response = spaceChoreCreator.createChoreFromSpace(1L, anyLong());
+
+        // then
+        assertTrue(response.getData().getNotificationYn(), "알림은 켜져 있는 게 Default");
+        assertNotNull(response.getData().getNotificationTime(), "알림 시간은 기본값이 정해져 있다.");
+        assertEquals(LocalTime.of(19, 0), response.getData().getNotificationTime(), "기본 알림 시각 19시 정각");
+    }
 }

@@ -2,10 +2,7 @@ package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.*;
-import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
@@ -42,81 +39,66 @@ public class CategoryChoreCreator {
     private final UserBadgeStatsService userBadgeStatsService;
 
     @Transactional
-    public ChoreDto.ApiResponse<List<ChoreInstanceDto.Response>> createChoreFromCategory(
-            Long userId, Category category, Long categoryChoreId) {
-
-        // 사용자 검증
+    public ChoreDto.ApiResponse<ChoreDto.Response> createChoreFromCategory(Long userId,
+                                                                           Long categoryChoreId) {
+        // 1. 사용자 유효성 검증
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // CategoryChore 템플릿 조회
+        // 2. CategoryChore(템플릿) 조회
         CategoryChore template = categoryChoreRepository.findById(categoryChoreId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
 
-
-        // Space 결정
+        // 1. 동일한 집안일 찾기 (title 기준)
         SpaceChore matchedSpaceChore = spaceChoreRepository.findByTitleKo(template.getTitle())
                 .orElse(null);
+
+        // 2. Space 결정: 매칭된 항목이 없으면 ETC
         Space space = (matchedSpaceChore != null) ? matchedSpaceChore.getSpace() : Space.ETC;
 
-        // 알림 설정 불러오기
+        // 3. 사용자 설정으로부터 Notification 여부, notification time의 기본 설정을 가져온다.
         UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    UserNotificationSetting defaultSetting =
-                            UserNotificationSetting.createDefault(user, LocalTime.of(19, 0));
-                    return userNotificationSettingRepository.save(defaultSetting);
-                });
+                .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(9, 0)));
 
 
-        // Chore 조회 또는 생성
-        Chore chore = choreRepository.findByUserIdAndTitle(user.getId(), template.getTitle())
-                .orElseGet(() -> {
-                    Chore newChore = Chore.builder()
-                            .user(user)
-                            .title(template.getTitle())
-                            .space(space)
-                            .repeatType(template.getRepeatType())
-                            .repeatInterval(template.getRepeatInterval())
-                            .startDate(LocalDate.now())
-                            .endDate(calculateEndDate(
-                                    LocalDate.now(),
-                                    template.getRepeatType(),
-                                    template.getRepeatInterval()
-                            ))
-                            .notificationYn(setting.isChoreEnabled())
-                            .notificationTime(setting.getNotificationTime())
-                            .isDeleted(false)
-                            .build();
+        // 4. Chore 생성
+        Chore chore = Chore.builder()
+                .user(user)
+                .title(template.getTitle())
+                .space(space) // 매핑된 Space 또는 ETC
+                .repeatType(template.getRepeatType())
+                .repeatInterval(template.getRepeatInterval())
+                .startDate(LocalDate.now())
+                .endDate(calculateEndDate(
+                        LocalDate.now(),
+                        template.getRepeatType(),
+                        template.getRepeatInterval()
+                ))
+                .notificationYn(setting.isChoreEnabled())
+                .notificationTime(setting.getNotificationTime())
+                .isDeleted(false)
+                .build();
 
-                    return choreRepository.save(newChore);
-                });
+        // 5. 저장
+        Chore saved = choreRepository.save(chore);
 
-        // 인스턴스 생성 및 저장 & fetch join
-        List<ChoreInstance> instances = choreInstanceRepository.findByChoreIdWithChore(
-                chore.getId(), ChoreStatus.DELETED);
-
-        instances = choreInstanceGenerator.generateInstances(chore)
-                .stream()
-                .limit(1)
-                .toList();
+        // 6. 반복 인스턴스 생성
+        List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
 
-        // 통계 업데이트
+        // 7. Redis counting 반영
         redisChoreStatsService.increment(template.getCategory(), space);
-        userBadgeStatsService.incrementRegisterCount(userId);
 
         List<MissionDto.Response> userMission =
-                missionService.increaseMissionCountForAction(
-                                userId, UserActionType.CREATE_CHORE_RECOMMENDED)
+                missionService.increaseMissionCountForAction(userId,
+                                UserActionType.CREATE_CHORE_RECOMMENDED)
                         .stream().filter(MissionDto.Response::isCompleted).toList();
 
-        // 응답 생성
-        return ChoreDto.ApiResponse.<List<ChoreInstanceDto.Response>>builder()
-                .data(instances.stream()
-                        .map(ChoreInstanceDto.Response::fromEntity)
-                        .filter(ci -> ci.getChoreStatus() != ChoreStatus.COMPLETED)
-                        .toList())
+        userBadgeStatsService.incrementRegisterCount(userId);
+
+        return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
+                .data(ChoreDto.Response.fromEntity(saved))
                 .missionResults(userMission)
                 .build();
     }
