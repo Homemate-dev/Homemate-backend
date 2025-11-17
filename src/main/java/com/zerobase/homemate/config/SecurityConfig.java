@@ -1,6 +1,7 @@
 package com.zerobase.homemate.config;
 
 import com.zerobase.homemate.auth.security.JwtAuthenticationFilter;
+import com.zerobase.homemate.auth.security.JwtExceptionFilter;
 import com.zerobase.homemate.auth.security.RestAccessDeniedHandler;
 import com.zerobase.homemate.auth.security.RestAuthenticationEntryPoint;
 import com.zerobase.homemate.auth.service.JwtService;
@@ -34,6 +35,7 @@ public class SecurityConfig {
   private final AccessTokenBlocklist accessTokenBlocklist;
   private final UserRepository userRepository;
 
+  private final JwtExceptionFilter jwtExceptionFilter;
   private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
   private final RestAccessDeniedHandler restAccessDeniedHandler;
 
@@ -109,7 +111,9 @@ public class SecurityConfig {
             .requestMatchers(PROTECTED_PATTERNS).authenticated()
             .anyRequest().permitAll()
         )
-        .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(jwtExceptionFilter, filter.getClass());
+
     return http.build();
   }
 
