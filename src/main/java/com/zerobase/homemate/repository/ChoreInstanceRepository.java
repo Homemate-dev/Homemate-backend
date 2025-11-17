@@ -84,10 +84,4 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
 
     boolean existsByChoreAndDueDateAndChoreStatusIn(Chore chore,
         LocalDate dueDate, Collection<ChoreStatus> choreStatuses);
-
-    @Query("SELECT ci FROM ChoreInstance ci JOIN FETCH ci.chore c " +
-            "WHERE c.id = :choreId AND ci.choreStatus != :deletedStatus")
-    List<ChoreInstance> findByChoreIdWithChore(@Param("choreId") Long id,
-                                               @Param("deletedStatus") ChoreStatus choreStatus);
-
 }

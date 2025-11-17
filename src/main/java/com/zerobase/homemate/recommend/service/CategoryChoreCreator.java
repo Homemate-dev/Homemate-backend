@@ -9,10 +9,12 @@ import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.dto.MissionDto;
 import com.zerobase.homemate.mission.service.MissionService;
+import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,7 @@ public class CategoryChoreCreator {
     private final RedisChoreStatsService redisChoreStatsService;
     private final MissionService missionService;
     private final UserBadgeStatsService userBadgeStatsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ChoreDto.ApiResponse<ChoreDto.Response> createChoreFromCategory(Long userId,
@@ -62,6 +65,7 @@ public class CategoryChoreCreator {
                 .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(19, 0)));
 
 
+
         // 4. Chore 생성
         Chore chore = Chore.builder()
                 .user(user)
@@ -83,9 +87,24 @@ public class CategoryChoreCreator {
         // 5. 저장
         Chore saved = choreRepository.save(chore);
 
+        // 알람 활성화 여부 조회 및 활성화
+        if(chore.getNotificationYn()){
+            userNotificationSettingRepository
+                    .enableUserNotificationSetting(chore.getUser().getId());
+        }
+
         // 6. 반복 인스턴스 생성
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
+
+
+
+        for(ChoreInstance instance : instances){
+            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(chore.getUser().getId(),
+                    instance,
+                    chore.getNotificationTime(),
+                    chore.getRepeatType()));
+        }
 
         // 7. Redis counting 반영
         redisChoreStatsService.increment(template.getCategory(), space);
