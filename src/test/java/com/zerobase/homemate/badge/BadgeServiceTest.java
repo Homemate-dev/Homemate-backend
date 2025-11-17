@@ -44,7 +44,7 @@ class BadgeService30CompletionTest {
         badgeRepository = mock(BadgeRepository.class);
         userRepository = mock(UserRepository.class);
         userBadgeStatsService = mock(UserBadgeStatsService.class);
-        badgeService = new BadgeService(badgeRepository, userRepository, userBadgeStatsService);
+        badgeService = new BadgeService(badgeRepository, userRepository, userBadgeStatsService, categoryChoreRepository);
 
         missionRepository = mock(MissionRepository.class);
         userMissionRepository = mock(UserMissionRepository.class);
@@ -177,7 +177,7 @@ class BadgeService30CompletionTest {
 
         when(userBadgeStatsService.getRegisterCount(user.getId())).thenReturn(30L);
         // when
-        badgeService.evaluateBadgesOnCreate(user, chore);
+        badgeService.evaluateBadgesOnCreate(user);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class); // raw 타입 사용

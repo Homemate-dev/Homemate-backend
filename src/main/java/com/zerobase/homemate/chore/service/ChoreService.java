@@ -9,7 +9,6 @@ import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
-import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.RepeatType;
@@ -27,7 +26,6 @@ import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.Objects;
@@ -124,7 +122,7 @@ public class ChoreService {
 
         redisChoreStatsService.increment(null, request.getSpace());
         userBadgeStatsService.incrementRegisterCount(userId);
-        badgeService.evaluateBadgesOnCreate(chore.getUser(), chore);
+        badgeService.evaluateBadgesOnCreate(chore.getUser());
 
         return ApiResponse.<ChoreDto.Response>builder()
             .data(ChoreDto.Response.fromEntity(savedChore))
@@ -258,18 +256,6 @@ public class ChoreService {
             }
             case CANCELLED, DELETED -> throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
             default -> throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
-
-        userBadgeStatsService.incrementCount(userId);
-        if(chore.getSpace() != null) {
-            userBadgeStatsService.incrementSpaceCount(userId, chore.getSpace());
-        }
-
-        boolean isTitleBadgeTarget = Arrays.stream(BadgeType.values())
-                        .anyMatch(type -> chore.getTitle().equalsIgnoreCase(type.name()));
-
-        if(isTitleBadgeTarget) {
-            userBadgeStatsService.incrementTitleCount(userId, chore.getTitle());
         }
 
         badgeService.evaluateBadges(chore.getUser(), chore);

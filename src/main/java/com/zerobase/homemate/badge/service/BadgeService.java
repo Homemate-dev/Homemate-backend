@@ -6,9 +6,9 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.BadgeCategory;
 import com.zerobase.homemate.entity.enums.BadgeType;
-import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.repository.BadgeRepository;
+import com.zerobase.homemate.repository.CategoryChoreRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,11 +26,29 @@ public class BadgeService {
     private final BadgeRepository badgeRepository;
     private final UserRepository userRepository;
     private final UserBadgeStatsService userBadgeStatsService;
+    private final CategoryChoreRepository categoryChoreRepository;
 
 
-    // 집안일 완료 시 호출
+    /*
+    집안일 완료 시 배지 평가
+     */
     @Transactional
     public void evaluateBadges(User user, Chore chore) {
+
+        boolean isMission = isMissionChore(chore);
+
+        if(chore.getSpace() != null){
+            userBadgeStatsService.incrementSpaceCount(user.getId(),  chore.getSpace());
+        }
+        if(isTitleBadgeTarget(chore)){
+            userBadgeStatsService.incrementTitleCount(user.getId(), chore.getTitle());
+        }
+        if(isMission){
+            userBadgeStatsService.incrementMissionCount(user.getId());
+        }
+
+
+
         List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
                 // 아직 획득하지 않은 배지만
                 .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
@@ -56,6 +74,9 @@ public class BadgeService {
 
     // 어떤 집안일이든 완료했을 때 호출
     public void evaluateAllBadges(User user) {
+
+        userBadgeStatsService.incrementCount(user.getId());
+
         List<Badge> allBadgesToSave = Arrays.stream(BadgeType.values())
                 .filter(type -> type.getCategory() == BadgeCategory.ALL)
                 .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
@@ -71,7 +92,7 @@ public class BadgeService {
 
     // 집안일 등록 시 호출
     @Transactional
-    public void evaluateBadgesOnCreate(User user, Chore chore){
+    public void evaluateBadgesOnCreate(User user){
         List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
                 .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
                 .filter(type -> type.getCategory() == BadgeCategory.REGISTER)
@@ -133,6 +154,17 @@ public class BadgeService {
                 .sorted(Comparator.comparingInt(BadgeProgressResponse::remainingCount)) // 남은 횟수 적은 순
                 .limit(3)
                 .toList();
+    }
+
+    private boolean isMissionChore(Chore chore){
+        return categoryChoreRepository.findByTitle(chore.getTitle())
+                .stream()
+                .anyMatch(cc -> cc.getCategory() == Category.MISSIONS);
+    }
+
+    private boolean isTitleBadgeTarget(Chore chore) {
+        return Arrays.stream(BadgeType.values())
+                .anyMatch(type -> chore.getTitle().equalsIgnoreCase(type.getChoreTitle()));
     }
 
 }
