@@ -9,10 +9,12 @@ import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.dto.MissionDto;
 import com.zerobase.homemate.mission.service.MissionService;
+import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ public class SpaceChoreCreator {
     private final CategoryChoreRepository categoryChoreRepository;
     private final MissionService missionService;
     private final UserBadgeStatsService userBadgeStatsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ChoreDto.ApiResponse<ChoreDto.Response> createChoreFromSpace(Long userId,
@@ -73,6 +76,11 @@ public class SpaceChoreCreator {
 
         Chore saved = choreRepository.save(chore);
 
+        if(chore.getNotificationYn()){
+            userNotificationSettingRepository
+                    .enableUserNotificationSetting(chore.getUser().getId());
+        }
+
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
 
@@ -81,6 +89,14 @@ public class SpaceChoreCreator {
                 .orElse(null);
 
         Category category = (matchedCategoryChore != null) ? matchedCategoryChore.getCategory() : Category.ETC;
+
+        for(ChoreInstance instance : instances){
+            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(chore.getUser().getId(),
+                    instance,
+                    chore.getNotificationTime(),
+                    chore.getRepeatType()));
+        }
+
 
         redisChoreStatsService.increment(category, template.getSpace());
 

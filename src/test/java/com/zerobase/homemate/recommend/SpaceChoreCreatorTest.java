@@ -5,6 +5,7 @@ import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.mission.service.MissionService;
+import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.recommend.service.SpaceChoreCreator;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -60,6 +62,9 @@ public class SpaceChoreCreatorTest {
 
     @Mock
     private UserBadgeStatsService userBadgeStatsService;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Test
     void createChoreFromSpace_success(){
@@ -189,4 +194,72 @@ public class SpaceChoreCreatorTest {
         assertNotNull(response.getData().getNotificationTime(), "알림 시간은 기본값이 정해져 있다.");
         assertEquals(LocalTime.of(19, 0), response.getData().getNotificationTime(), "기본 알림 시각 19시 정각");
     }
+
+    @Test
+    @DisplayName("알람 이벤트 발행은 활성화될 시 반드시 이루어진다")
+    void create_alarmEvent_whenNotificationYes() {
+
+        Long userId = 1L;
+        Long spaceChoreId = 10L;
+
+        // --- 유저, SpaceChore 세팅 ---
+        User user = User.builder().id(userId).build();
+
+        SpaceChore spaceChore = SpaceChore.builder()
+                .id(spaceChoreId)
+                .titleKo("청소하기")
+                .space(Space.KITCHEN)
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .build();
+
+        UserNotificationSetting setting = UserNotificationSetting.createDefault(user, LocalTime.of(19, 0));
+
+        // --- Mock 설정 ---
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(spaceChoreRepository.findById(spaceChoreId)).thenReturn(Optional.of(spaceChore));
+        when(userNotificationSettingRepository.findByUserId(userId)).thenReturn(Optional.of(setting));
+
+        // ChoreRepository.save() mock - ID 필수
+        Chore savedChore = Chore.builder()
+                .id(1L)
+                .user(user)
+                .title(spaceChore.getTitleKo())
+                .space(spaceChore.getSpace())
+                .repeatType(spaceChore.getRepeatType())
+                .repeatInterval(spaceChore.getRepeatInterval())
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(spaceChore.getRepeatInterval()))
+                .notificationYn(setting.isChoreEnabled())
+                .notificationTime(setting.getNotificationTime())
+                .isDeleted(false)
+                .build();
+
+        when(choreRepository.save(any(Chore.class))).thenReturn(savedChore);
+
+        // choreInstanceGenerator.generateInstances() mock - 최소 1개 반환
+        ChoreInstance ci = ChoreInstance.builder()
+                .chore(savedChore)
+                .titleSnapshot(savedChore.getTitle())
+                .dueDate(LocalDate.now())
+                .build();
+        when(choreInstanceGenerator.generateInstances(savedChore))
+                .thenReturn(List.of(ci));
+
+        // choreInstanceRepository.saveAll() mock
+        when(choreInstanceRepository.saveAll(anyList()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        // --- 실행 ---
+        spaceChoreCreator.createChoreFromSpace(userId, spaceChoreId);
+
+        // --- 이벤트 발행 검증 ---
+        verify(applicationEventPublisher, atLeastOnce())
+                .publishEvent(any(ChoreInstanceCreatedEvent.class));
+
+        // --- 알람 활성화 여부 검증 ---
+        verify(userNotificationSettingRepository, times(1))
+                .enableUserNotificationSetting(userId);
+    }
+
 }
