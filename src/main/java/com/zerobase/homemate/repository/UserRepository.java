@@ -3,7 +3,8 @@ package com.zerobase.homemate.repository;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.entity.enums.UserStatus;
-import com.zerobase.homemate.mypage.query.dto.MyPageResponseDto;
+import com.zerobase.homemate.mypage.query.dto.MyPageDto;
+
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,21 +26,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @Param("userRole") UserRole userRole);
 
     @Query("""
-    SELECT new com.zerobase.homemate.mypage.query.dto.MyPageResponseDto(
+    SELECT new com.zerobase.homemate.mypage.query.dto.MyPageDto(
         u.id, sa.socialProvider, u.profileName, u.profileImageUrl,
-        u.createdAt, u.lastLoginAt,
+        u.createdAt, s.updatedAt, u.lastLoginAt,
         s.masterEnabled, s.choreEnabled, s.noticeEnabled,
-        s.notificationTime, s.updatedAt,
-        :totalBadgeCount,
-        :acquiredBadgeCount
+        s.notificationTime
     )
     FROM User u
     LEFT JOIN UserSocialAccount sa ON sa.user = u
     LEFT JOIN UserNotificationSetting s ON s.user = u
     WHERE u.id = :id
     """)
-    Optional<MyPageResponseDto> findMyPageResponseById(
-        @Param("id") Long id,
-        @Param("totalBadgeCount") int totalBadgeCount,
-        @Param("acquiredBadgeCount") int acquiredBadgeCount);
+    Optional<MyPageDto> findMyPageById(
+        @Param("id") Long id
+    );
 }
