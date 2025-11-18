@@ -121,6 +121,12 @@ public class SpaceChoreCreatorTest {
                 .repeatInterval(1)
                 .build();
 
+        Category category = Category.WEEKEND_WHOLE_ROUTINE;
+        CategoryChore categoryChore = CategoryChore.builder()
+                .title("주방 정리하기")
+                .category(category)
+                .build();
+
         UserNotificationSetting setting = UserNotificationSetting.createDefault(user, LocalTime.of(19, 0));
 
         Chore savedChore = Chore.builder()
@@ -140,12 +146,16 @@ public class SpaceChoreCreatorTest {
                 ChoreInstance.builder().id(2L).chore(savedChore).dueDate(LocalDate.now().plusDays(1)).build()
         );
 
+
+
         // Stubbing
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(spaceChoreRepository.findById(spaceChoreId)).thenReturn(Optional.of(template));
         when(userNotificationSettingRepository.findByUserId(userId)).thenReturn(Optional.of(setting));
         when(choreRepository.save(any(Chore.class))).thenReturn(savedChore);
         when(choreInstanceGenerator.generateInstances(savedChore)).thenReturn(generatedInstances);
+        when(categoryChoreRepository.findByTitle("주방 정리하기"))
+                .thenReturn(Optional.of(categoryChore)); // CategoryChore 객체를 반환하도록 설정
 
         // when
         ChoreDto.ApiResponse<ChoreDto.Response> response =
