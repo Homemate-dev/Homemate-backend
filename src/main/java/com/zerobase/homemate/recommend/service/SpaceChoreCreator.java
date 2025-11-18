@@ -88,7 +88,10 @@ public class SpaceChoreCreator {
         CategoryChore matchedCategoryChore = categoryChoreRepository.findByTitle(template.getTitleKo())
                 .orElse(null);
 
-        Category category = (matchedCategoryChore != null) ? matchedCategoryChore.getCategory() : Category.ETC;
+        if (matchedCategoryChore != null) {
+            Category category = matchedCategoryChore.getCategory();
+            redisChoreStatsService.increment(category, template.getSpace());
+        }
 
         for(ChoreInstance instance : instances){
             eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(chore.getUser().getId(),
@@ -97,8 +100,6 @@ public class SpaceChoreCreator {
                     chore.getRepeatType()));
         }
 
-
-        redisChoreStatsService.increment(category, template.getSpace());
 
         List<MissionDto.Response> userMission =
                 missionService.increaseMissionCountForAction(userId,
