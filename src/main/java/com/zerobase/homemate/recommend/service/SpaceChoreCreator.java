@@ -2,19 +2,19 @@ package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.dto.MissionDto;
 import com.zerobase.homemate.mission.service.MissionService;
+import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,10 +38,11 @@ public class SpaceChoreCreator {
     private final CategoryChoreRepository categoryChoreRepository;
     private final MissionService missionService;
     private final UserBadgeStatsService userBadgeStatsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public ApiResponse<ChoreDto.Response> createChoreFromSpace(Long userId,
-        Space space, Long spaceChoreId){
+    public ChoreDto.ApiResponse<ChoreDto.Response> createChoreFromSpace(Long userId,
+                                                                        Long spaceChoreId){
         // 1. 사용자 유효성 검증
         User user =  userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -50,14 +51,10 @@ public class SpaceChoreCreator {
         SpaceChore template = spaceChoreRepository.findById(spaceChoreId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
-        // 3. 동일한 사용자가 이미 등록한 집안일인지 검증
-        if(choreRepository.existsByUserIdAndTitle(userId, template.getTitleKo())){
-            throw new CustomException(ErrorCode.CHORE_ALREADY_REGISTERED);
-        }
 
         // 4. 사용자 설정으로부터 Notification 여부, notification time의 Chore에 대한 기본 설정을 가져오기
         UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-                .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(9, 0)));
+                .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(19, 0)));
 
         // 5. Chore 생성
         Chore chore = Chore.builder()
@@ -79,30 +76,42 @@ public class SpaceChoreCreator {
 
         Chore saved = choreRepository.save(chore);
 
+        if(chore.getNotificationYn()){
+            userNotificationSettingRepository
+                    .enableUserNotificationSetting(chore.getUser().getId());
+        }
+
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
 
-        //. Category 소속여부 조회
+
         CategoryChore matchedCategoryChore = categoryChoreRepository.findByTitle(template.getTitleKo())
-                        .orElse(null);
+                .orElse(null);
 
         if (matchedCategoryChore != null) {
             Category category = matchedCategoryChore.getCategory();
             redisChoreStatsService.increment(category, template.getSpace());
         }
 
+        for(ChoreInstance instance : instances){
+            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(chore.getUser().getId(),
+                    instance,
+                    chore.getNotificationTime(),
+                    chore.getRepeatType()));
+        }
+
 
         List<MissionDto.Response> userMission =
-            missionService.increaseMissionCountForAction(userId,
-            UserActionType.CREATE_CHORE_WITH_SPACE)
-                .stream().filter(MissionDto.Response::isCompleted).toList();
+                missionService.increaseMissionCountForAction(userId,
+                                UserActionType.CREATE_CHORE_WITH_SPACE)
+                        .stream().filter(MissionDto.Response::isCompleted).toList();
 
         userBadgeStatsService.incrementRegisterCount(userId);
 
-        return ApiResponse.<ChoreDto.Response>builder()
-            .data(ChoreDto.Response.fromEntity(saved))
-            .missionResults(userMission)
-            .build();
+        return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
+                .data(ChoreDto.Response.fromEntity(saved))
+                .missionResults(userMission)
+                .build();
     }
 
 }

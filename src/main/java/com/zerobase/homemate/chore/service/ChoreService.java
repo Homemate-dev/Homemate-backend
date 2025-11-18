@@ -345,11 +345,11 @@ public class ChoreService {
 
     @Transactional
     public void deleteChore(Long userId, Long choreInstanceId,
-        boolean applyToAfter) {
+                            boolean applyToAfter) {
 
         ChoreInstance choreInstance =
-            choreInstanceRepository.findById(choreInstanceId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
+                choreInstanceRepository.findById(choreInstanceId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
         Chore chore = choreInstance.getChore();
 
         if (!chore.getUser().getId().equals(userId)) {
@@ -357,9 +357,9 @@ public class ChoreService {
         }
 
         if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
-            choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
+                choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
             if (chore.getRepeatType() == RepeatType.NONE ||
-                chore.getStartDate().equals(chore.getEndDate())) {
+                    chore.getStartDate().equals(chore.getEndDate())) {
                 choreInstance.softDelete();
                 chore.softDelete();
             } else {
@@ -368,8 +368,8 @@ public class ChoreService {
                         setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
                     }
                     choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
-                        chore, choreInstance.getDueDate(),
-                        ChoreStatus.DELETED, LocalDateTime.now());
+                            chore, choreInstance.getDueDate(),
+                            ChoreStatus.DELETED, LocalDateTime.now());
                 } else {
                     setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
                     choreInstance.softDelete();

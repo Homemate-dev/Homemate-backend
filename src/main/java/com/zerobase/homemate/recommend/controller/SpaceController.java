@@ -2,7 +2,6 @@ package com.zerobase.homemate.recommend.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceChoreDto;
@@ -38,19 +37,17 @@ public class SpaceController {
     }
 
     @PostMapping("/{spaceChoreId}/register")
-    public ResponseEntity<ApiResponse<ChoreDto.Response>> createChoreFromSpace(
+    public ResponseEntity<ChoreDto.ApiResponse<ChoreDto.Response>> createChoreFromSpace(
             @AuthenticationPrincipal UserPrincipal user,
-            @PathVariable Long spaceChoreId,
-            @RequestBody SpaceChoreDto.CreateRequest request
-    ){
-        ApiResponse<ChoreDto.Response> response = spaceChoreCreator.createChoreFromSpace(
-                user.id(),
-                request.getSpace(),
-                spaceChoreId
-        );
+            @PathVariable Long spaceChoreId
+    ) {
+        ChoreDto.ApiResponse<ChoreDto.Response> response =
+                spaceChoreCreator.createChoreFromSpace(user.id(), spaceChoreId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+
 
     @GetMapping("/{spaceChoreId}")
     public ResponseEntity<SpaceChoreDto.Response> getSpaceChore(
