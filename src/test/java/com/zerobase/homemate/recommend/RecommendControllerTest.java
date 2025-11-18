@@ -83,10 +83,10 @@ public class RecommendControllerTest {
 
         List<TopItemDto> topList = List.of(
                 new TopItemDto("미션 달성 집안일", Category.MISSIONS, 3L),
-                new TopItemDto("기타 집안일", Category.ETC, 8L),
+                new TopItemDto("기타 집안일", Category.SAFETY_CHECK, 8L),
                 new TopItemDto("15분 청소", Category.WEEKEND_WHOLE_ROUTINE, 6L),
                 new TopItemDto("겨울철 집안일", Category.WINTER, 4L),
-                new TopItemDto("주방", Category.ETC, 2L)
+                new TopItemDto("주방", Category.TEN_MINUTES_CLEANING, 2L)
         );
 
         when(choreStatsService.getTopOverallWithMissions(userId, 5))
@@ -103,7 +103,7 @@ public class RecommendControllerTest {
                 .andExpect(jsonPath("$[2].name").value("15분 청소"))
                 // category 검증 (code → category)
                 .andExpect(jsonPath("$[0].category").value("MISSIONS"))
-                .andExpect(jsonPath("$[1].category").value("ETC"))
+                .andExpect(jsonPath("$[1].category").value("SAFETY_CHECK"))
                 .andExpect(jsonPath("$[2].category").value("WEEKEND_WHOLE_ROUTINE"))
                 // count 검증
                 .andExpect(jsonPath("$[0].count").value(3))
