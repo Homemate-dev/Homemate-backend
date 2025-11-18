@@ -49,7 +49,7 @@ public class ChoreStatsServiceTest {
                 "SAFETY_CHECK", 6L,
                 "WEEKEND_WHOLE_ROUTINE", 3L,
                 "TEN_MINUTES_CLEANING", 5L,
-                "ETC", 2L,
+                "APPLIANCE_MAINTENANCE", 2L,
                 "HOTEL_BATHROOM", 1L
         );
 
@@ -71,7 +71,7 @@ public class ChoreStatsServiceTest {
                 Category.TEN_MINUTES_CLEANING,   // 5
                 Category.WINTER,   // 4
                 Category.WEEKEND_WHOLE_ROUTINE,   // 3
-                Category.ETC    // 2
+                Category.APPLIANCE_MAINTENANCE    // 2
         );
 
         for (int i = 0; i < expectedCategories.size(); i++) {
