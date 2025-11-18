@@ -2,19 +2,19 @@ package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.entity.*;
-import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.dto.MissionDto;
 import com.zerobase.homemate.mission.service.MissionService;
+import com.zerobase.homemate.notification.component.ChoreInstanceCreatedEvent;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,10 +39,11 @@ public class CategoryChoreCreator {
     private final RedisChoreStatsService redisChoreStatsService;
     private final MissionService missionService;
     private final UserBadgeStatsService userBadgeStatsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public ApiResponse<ChoreDto.Response> createChoreFromCategory(Long userId,
-        Category category, Long categoryChoreId) {
+    public ChoreDto.ApiResponse<ChoreDto.Response> createChoreFromCategory(Long userId,
+                                                                           Long categoryChoreId) {
         // 1. 사용자 유효성 검증
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -51,21 +52,18 @@ public class CategoryChoreCreator {
         CategoryChore template = categoryChoreRepository.findById(categoryChoreId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
-        // 3. ChoreRepository에서 동일한 이름과 사용자로 인해 만들어진 Chore가 있는지 검증
-        if(choreRepository.existsByUserIdAndTitle(userId, template.getTitle())){
-            throw new CustomException(ErrorCode.CHORE_ALREADY_REGISTERED);
-        }
 
-        // 1. 동일한 집안일 찾기 (title 기준)
+        // 3. 동일한 집안일 찾기 (title 기준)
         SpaceChore matchedSpaceChore = spaceChoreRepository.findByTitleKo(template.getTitle())
                 .orElse(null);
 
-        // 2. Space 결정: 매칭된 항목이 없으면 ETC
+        // 4. Space 결정: 매칭된 항목이 없으면 ETC
         Space space = (matchedSpaceChore != null) ? matchedSpaceChore.getSpace() : Space.ETC;
 
-        // 3. 사용자 설정으로부터 Notification 여부, notification time의 기본 설정을 가져온다.
+        // 5. 사용자 설정으로부터 Notification 여부, notification time의 기본 설정을 가져온다.
         UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
-                .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(9, 0)));
+                .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(19, 0)));
+
 
 
         // 4. Chore 생성
@@ -89,26 +87,38 @@ public class CategoryChoreCreator {
         // 5. 저장
         Chore saved = choreRepository.save(chore);
 
+        // 알람 활성화 여부 조회 및 활성화
+        if(chore.getNotificationYn()){
+            userNotificationSettingRepository
+                    .enableUserNotificationSetting(chore.getUser().getId());
+        }
+
         // 6. 반복 인스턴스 생성
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
+
+
+
+        for(ChoreInstance instance : instances){
+            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(chore.getUser().getId(),
+                    instance,
+                    chore.getNotificationTime(),
+                    chore.getRepeatType()));
+        }
 
         // 7. Redis counting 반영
         redisChoreStatsService.increment(template.getCategory(), space);
 
         List<MissionDto.Response> userMission =
-            missionService.increaseMissionCountForAction(userId,
-                UserActionType.CREATE_CHORE_RECOMMENDED)
-                .stream().filter(MissionDto.Response::isCompleted).toList();
+                missionService.increaseMissionCountForAction(userId,
+                                UserActionType.CREATE_CHORE_RECOMMENDED)
+                        .stream().filter(MissionDto.Response::isCompleted).toList();
 
         userBadgeStatsService.incrementRegisterCount(userId);
 
-        return ApiResponse.<ChoreDto.Response>builder()
-            .data(ChoreDto.Response.fromEntity(saved))
-            .missionResults(userMission)
-            .build();
+        return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
+                .data(ChoreDto.Response.fromEntity(saved))
+                .missionResults(userMission)
+                .build();
     }
-
-
-
 }

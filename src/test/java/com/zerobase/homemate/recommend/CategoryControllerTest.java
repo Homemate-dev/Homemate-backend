@@ -3,11 +3,8 @@ package com.zerobase.homemate.recommend;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
-import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
-import com.zerobase.homemate.chore.dto.ChoreDto.Response;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.recommend.controller.CategoryController;
-import com.zerobase.homemate.recommend.dto.CategoryChoreDto;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
@@ -18,14 +15,12 @@ import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -101,49 +96,37 @@ class CategoryControllerTest {
         var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
 
 
-
-        // 요청 DTO
-        CategoryChoreDto.CreateRequest request = new CategoryChoreDto.CreateRequest();
-        request.setCategory(Category.WINTER);
-
-        // Mock Response 생성
-        ApiResponse<ChoreDto.Response> mockResponse =
-            ApiResponse.<Response>builder()
-                .data(ChoreDto.Response.builder()
-                    .id(1L) // 필수
-                    .title("청소하기")
-                    .space(Space.KITCHEN)
-                    .repeatType(RepeatType.DAILY)
-                    .repeatInterval(3)
-                    .startDate(LocalDate.now())
-                    .endDate(LocalDate.now().plusDays(3))
-                    .notificationYn(false)
-                    .createdAt(LocalDateTime.now())
-                    .build())
+        ChoreDto.Response responseData = ChoreDto.Response.builder()
+                .id(100L)
+                .title("청소하기")
+                .space(Space.KITCHEN)
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(3)
+                .notificationYn(true)
+                .notificationTime(LocalTime.of(9, 0))
                 .build();
 
-        // Service Mock
-        when(categoryChoreCreator.createChoreFromCategory(
-                eq(1L),
-                any(Category.class),
-                eq(categoryChoreId)
-        )).thenReturn(mockResponse);
+        ChoreDto.ApiResponse<ChoreDto.Response> apiResponse =
+                ChoreDto.ApiResponse.<ChoreDto.Response>builder()
+                        .data(responseData)
+                        .build();
 
-        System.out.println(objectMapper.writeValueAsString(mockResponse));
+        when(categoryChoreCreator.createChoreFromCategory(principal.id(), categoryChoreId))
+                .thenReturn(apiResponse);
 
-        // SecurityContext에 userId를 주입
+
         mockMvc.perform(post("/recommend/categories/{categoryChoreId}/register", categoryChoreId)
-                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .accept(MediaType.APPLICATION_JSON))
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.title").value(mockResponse.getData().getTitle()))
-                .andExpect(jsonPath("$.data.space").value(mockResponse.getData().getSpace().name()))
-                .andExpect(jsonPath("$.data.repeatType").value(mockResponse.getData().getRepeatType().name()))
-                .andExpect(jsonPath("$.data.repeatInterval").value(mockResponse.getData().getRepeatInterval()));
+                .andExpect(jsonPath("$.data.title").value("청소하기"))
+                .andExpect(jsonPath("$.data.repeatType").value("DAILY"))
+                .andExpect(jsonPath("$.data.repeatInterval").value(3))
+                .andExpect(jsonPath("$.data.notificationTime").value("09:00:00"));
     }
+
 
 
 }

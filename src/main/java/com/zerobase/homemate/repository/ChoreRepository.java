@@ -11,7 +11,5 @@ import java.util.Optional;
 public interface ChoreRepository extends JpaRepository<Chore, Long> {
 
 
-    boolean existsByUserIdAndTitle(Long userId, String title);
-
     Optional<Chore> findByUserIdAndTitle(Long id, String title);
 }

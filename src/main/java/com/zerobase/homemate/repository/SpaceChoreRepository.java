@@ -23,11 +23,7 @@ public interface SpaceChoreRepository extends JpaRepository<SpaceChore, Long> {
 
     @Query(value = "SELECT id, title_ko, space FROM space_chores ORDER BY RAND() LIMIT 3", nativeQuery = true)
     List<SpaceChoreResponse> findRandomChores();
-           
+
     Optional<SpaceChore> findByTitleKo(String title);
 
-    Long countBySpace(Space space);
-
-    @Query("SELECT sc.titleKo FROM SpaceChore sc")
-    List<String> findAllTitles();
 }
