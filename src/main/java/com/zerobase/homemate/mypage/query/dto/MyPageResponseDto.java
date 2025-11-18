@@ -9,7 +9,7 @@ public record MyPageResponseDto(
     Long id,
     SocialProvider provider,
     String nickname,
-    String profileImgUrl,
+    String profileImageUrl,
     LocalDateTime createdAt,
     LocalDateTime lastLoginAt,
     Boolean masterEnabled,
