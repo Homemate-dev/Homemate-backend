@@ -14,11 +14,11 @@ public record BadgeProgressResponse (
 ){
     public static BadgeProgressResponse of(
             BadgeType type,
-            int currentCount
+            int currentCount,
+            boolean acquired
     ) {
         int targetCount = type.getRequireCount();
         int remainingCount = Math.max(0, targetCount - currentCount);
-        boolean acquired = currentCount >= targetCount;
 
         return new BadgeProgressResponse(
                 type,

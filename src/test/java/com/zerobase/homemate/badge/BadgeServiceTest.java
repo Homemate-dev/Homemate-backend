@@ -44,7 +44,7 @@ class BadgeService30CompletionTest {
         badgeRepository = mock(BadgeRepository.class);
         userRepository = mock(UserRepository.class);
         userBadgeStatsService = mock(UserBadgeStatsService.class);
-        badgeService = new BadgeService(badgeRepository, userRepository, userBadgeStatsService, categoryChoreRepository);
+        badgeService = new BadgeService(badgeRepository, userBadgeStatsService, categoryChoreRepository);
 
         missionRepository = mock(MissionRepository.class);
         userMissionRepository = mock(UserMissionRepository.class);
@@ -124,10 +124,8 @@ class BadgeService30CompletionTest {
                 .build();
 
         // 완료/공간/제목 배지 기준 count 모킹
-        when(userBadgeStatsService.getCountByCategory(user.getId(), BadgeType.BEGINNER_BATHROOM)).thenReturn(30L);
         when(userBadgeStatsService.getSpaceCount(user.getId(), Space.BATHROOM)).thenReturn(30L);
 
-        when(userBadgeStatsService.getCountByCategory(user.getId(), BadgeType.SEED_LAUNDRY)).thenReturn(30L);
         when(userBadgeStatsService.getTitleCount(user.getId(), "빨래하기")).thenReturn(30L);
 
         // when
@@ -191,7 +189,7 @@ class BadgeService30CompletionTest {
     void getClosestBadges_shouldReturnRemainingAsZeroAfter30Completions() {
         // given
         when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
-        when(badgeRepository.findAllByUser(user)).thenReturn(Collections.emptyList());
+        when(badgeRepository.findAllByUserId(user.getId())).thenReturn(Collections.emptyList());
 
         when(userBadgeStatsService.getCount(user.getId())).thenReturn(30L);
         when(userBadgeStatsService.getSpaceCount(user.getId(), Space.BATHROOM)).thenReturn(30L);

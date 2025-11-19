@@ -1,6 +1,5 @@
 package com.zerobase.homemate.badge.service;
 
-import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.entity.enums.Space;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -12,102 +11,87 @@ public class UserBadgeStatsService {
 
     private final StringRedisTemplate redisTemplate;
 
-    private static final String PREFIX_SPACE = "user:chore:space";
-    private static final String PREFIX_TITLE = "user:chore:title";
-    private static final String PREFIX_ALL = "user:chore:all";
-    private static final String PREFIX_MISSION = "user:chore:mission";
-    private static final String PREFIX_REGISTER = "user:chore:register";
+    // Key Format
+    private static final String STATS_KEY_FORMAT = "user:stats:%d";
+    private static final String SPACE_KEY_FORMAT = "user:stats:%d:space";
+    private static final String TITLE_KEY_FORMAT = "user:stats:%d:title";
 
-    private String buildKey(String prefix, Long userId) {
-        return String.format("%s:%d", prefix, userId);
+    // Field Format
+    private static final String FIELD_TOTAL_COMPLETED = "total_completed";
+    private static final String FIELD_TOTAL_REGISTERED = "total_registered";
+    private static final String FIELD_MISSION_COUNT = "mission_count";
+    private static final String FIELD_LAST_UPDATED = "last_updated";
+
+    // Increment Methods
+    public long incrementTotalCompleted(Long userId){
+        String key =  String.format(STATS_KEY_FORMAT, userId);
+        return redisTemplate.opsForHash().increment(key, FIELD_TOTAL_COMPLETED, 1);
     }
 
-    private String buildKey(String prefix, Long userId, Object subKey) {
-        String subKeyStr;
-
-        // Enum은 name()으로 고정 변환 (toString 오버라이드 영향 방지)
-        if (subKey instanceof Enum<?>) {
-            subKeyStr = ((Enum<?>) subKey).name();
-        } else {
-            subKeyStr = subKey.toString();
-        }
-
-        return String.format("%s:%d:%s", prefix, userId, subKeyStr);
+    public long incrementTotalRegistered(Long userId){
+        String key =  String.format(STATS_KEY_FORMAT, userId);
+        return redisTemplate.opsForHash().increment(key, FIELD_TOTAL_REGISTERED, 1);
     }
 
-    /* ===============================
-       ✅ Count 증가 로직
-       =============================== */
-
-    // 아무 집안일 완료 시
-    public void incrementCount(Long userId) {
-        redisTemplate.opsForValue().increment(buildKey(PREFIX_ALL, userId), 1);
+    public long incrementMissionCount(Long userId){
+        String key =  String.format(STATS_KEY_FORMAT, userId);
+        return redisTemplate.opsForHash().increment(key, FIELD_MISSION_COUNT, 1);
     }
 
-    public void incrementRegisterCount(Long userId) {
-        redisTemplate.opsForValue().increment(buildKey(PREFIX_REGISTER, userId), 1);
+    public long incrementSpaceCount(Long userId, Space space){
+        String key =  String.format(SPACE_KEY_FORMAT, userId);
+        return redisTemplate.opsForHash().increment(key, space, 1);
     }
 
-    // 공간 카테고리에 속한 집안일을 완료하면 그 카테고리에 속한 횟수가 늘어난다.
-    public void incrementSpaceCount(Long userId, Space space) {
-        redisTemplate.opsForValue().increment(buildKey(PREFIX_SPACE, userId, space), 1);
+    public long incrementTitleCount(Long userId, String title){
+        String key = String.format(TITLE_KEY_FORMAT, userId);
+        return redisTemplate.opsForHash().increment(key, title, 1);
     }
 
-    // 특정 이름을 가진 집안일은 완료 시 카운팅이 된다.
-    public void incrementTitleCount(Long userId, String title) {
-        redisTemplate.opsForValue().increment(buildKey(PREFIX_TITLE, userId, title), 1);
+    // get Count Method
+    public long getTotalCompletedCount(Long userId){
+        Object v = redisTemplate.opsForHash().get(String.format(STATS_KEY_FORMAT, userId), FIELD_TOTAL_COMPLETED);
+        return parseLongSafe(v);
     }
 
-    // 미션 완료 시 미션 카운팅이 된다.
-    public void incrementMissionCount(Long userId) {
-        redisTemplate.opsForValue().increment(buildKey(PREFIX_MISSION, userId), 1);
+    public long getTotalRegisteredCount(Long userId){
+        Object v = redisTemplate.opsForHash().get(String.format(STATS_KEY_FORMAT, userId), FIELD_TOTAL_REGISTERED);
+        return parseLongSafe(v);
     }
 
-
-    public long getCountByCategory(Long userId, BadgeType type) {
-        return switch (type.getCategory()) {
-            case MISSION -> getMissionCount(userId);
-            case SPACE -> getSpaceCount(userId, type.getSpace());
-            case TITLE -> getTitleCount(userId, type.getChoreTitle());
-            case REGISTER -> getRegisterCount(userId);
-            case ALL -> getCount(userId);
-        };
+    public long getTotalMissionCount(Long userId){
+        Object v = redisTemplate.opsForHash().get(String.format(STATS_KEY_FORMAT, userId), FIELD_MISSION_COUNT);
+        return parseLongSafe(v);
     }
 
-    // Redis 횟수 조회 로직
-    public long getCount(Long userId) {
-        return getLongValue(buildKey(PREFIX_ALL, userId));
+    public long getSpaceCount(Long userId, Space space){
+        Object v = redisTemplate.opsForHash().get(String.format(SPACE_KEY_FORMAT, userId), space);
+        return parseLongSafe(v);
     }
 
-    public long getRegisterCount(Long userId) {
-        return getLongValue(buildKey(PREFIX_REGISTER, userId));
-    }
-
-    public long getSpaceCount(Long userId, Space space) {
-        return getLongValue(buildKey(PREFIX_SPACE, userId, space));
-    }
-
-    public long getTitleCount(Long userId, String title) {
-        return getLongValue(buildKey(PREFIX_TITLE, userId, title));
-    }
-
-    public long getMissionCount(Long userId) {
-        return getLongValue(buildKey(PREFIX_MISSION, userId));
+    public long getTitleCount(Long userId, String title){
+        Object v = redisTemplate.opsForHash().get(String.format(TITLE_KEY_FORMAT, userId), title);
+        return parseLongSafe(v);
     }
 
 
-    private long getLongValue(String key) {
-        // key가 없을 시, 0으로 초기화한다.
-        redisTemplate.opsForValue().setIfAbsent(key, "0");
+    // Sub Method for these!
 
-        // 값을 받아온다.
-        String val = redisTemplate.opsForValue().get(key);
-
-        if(val == null){
+    private long parseLongSafe(Object v) {
+        if(v == null) return 0L;
+        try{
+            return Long.parseLong(String.valueOf(v));
+        } catch(NumberFormatException e){
             return 0L;
         }
-        return Long.parseLong(val);
+
     }
 
+    private void setLastUpdated(Long userId, long epochSeconds) {
+        String key = String.format(STATS_KEY_FORMAT, userId);
+        try {
+            redisTemplate.opsForHash().put(key, FIELD_LAST_UPDATED, String.valueOf(epochSeconds));
+        } catch (Exception ignored) {}
+    }
 
 }

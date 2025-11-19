@@ -5,5 +5,4 @@ import com.zerobase.homemate.entity.User;
 
 public interface BadgeCondition {
     boolean matchesCondition(User user, Chore chore);
-    String getBadgeName();
 }

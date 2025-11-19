@@ -8,13 +8,11 @@ public class SpaceBadgeCondition implements BadgeCondition {
 
     private final Space targetSpace;
     private final int requiredCount;
-    private final String badgeName;
     private final UserBadgeStatsService userBadgeStatsService;
 
-    public SpaceBadgeCondition(Space targetSpace, int requiredCount, String badgeName, UserBadgeStatsService userBadgeStatsService) {
+    public SpaceBadgeCondition(Space targetSpace, int requiredCount, UserBadgeStatsService userBadgeStatsService) {
         this.targetSpace = targetSpace;
         this.requiredCount = requiredCount;
-        this.badgeName = badgeName;
         this.userBadgeStatsService = userBadgeStatsService;
     }
 
@@ -30,9 +28,4 @@ public class SpaceBadgeCondition implements BadgeCondition {
         return sameSpace && meetsCount;
     }
 
-
-    @Override
-    public String getBadgeName() {
-        return badgeName;
-    }
 }
