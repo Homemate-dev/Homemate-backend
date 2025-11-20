@@ -9,15 +9,33 @@ public record MyPageResponseDto(
     Long id,
     SocialProvider provider,
     String nickname,
-    String profileImgUrl,
+    String profileImageUrl,
     LocalDateTime createdAt,
+    LocalDateTime updatedAt,
     LocalDateTime lastLoginAt,
     Boolean masterEnabled,
     Boolean choreEnabled,
     Boolean noticeEnabled,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime notificationTime,
-    LocalDateTime updatedAt,
     Integer totalBadgeCount,
     Integer acquiredBadgeCount
-) {}
+) {
+    public static MyPageResponseDto of(MyPageDto myPageDto, int totalBadgeCount, int acquiredBadgeCount) {
+        return new MyPageResponseDto(
+                myPageDto.id(),
+                myPageDto.provider(),
+                myPageDto.nickname(),
+                myPageDto.profileImageUrl(),
+                myPageDto.createdAt(),
+                myPageDto.updatedAt(),
+                myPageDto.lastLoginAt(),
+                myPageDto.masterEnabled(),
+                myPageDto.choreEnabled(),
+                myPageDto.noticeEnabled(),
+                myPageDto.notificationTime(),
+                totalBadgeCount,
+                acquiredBadgeCount
+        );
+    }
+}
