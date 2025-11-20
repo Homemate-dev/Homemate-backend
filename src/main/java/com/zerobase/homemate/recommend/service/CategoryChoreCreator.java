@@ -114,7 +114,7 @@ public class CategoryChoreCreator {
                                 UserActionType.CREATE_CHORE_RECOMMENDED)
                         .stream().filter(MissionDto.Response::isCompleted).toList();
 
-        userBadgeStatsService.incrementRegisterCount(userId);
+        userBadgeStatsService.incrementTotalRegistered(userId);
 
         return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
                 .data(ChoreDto.Response.fromEntity(saved))

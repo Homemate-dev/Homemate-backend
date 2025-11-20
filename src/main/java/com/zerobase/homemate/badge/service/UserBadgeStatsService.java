@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 public class UserBadgeStatsService {
@@ -23,29 +25,39 @@ public class UserBadgeStatsService {
     private static final String FIELD_LAST_UPDATED = "last_updated";
 
     // Increment Methods
-    public long incrementTotalCompleted(Long userId){
+    public void incrementTotalCompleted(Long userId){
         String key =  String.format(STATS_KEY_FORMAT, userId);
-        return redisTemplate.opsForHash().increment(key, FIELD_TOTAL_COMPLETED, 1);
+        setLastUpdated(userId, Instant.now().getEpochSecond());
+
+        redisTemplate.opsForHash().increment(key, FIELD_TOTAL_COMPLETED, 1);
     }
 
-    public long incrementTotalRegistered(Long userId){
+    public void incrementTotalRegistered(Long userId){
         String key =  String.format(STATS_KEY_FORMAT, userId);
-        return redisTemplate.opsForHash().increment(key, FIELD_TOTAL_REGISTERED, 1);
+        setLastUpdated(userId, Instant.now().getEpochSecond());
+
+        redisTemplate.opsForHash().increment(key, FIELD_TOTAL_REGISTERED, 1);
     }
 
-    public long incrementMissionCount(Long userId){
+    public void incrementMissionCount(Long userId){
         String key =  String.format(STATS_KEY_FORMAT, userId);
-        return redisTemplate.opsForHash().increment(key, FIELD_MISSION_COUNT, 1);
+        setLastUpdated(userId, Instant.now().getEpochSecond());
+
+        redisTemplate.opsForHash().increment(key, FIELD_MISSION_COUNT, 1);
     }
 
-    public long incrementSpaceCount(Long userId, Space space){
+    public void incrementSpaceCount(Long userId, Space space){
         String key =  String.format(SPACE_KEY_FORMAT, userId);
-        return redisTemplate.opsForHash().increment(key, space, 1);
+        setLastUpdated(userId, Instant.now().getEpochSecond());
+
+        redisTemplate.opsForHash().increment(key, space, 1);
     }
 
-    public long incrementTitleCount(Long userId, String title){
+    public void incrementTitleCount(Long userId, String title){
         String key = String.format(TITLE_KEY_FORMAT, userId);
-        return redisTemplate.opsForHash().increment(key, title, 1);
+        setLastUpdated(userId, Instant.now().getEpochSecond());
+
+        redisTemplate.opsForHash().increment(key, title, 1);
     }
 
     // get Count Method
@@ -93,5 +105,4 @@ public class UserBadgeStatsService {
             redisTemplate.opsForHash().put(key, FIELD_LAST_UPDATED, String.valueOf(epochSeconds));
         } catch (Exception ignored) {}
     }
-
 }

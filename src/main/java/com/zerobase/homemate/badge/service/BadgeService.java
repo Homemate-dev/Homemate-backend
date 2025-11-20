@@ -24,7 +24,7 @@ public class BadgeService {
     private final UserBadgeStatsService userBadgeStatsService;
     private final CategoryChoreRepository categoryChoreRepository;
 
-    private Map<BadgeType, BadgeCondition> conditionCache(User user){
+    private Map<BadgeType, BadgeCondition> conditionCache(){
         Map<BadgeType, BadgeCondition> badgeMap = new HashMap<>();
 
         for(BadgeType type : BadgeType.values()){
@@ -55,7 +55,7 @@ public class BadgeService {
         Set<BadgeType> acquired = badgeRepository.findAllByUserId(user.getId())
                 .stream().map(Badge::getBadgeType).collect(Collectors.toSet());
 
-        Map<BadgeType, BadgeCondition> conditions = conditionCache(user);
+        Map<BadgeType, BadgeCondition> conditions = conditionCache();
 
 
         // Badge 평가 및 생성
@@ -74,6 +74,9 @@ public class BadgeService {
     // 집안일 등록 시 호출
     @Transactional
     public void evaluateBadgesOnCreate(User user){
+
+        userBadgeStatsService.incrementTotalRegistered(user.getId());
+
         List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
                 .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
                 .filter(type -> type.getCategory() == BadgeCategory.REGISTER)
@@ -134,20 +137,13 @@ public class BadgeService {
     }
 
     public long getCountByCategory(Long userId, BadgeType type) {
-        switch (type.getCategory()) {
-            case ALL:
-                return userBadgeStatsService.getTotalCompletedCount(userId);
-            case REGISTER:
-                return userBadgeStatsService.getTotalRegisteredCount(userId);
-            case MISSION:
-                return userBadgeStatsService.getTotalMissionCount(userId);
-            case SPACE:
-                return userBadgeStatsService.getSpaceCount(userId, type.getSpace());
-            case TITLE:
-                return userBadgeStatsService.getTitleCount(userId, type.getChoreTitle());
-            default:
-                return 0L; // 안전하게 기본값
-        }
+        return switch (type.getCategory()) {
+            case ALL -> userBadgeStatsService.getTotalCompletedCount(userId);
+            case REGISTER -> userBadgeStatsService.getTotalRegisteredCount(userId);
+            case MISSION -> userBadgeStatsService.getTotalMissionCount(userId);
+            case SPACE -> userBadgeStatsService.getSpaceCount(userId, type.getSpace());
+            case TITLE -> userBadgeStatsService.getTitleCount(userId, type.getChoreTitle());
+        };
     }
 
 

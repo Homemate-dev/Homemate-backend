@@ -106,7 +106,7 @@ public class SpaceChoreCreator {
                                 UserActionType.CREATE_CHORE_WITH_SPACE)
                         .stream().filter(MissionDto.Response::isCompleted).toList();
 
-        userBadgeStatsService.incrementRegisterCount(userId);
+        userBadgeStatsService.incrementTotalRegistered(userId);
 
         return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
                 .data(ChoreDto.Response.fromEntity(saved))
