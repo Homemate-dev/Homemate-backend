@@ -63,10 +63,6 @@ public class UserMission {
     @Builder.Default
     private List<MissionProgress> progressList = new ArrayList<>();
 
-    public boolean isAlreadyCompleted() {
-        return Boolean.TRUE.equals(this.isCompleted);
-    }
-
     public boolean incrementCount() {
         Integer target = this.mission.getTargetCount();
 

@@ -1,5 +1,6 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import jakarta.persistence.*;
@@ -83,6 +84,10 @@ public class Chore {
     @Column(nullable = false)
     @Setter
     private Space space;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "registration_type", nullable = false)
+    private RegistrationType registrationType;
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL)
     @Builder.Default

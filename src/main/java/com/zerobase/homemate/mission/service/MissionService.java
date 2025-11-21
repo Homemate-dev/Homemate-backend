@@ -9,6 +9,7 @@ import com.zerobase.homemate.entity.MissionProgress;
 import com.zerobase.homemate.entity.UserMission;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.MissionType;
+import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.mission.dto.MissionDto;
@@ -140,9 +141,10 @@ public class MissionService {
             boolean existsInRecommend = existsInCategoryChores(mission.getTitle());
 
             if (isPending) {
+                boolean isAlreadyCompleted = userMission.getIsCompleted();
                 applyCompletion(userMission, missionProgress, choreInstance,
                     toSave, counterUserMission);
-                if (userMission.isAlreadyCompleted()) continue;
+                if (isAlreadyCompleted) continue;
                 if (userMission.getIsCompleted()) {
                     response.add(MissionDto.Response.of(mission, userMission,
                      existsInRecommend));
@@ -151,13 +153,6 @@ public class MissionService {
                 revertCompletion(userMission, missionProgress, choreInstance,
                     toDelete, counterUserMission);
             }
-        }
-
-        if (!toDelete.isEmpty()) {
-            missionProgressRepository.deleteAll(toDelete);
-        }
-        if (!toSave.isEmpty()) {
-            missionProgressRepository.saveAll(toSave);
         }
 
         return response
@@ -180,13 +175,17 @@ public class MissionService {
         UserActionType type = mission.getUserActionType();
         String missionTitle = mission.getTitle();
         Space missionSpace = mission.getSpace();
-        String choreTitle = choreInstance.getChore().getTitle();
+        RegistrationType choreRegistrationType =
+            choreInstance.getChore().getRegistrationType();
+        String choreTitle = choreInstance.getTitleSnapshot();
         Space choreSpace = choreInstance.getChore().getSpace();
 
         return switch (type) {
             case COMPLETE_ANY_CHORE -> true;
-            case COMPLETE_CHORE -> qualifiesChoreTitle(missionTitle, choreTitle);
-            case COMPLETE_CHORE_WITH_SPACE -> missionSpace.equals(choreSpace);
+            case COMPLETE_CHORE -> choreRegistrationType == RegistrationType.CATEGORY
+            && qualifiesChoreTitle(missionTitle, choreTitle);
+            case COMPLETE_CHORE_WITH_SPACE -> choreRegistrationType == RegistrationType.SPACE
+                && missionSpace.equals(choreSpace);
             default -> false;
         };
     }
@@ -213,9 +212,10 @@ public class MissionService {
         MissionProgress missionProgress, ChoreInstance choreInstance,
         List<MissionProgress> toSave, UserMission counterUserMission) {
 
-        if (missionProgress != null || userMission.isAlreadyCompleted()) return;
+        if (missionProgress != null || userMission.getIsCompleted()) return;
 
         boolean missionCompleted = userMission.incrementCount();
+
         toSave.add(MissionProgress.builder()
             .userMission(userMission)
             .choreInstance(choreInstance)
@@ -228,6 +228,8 @@ public class MissionService {
                 .choreInstance(choreInstance)
                 .build());
         }
+
+        missionProgressRepository.saveAll(toSave);
 
         if(missionCompleted){
             userBadgeStatsService.incrementMissionCount(userMission.getUser().getId());
@@ -256,6 +258,8 @@ public class MissionService {
                 toDelete.add(counterMissionProgress);
             }
         }
+
+        missionProgressRepository.deleteAll(toDelete);
     }
 
     @Transactional
@@ -277,7 +281,7 @@ public class MissionService {
             return List.of();
         }
 
-        if (userMission.isAlreadyCompleted()) {
+        if (userMission.getIsCompleted()) {
             return List.of();
         }
 

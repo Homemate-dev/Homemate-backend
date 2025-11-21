@@ -12,6 +12,7 @@ import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
+import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
@@ -82,6 +83,9 @@ public class ChoreService {
                 enableUserNotificationSetting(userId);
         }
 
+        RegistrationType registrationType =
+            request.getRecommendYn() ? RegistrationType.RECOMMEND : RegistrationType.MANUAL;
+
         Chore chore = Chore.builder()
             .user(userReference)
             .title(request.getTitle())
@@ -93,6 +97,7 @@ public class ChoreService {
             .startDate(request.getStartDate())
             .endDate(endDate)
             .isDeleted(false)
+            .registrationType(registrationType)
             .build();
 
         Chore savedChore = choreRepository.save(chore);
@@ -194,6 +199,7 @@ public class ChoreService {
             .repeatInterval(request.getRepeatInterval())
             .startDate(request.getStartDate())
             .endDate(request.getEndDate())
+            .recommendYn(request.getRecommendYn())
             .build());
     }
 
