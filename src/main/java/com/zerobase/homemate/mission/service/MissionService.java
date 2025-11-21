@@ -1,7 +1,6 @@
 package com.zerobase.homemate.mission.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
-import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.Mission;
