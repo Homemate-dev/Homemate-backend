@@ -32,6 +32,7 @@ public class BadgeService {
                 case MISSION -> badgeMap.put(type, new MissionBadgeCondition(type.getRequireCount(), userBadgeStatsService));
                 case TITLE -> badgeMap.put(type, new NameBadgeCondition(type.getChoreTitle(), type.getRequireCount(), userBadgeStatsService));
                 case SPACE -> badgeMap.put(type, new SpaceBadgeCondition(type.getSpace(), type.getRequireCount(), userBadgeStatsService));
+                case ALL -> badgeMap.put(type, new TotalBadgeCondition(type.getRequireCount(), userBadgeStatsService));
                 default -> {}
             }
         }
@@ -46,10 +47,14 @@ public class BadgeService {
     public void evaluateBadges(User user, Chore chore) {
 
         userBadgeStatsService.incrementTotalCompleted(user.getId());
-        if(chore.getSpace() != null) userBadgeStatsService.incrementSpaceCount(user.getId(), chore.getSpace());
-        if(chore.getTitle() != null) userBadgeStatsService.incrementTitleCount(user.getId(), chore.getTitle());
-        // Mission 여부 확인
-        if(isMissionChore(chore)) userBadgeStatsService.incrementMissionCount(user.getId());
+        if(chore.getSpace() != null) {
+            userBadgeStatsService.incrementSpaceCount(user.getId(), chore.getSpace());
+            System.out.println("SpaceCount increment : " + chore.getSpace().name());
+        }
+        if(chore.getTitle() != null) {
+            userBadgeStatsService.incrementTitleCount(user.getId(), chore.getTitle());
+            System.out.println("titleCount increment : " + chore.getTitle());
+        }
 
         // DB에서 이미 획득한 Badge 조회
         Set<BadgeType> acquired = badgeRepository.findAllByUserId(user.getId())

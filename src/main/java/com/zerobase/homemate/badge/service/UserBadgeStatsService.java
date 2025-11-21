@@ -50,7 +50,7 @@ public class UserBadgeStatsService {
         String key =  String.format(SPACE_KEY_FORMAT, userId);
         setLastUpdated(userId, Instant.now().getEpochSecond());
 
-        redisTemplate.opsForHash().increment(key, space, 1);
+        redisTemplate.opsForHash().increment(key, space.name(), 1);
     }
 
     public void incrementTitleCount(Long userId, String title){
@@ -77,7 +77,7 @@ public class UserBadgeStatsService {
     }
 
     public long getSpaceCount(Long userId, Space space){
-        Object v = redisTemplate.opsForHash().get(String.format(SPACE_KEY_FORMAT, userId), space);
+        Object v = redisTemplate.opsForHash().get(String.format(SPACE_KEY_FORMAT, userId), space.name());
         return parseLongSafe(v);
     }
 

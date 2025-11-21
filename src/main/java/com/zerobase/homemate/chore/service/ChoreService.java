@@ -121,7 +121,6 @@ public class ChoreService {
         }
 
         redisChoreStatsService.increment(null, request.getSpace());
-        userBadgeStatsService.incrementTotalRegistered(userId);
         badgeService.evaluateBadgesOnCreate(chore.getUser());
 
         return ApiResponse.<ChoreDto.Response>builder()
