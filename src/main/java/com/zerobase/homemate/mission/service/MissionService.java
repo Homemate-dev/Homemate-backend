@@ -37,7 +37,6 @@ public class MissionService {
     private final UserMissionRepository userMissionRepository;
     private final MissionAssignmentService missionAssignmentService;
     private final MissionProgressRepository missionProgressRepository;
-    private final UserBadgeStatsService userBadgeStatsService;
     private final BadgeService badgeService;
     private final CategoryChoreRepository categoryChoreRepository;
 
@@ -230,8 +229,7 @@ public class MissionService {
         }
 
         if(missionCompleted){
-            userBadgeStatsService.incrementMissionCount(userMission.getUser().getId());
-            badgeService.evaluateBadges(userMission.getUser(), choreInstance.getChore());
+            badgeService.evaluateBadgesMission(userMission.getUser());
         }
     }
 

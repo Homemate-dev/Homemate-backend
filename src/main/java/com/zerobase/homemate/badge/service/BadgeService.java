@@ -6,9 +6,7 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.BadgeCategory;
 import com.zerobase.homemate.entity.enums.BadgeType;
-import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.repository.BadgeRepository;
-import com.zerobase.homemate.repository.CategoryChoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +20,6 @@ public class BadgeService {
 
     private final BadgeRepository badgeRepository;
     private final UserBadgeStatsService userBadgeStatsService;
-    private final CategoryChoreRepository categoryChoreRepository;
 
     private Map<BadgeType, BadgeCondition> conditionCache(){
         Map<BadgeType, BadgeCondition> badgeMap = new HashMap<>();
@@ -39,9 +36,30 @@ public class BadgeService {
         return badgeMap;
     }
 
+    /*
+    미션 완료 시 배지 평가
+     */
+    @Transactional
+    public void evaluateBadgesMission(User user){
+        userBadgeStatsService.incrementMissionCount(user.getId());
+
+        long currentCount = userBadgeStatsService.getTotalMissionCount(user.getId());
+
+        List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
+                .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
+                .filter(type -> type.getCategory() == BadgeCategory.MISSION)
+                .filter(type -> currentCount >= type.getRequireCount())
+                .map(type -> new Badge(user, type))
+                .toList();
+
+        if(!badgesToSave.isEmpty()){
+            badgeRepository.saveAll(badgesToSave);
+        }
+    }
+
 
     /*
-    집안일 완료 시 배지 평가
+    공간별, 이름별 집안일 완료 시 배지 평가
      */
     @Transactional
     public void evaluateBadges(User user, Chore chore) {
@@ -82,9 +100,12 @@ public class BadgeService {
 
         userBadgeStatsService.incrementTotalRegistered(user.getId());
 
+        long currentRegisterCount = userBadgeStatsService.getTotalRegisteredCount(user.getId());
+
         List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
                 .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
                 .filter(type -> type.getCategory() == BadgeCategory.REGISTER)
+                .filter(type -> currentRegisterCount >= type.getRequireCount())
                 .map(type -> new Badge(user, type))
                 .toList();
 
@@ -132,13 +153,6 @@ public class BadgeService {
                 .sorted(Comparator.comparingInt(BadgeProgressResponse::remainingCount)) // 남은 횟수 적은 순
                 .limit(3)
                 .toList();
-    }
-
-
-    private boolean isMissionChore(Chore chore){
-        return categoryChoreRepository.findByTitle(chore.getTitle())
-                .stream()
-                .anyMatch(cc -> cc.getCategory() == Category.MISSIONS);
     }
 
     public long getCountByCategory(Long userId, BadgeType type) {

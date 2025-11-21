@@ -5,7 +5,6 @@ import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.repository.BadgeRepository;
-import com.zerobase.homemate.repository.CategoryChoreRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,9 +30,8 @@ class BadgeServiceTest {
     void setUp() {
         badgeRepository = mock(BadgeRepository.class);
         userBadgeStatsService = mock(UserBadgeStatsService.class);
-        CategoryChoreRepository categoryChoreRepository = mock(CategoryChoreRepository.class);
 
-        badgeService = new BadgeService(badgeRepository, userBadgeStatsService, categoryChoreRepository);
+        badgeService = new BadgeService(badgeRepository, userBadgeStatsService);
 
         user = User.builder()
                 .id(1L)
@@ -117,5 +115,27 @@ class BadgeServiceTest {
 
         // then
         assertTrue(closest.stream().allMatch(b -> !b.acquired() || b.remainingCount() == 0));
+    }
+
+    @Test
+    @DisplayName("미션 배지 획득 테스트")
+    void evaluateBadgesMission_shouldAwardMissionBadges() {
+        // given
+        when(badgeRepository.existsByUserAndBadgeType(user, BadgeType.SEED_MISSION))
+                .thenReturn(false);
+
+        when(userBadgeStatsService.getTotalMissionCount(user.getId()))
+                .thenReturn(10L);  // 예: 미션 10회 완료 시 SEED_MISSION 부여 조건 충족
+
+        // when
+        badgeService.evaluateBadgesMission(user);
+
+        // then
+        ArgumentCaptor<List<Badge>> captor = ArgumentCaptor.forClass(List.class);
+        verify(badgeRepository).saveAll(captor.capture());
+
+        List<Badge> saved = captor.getValue();
+        assertTrue(saved.stream()
+                .anyMatch(b -> b.getBadgeType() == BadgeType.SEED_MISSION));
     }
 }
