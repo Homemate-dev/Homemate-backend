@@ -1,7 +1,6 @@
 package com.zerobase.homemate.chore.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
-import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreCounts;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
@@ -51,7 +50,6 @@ public class ChoreService {
     private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final RedisChoreStatsService redisChoreStatsService;
     private final BadgeService badgeService;
-    private final UserBadgeStatsService userBadgeStatsService;
 
     @Transactional
     public ApiResponse<ChoreDto.Response> createChores(Long userId,
