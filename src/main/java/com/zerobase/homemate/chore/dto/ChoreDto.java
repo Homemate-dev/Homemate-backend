@@ -1,6 +1,7 @@
 package com.zerobase.homemate.chore.dto;
 
 import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.mission.dto.MissionDto;
@@ -47,6 +48,9 @@ public class ChoreDto {
 
         @NotNull(message = "종료 일자는 필수입니다")
         private LocalDate endDate;
+
+        @NotNull(message = "등록 경로는 필수입니다")
+        private Boolean recommendYn;
     }
 
     @NoArgsConstructor
@@ -80,6 +84,7 @@ public class ChoreDto {
         private LocalDate endDate;
         private Boolean isDeleted;
         private Space space;
+        private RegistrationType registrationType;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private LocalDateTime deletedAt;
@@ -96,6 +101,7 @@ public class ChoreDto {
                 .startDate(chore.getStartDate())
                 .endDate(chore.getEndDate())
                 .isDeleted(chore.getIsDeleted())
+                .registrationType(chore.getRegistrationType())
                 .createdAt(chore.getCreatedAt())
                 .updatedAt(chore.getUpdatedAt())
                 .deletedAt(chore.getDeletedAt())

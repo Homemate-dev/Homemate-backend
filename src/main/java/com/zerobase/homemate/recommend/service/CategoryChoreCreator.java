@@ -3,6 +3,7 @@ package com.zerobase.homemate.recommend.service;
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.*;
+import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
@@ -23,7 +24,6 @@ import java.time.LocalTime;
 import java.util.List;
 
 import static com.zerobase.homemate.util.ChoreDateUtils.calculateEndDate;
-
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +52,6 @@ public class CategoryChoreCreator {
         CategoryChore template = categoryChoreRepository.findById(categoryChoreId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
-
         // 3. 동일한 집안일 찾기 (title 기준)
         SpaceChore matchedSpaceChore = spaceChoreRepository.findByTitleKo(template.getTitle())
                 .orElse(null);
@@ -63,8 +62,6 @@ public class CategoryChoreCreator {
         // 5. 사용자 설정으로부터 Notification 여부, notification time의 기본 설정을 가져온다.
         UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
                 .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(19, 0)));
-
-
 
         // 4. Chore 생성
         Chore chore = Chore.builder()
@@ -82,6 +79,7 @@ public class CategoryChoreCreator {
                 .notificationYn(setting.isChoreEnabled())
                 .notificationTime(setting.getNotificationTime())
                 .isDeleted(false)
+                .registrationType(RegistrationType.CATEGORY)
                 .build();
 
         // 5. 저장
@@ -96,8 +94,6 @@ public class CategoryChoreCreator {
         // 6. 반복 인스턴스 생성
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
-
-
 
         for(ChoreInstance instance : instances){
             eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(chore.getUser().getId(),

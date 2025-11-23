@@ -4,6 +4,7 @@ import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -51,7 +52,6 @@ public class SpaceChoreCreator {
         SpaceChore template = spaceChoreRepository.findById(spaceChoreId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
-
         // 4. 사용자 설정으로부터 Notification 여부, notification time의 Chore에 대한 기본 설정을 가져오기
         UserNotificationSetting setting = userNotificationSettingRepository.findByUserId(userId)
                 .orElse(UserNotificationSetting.createDefault(user, LocalTime.of(19, 0)));
@@ -72,6 +72,7 @@ public class SpaceChoreCreator {
                 .notificationYn(setting.isChoreEnabled())
                 .notificationTime(setting.getNotificationTime())
                 .isDeleted(false)
+                .registrationType(RegistrationType.SPACE)
                 .build();
 
         Chore saved = choreRepository.save(chore);
@@ -83,7 +84,6 @@ public class SpaceChoreCreator {
 
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
-
 
         CategoryChore matchedCategoryChore = categoryChoreRepository.findByTitle(template.getTitleKo())
                 .orElse(null);
@@ -100,7 +100,6 @@ public class SpaceChoreCreator {
                     chore.getRepeatType()));
         }
 
-
         List<MissionDto.Response> userMission =
                 missionService.increaseMissionCountForAction(userId,
                                 UserActionType.CREATE_CHORE_WITH_SPACE)
@@ -113,5 +112,4 @@ public class SpaceChoreCreator {
                 .missionResults(userMission)
                 .build();
     }
-
 }
