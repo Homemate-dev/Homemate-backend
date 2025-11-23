@@ -56,7 +56,7 @@ public class ChoreStatsServiceTest {
         when(redisChoreStatsService.getCategoryStats()).thenReturn(categoryCounts);
 
         // when
-        List<TopItemDto> result = choreStatsService.getTopOverallWithMissions(userId, 5);
+        List<TopItemDto> result = choreStatsService.getTopOverallWithMissions(userId);
 
         // then
         assertEquals(6, result.size()); // 미션 + Top5

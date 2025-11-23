@@ -89,7 +89,7 @@ public class RecommendControllerTest {
                 new TopItemDto("주방", Category.TEN_MINUTES_CLEANING, 2L)
         );
 
-        when(choreStatsService.getTopOverallWithMissions(userId, 5))
+        when(choreStatsService.getTopOverallWithMissions(userId))
                 .thenReturn(topList);
 
         // when & then
@@ -110,7 +110,7 @@ public class RecommendControllerTest {
                 .andExpect(jsonPath("$[1].count").value(8))
                 .andExpect(jsonPath("$[2].count").value(6));
 
-        verify(choreStatsService, times(1)).getTopOverallWithMissions(userId, 5);
+        verify(choreStatsService, times(1)).getTopOverallWithMissions(userId);
     }
 
 

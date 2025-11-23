@@ -22,7 +22,7 @@ public class ChoreStatsService {
     private final CategoryChoreRepository categoryChoreRepository;
     private final MissionService missionService;
 
-    public List<TopItemDto> getTopOverallWithMissions(Long userId, int topN){
+    public List<TopItemDto> getTopOverallWithMissions(Long userId){
 
         // 1. Redis 집계 가져오기
         Map<String, Long> categoryCounts = redisChoreStatsService.getCategoryStats();
@@ -44,7 +44,6 @@ public class ChoreStatsService {
         // 4. 나머지 TOP N
         topOverall.stream()
                 .filter(name -> !Category.MISSIONS.name().equals(name))
-                .limit(topN)
                 .forEach(code -> {
                     try {
                         Category category = Category.valueOf(code);
