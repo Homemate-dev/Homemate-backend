@@ -67,11 +67,9 @@ public class BadgeService {
         userBadgeStatsService.incrementTotalCompleted(user.getId());
         if(chore.getSpace() != null) {
             userBadgeStatsService.incrementSpaceCount(user.getId(), chore.getSpace());
-            System.out.println("SpaceCount increment : " + chore.getSpace().name());
         }
         if(chore.getTitle() != null) {
             userBadgeStatsService.incrementTitleCount(user.getId(), chore.getTitle());
-            System.out.println("titleCount increment : " + chore.getTitle());
         }
 
         // DB에서 이미 획득한 Badge 조회
@@ -132,6 +130,10 @@ public class BadgeService {
             };
             all.add(BadgeProgressResponse.of(type, (int) currentCount, acquired.contains(type)));
         }
+
+        all.sort(Comparator.comparing(BadgeProgressResponse::acquired).reversed()
+                .thenComparing(BadgeProgressResponse::badgeTitle));
+
         return all;
     }
 
