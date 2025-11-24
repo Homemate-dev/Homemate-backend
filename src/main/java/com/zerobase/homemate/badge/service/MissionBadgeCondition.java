@@ -14,7 +14,7 @@ public class MissionBadgeCondition implements BadgeCondition{
     }
 
     @Override
-    public boolean matchesCondition(User user, Chore chore) {
+    public boolean matchesCondition(Chore chore) {
         Long userId = chore.getUser().getId();
         long completedCount = userBadgeStatsService.getTotalMissionCount(userId);
         return completedCount >= requiredCount;
