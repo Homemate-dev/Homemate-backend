@@ -37,8 +37,8 @@ public class BadgeService {
     }
 
     /*
-    미션 완료 시 배지 평가
-     */
+     미션 완료 시 배지 평가
+      */
     @Transactional
     public void evaluateBadgesMission(User user){
         userBadgeStatsService.incrementMissionCount(user.getId());
@@ -84,7 +84,7 @@ public class BadgeService {
         for(Map.Entry<BadgeType, BadgeCondition> entry : conditions.entrySet()){
             BadgeType type = entry.getKey();
             if(acquired.contains(type)) continue;
-            if(entry.getValue().matchesCondition(user, chore)){
+            if(entry.getValue().matchesCondition(chore)){
                 toSave.add(new Badge(user, type));
             }
         }
@@ -111,6 +111,7 @@ public class BadgeService {
             badgeRepository.saveAll(badgesToSave);
         }
     }
+
 
     // 유저의 획득한 배지 목록
     @Transactional(readOnly = true)
