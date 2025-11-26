@@ -1,210 +1,141 @@
 package com.zerobase.homemate.badge;
 
-
 import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
-import com.zerobase.homemate.mission.service.MissionAssignmentService;
-import com.zerobase.homemate.mission.service.MissionService;
-import com.zerobase.homemate.repository.*;
+import com.zerobase.homemate.repository.BadgeRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-class BadgeService30CompletionTest {
+class BadgeServiceTest {
 
     private BadgeRepository badgeRepository;
-    private UserRepository userRepository;
     private UserBadgeStatsService userBadgeStatsService;
     private BadgeService badgeService;
-    private MissionService missionService;
-    private MissionRepository missionRepository;
-    private UserMissionRepository userMissionRepository;
-    private MissionAssignmentService missionAssignmentService;
-    private MissionProgressRepository missionProgressRepository;
-    private CategoryChoreRepository categoryChoreRepository;
 
     private User user;
-    private UserMission userMission;
-    private ChoreInstance choreInstance;
-
 
     @BeforeEach
     void setUp() {
         badgeRepository = mock(BadgeRepository.class);
-        userRepository = mock(UserRepository.class);
         userBadgeStatsService = mock(UserBadgeStatsService.class);
-        badgeService = new BadgeService(badgeRepository, userRepository, userBadgeStatsService);
 
-        missionRepository = mock(MissionRepository.class);
-        userMissionRepository = mock(UserMissionRepository.class);
-        missionAssignmentService = mock(MissionAssignmentService.class);
-        missionProgressRepository = mock(MissionProgressRepository.class);
-        categoryChoreRepository = mock(CategoryChoreRepository.class);
-
-
-        missionService = new MissionService(
-                missionRepository,
-                userMissionRepository,
-                missionAssignmentService,
-                missionProgressRepository,
-                userBadgeStatsService,
-                badgeService,
-                categoryChoreRepository
-        );
+        badgeService = new BadgeService(badgeRepository, userBadgeStatsService);
 
         user = User.builder()
                 .id(1L)
-                .profileName("user")
+                .profileName("mockUser")
                 .userRole(UserRole.USER)
                 .userStatus(UserStatus.ACTIVE)
                 .build();
+    }
 
-        Mission mission = Mission.builder()
-                .id(1L)
-                .missionType(MissionType.USER_ACTION)
-                .build();
-
-        userMission = UserMission.builder()
-                .id(1L)
+    private Chore createChore(User user, Space space, String title) {
+        return Chore.builder()
                 .user(user)
-                .mission(mission)
-                .currentCount(29)
-                .build();
-
-        choreInstance = ChoreInstance.builder()
-                .id(100L)
+                .space(space)
+                .title(title)
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .notificationYn(true)
+                .notificationTime(LocalTime.of(19, 0))
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now())
                 .build();
     }
 
     @Test
-    void evaluateBadges_shouldAwardCompletedAndSpaceTitleBadges() {
+    @DisplayName("공간/제목 배지 획득 테스트")
+    void evaluateBadges_shouldAwardSpaceAndTitleBadges() {
         // given
-        BadgeType[] targetBadges = {
-                BadgeType.BEGINNER_BATHROOM, // 공간 배지
-                BadgeType.SEED_LAUNDRY       // 제목 배지
-        };
+        Chore bathroomChore = createChore(user, Space.BATHROOM, "샤워 후 물기 제거");
+        Chore laundryChore = createChore(user, Space.ETC, "빨래하기");
 
-        for (BadgeType badge : targetBadges) {
-            when(badgeRepository.existsByUserAndBadgeType(user, badge)).thenReturn(false);
-        }
+        when(badgeRepository.existsByUserAndBadgeType(user, BadgeType.BEGINNER_BATHROOM)).thenReturn(false);
+        when(badgeRepository.existsByUserAndBadgeType(user, BadgeType.SEED_LAUNDRY)).thenReturn(false);
 
-        Chore chore = Chore.builder()
-                .user(user)
-                .space(Space.BATHROOM)
-                .title("샤워 후 물기 제거하기")
-                .repeatType(RepeatType.DAILY)
-                .repeatInterval(1)
-                .notificationYn(true)
-                .notificationTime(LocalTime.of(19, 0))
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now())
-                .build();
-
-        Chore laundry = Chore.builder()
-                .user(user)
-                .space(Space.ETC)
-                .title("빨래하기")
-                .repeatType(RepeatType.DAILY)
-                .repeatInterval(1)
-                .notificationYn(true)
-                .notificationTime(LocalTime.of(19, 0))
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now())
-                .build();
-
-        // 완료/공간/제목 배지 기준 count 모킹
-        when(userBadgeStatsService.getCountByCategory(user.getId(), BadgeType.BEGINNER_BATHROOM)).thenReturn(30L);
         when(userBadgeStatsService.getSpaceCount(user.getId(), Space.BATHROOM)).thenReturn(30L);
-
-        when(userBadgeStatsService.getCountByCategory(user.getId(), BadgeType.SEED_LAUNDRY)).thenReturn(30L);
         when(userBadgeStatsService.getTitleCount(user.getId(), "빨래하기")).thenReturn(30L);
 
         // when
-        badgeService.evaluateBadges(chore.getUser(), chore);
-        badgeService.evaluateBadges(chore.getUser(), laundry);
+        badgeService.evaluateBadges(user, bathroomChore);
+        badgeService.evaluateBadges(user, laundryChore);
 
         // then
         ArgumentCaptor<List<Badge>> captor = ArgumentCaptor.forClass(List.class);
         verify(badgeRepository, atLeastOnce()).saveAll(captor.capture());
 
-        // 모든 saveAll 호출의 인자 리스트를 전부 가져오기
-        List<List<Badge>> allSavedLists = captor.getAllValues();
+        List<Badge> savedBadges = captor.getAllValues().stream().flatMap(List::stream).toList();
 
-        // 모든 호출에서 저장된 배지를 평탄화(flatten)
-        List<Badge> allSavedBadges = allSavedLists.stream()
-                .flatMap(List::stream)
-                .toList();
-
-        // 이제 통합된 리스트에서 원하는 배지가 있는지 검사
-        assertTrue(allSavedBadges.stream().anyMatch(b -> b.getBadgeType() == BadgeType.BEGINNER_BATHROOM));
-        assertTrue(allSavedBadges.stream().anyMatch(b -> b.getBadgeType() == BadgeType.SEED_LAUNDRY));
+        assertTrue(savedBadges.stream().anyMatch(b -> b.getBadgeType() == BadgeType.BEGINNER_BATHROOM));
+        assertTrue(savedBadges.stream().anyMatch(b -> b.getBadgeType() == BadgeType.SEED_LAUNDRY));
     }
 
     @Test
+    @DisplayName("등록 배지 획득 테스트")
     void evaluateBadgesOnCreate_shouldAwardRegisterBadges() {
         // given
-        BadgeType[] registerBadges = {
-                BadgeType.SMALL_J // 등록 배지
-        };
+        when(badgeRepository.existsByUserAndBadgeType(user, BadgeType.SMALL_J)).thenReturn(false);
+        when(userBadgeStatsService.getTotalRegisteredCount(user.getId())).thenReturn(30L);
 
-        for (BadgeType badge : registerBadges) {
-            when(badgeRepository.existsByUserAndBadgeType(user, badge)).thenReturn(false);
-        }
-        Chore chore = Chore.builder()
-                .title("설거지하기")
-                .createdAt(LocalDateTime.now())
-                .space(Space.KITCHEN)
-                .user(user)
-                .notificationYn(true)
-                .notificationTime(LocalTime.of(19, 0))
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now())
-                .repeatType(RepeatType.DAILY)
-                .repeatInterval(1)
-                .build();
-
-
-        when(userBadgeStatsService.getRegisterCount(user.getId())).thenReturn(30L);
         // when
-        badgeService.evaluateBadgesOnCreate(user, chore);
+        badgeService.evaluateBadgesOnCreate(user);
 
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class); // raw 타입 사용
+        // then
+        ArgumentCaptor<List<Badge>> captor = ArgumentCaptor.forClass(List.class);
         verify(badgeRepository, atLeastOnce()).saveAll(captor.capture());
 
-        List<Badge> savedBadges = (List<Badge>) captor.getValue(); // 캐스팅
+        List<Badge> savedBadges = captor.getValue();
         assertTrue(savedBadges.stream().anyMatch(b -> b.getBadgeType() == BadgeType.SMALL_J));
     }
 
     @Test
-    void getClosestBadges_shouldReturnRemainingAsZeroAfter30Completions() {
+    @DisplayName("Closest badges 반환 테스트")
+    void getClosestBadges_shouldReturnProperBadges() {
         // given
-        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
-        when(badgeRepository.findAllByUser(user)).thenReturn(Collections.emptyList());
-
-        when(userBadgeStatsService.getCount(user.getId())).thenReturn(30L);
+        when(userBadgeStatsService.getTotalCompletedCount(user.getId())).thenReturn(30L);
         when(userBadgeStatsService.getSpaceCount(user.getId(), Space.BATHROOM)).thenReturn(30L);
         when(userBadgeStatsService.getTitleCount(user.getId(), "빨래하기")).thenReturn(30L);
+
+        when(badgeRepository.findAllByUserId(user.getId())).thenReturn(List.of());
 
         // when
-        List<BadgeProgressResponse> closest = badgeService.getClosestBadges(1L);
+        List<BadgeProgressResponse> closest = badgeService.getClosestBadges(user.getId());
 
         // then
-        when(userBadgeStatsService.getCount(user.getId())).thenReturn(30L); // 전체 배지
-        when(userBadgeStatsService.getSpaceCount(user.getId(), Space.BATHROOM)).thenReturn(30L);
-        when(userBadgeStatsService.getTitleCount(user.getId(), "빨래하기")).thenReturn(30L);
-
+        assertTrue(closest.stream().allMatch(b -> !b.acquired() || b.remainingCount() == 0));
     }
 
+    @Test
+    @DisplayName("미션 배지 획득 테스트")
+    void evaluateBadgesMission_shouldAwardMissionBadges() {
+        // given
+        when(badgeRepository.existsByUserAndBadgeType(user, BadgeType.SEED_MISSION))
+                .thenReturn(false);
+
+        when(userBadgeStatsService.getTotalMissionCount(user.getId()))
+                .thenReturn(10L);  // 예: 미션 10회 완료 시 SEED_MISSION 부여 조건 충족
+
+        // when
+        badgeService.evaluateBadgesMission(user);
+
+        // then
+        ArgumentCaptor<List<Badge>> captor = ArgumentCaptor.forClass(List.class);
+        verify(badgeRepository).saveAll(captor.capture());
+
+        List<Badge> saved = captor.getValue();
+        assertTrue(saved.stream()
+                .anyMatch(b -> b.getBadgeType() == BadgeType.SEED_MISSION));
+    }
 }

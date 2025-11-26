@@ -167,7 +167,7 @@ public class SpaceChoreCreatorTest {
         verify(choreInstanceRepository, times(1)).saveAll(anyList());
         verify(redisChoreStatsService, times(1)).increment(any(), any());
         verify(missionService, times(1)).increaseMissionCountForAction(eq(userId), any());
-        verify(userBadgeStatsService, times(1)).incrementRegisterCount(userId);
+        verify(userBadgeStatsService, times(1)).incrementTotalRegistered(userId);
     }
 
 

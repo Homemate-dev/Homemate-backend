@@ -1,7 +1,6 @@
 package com.zerobase.homemate.mission.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
-import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.Mission;
@@ -38,7 +37,6 @@ public class MissionService {
     private final UserMissionRepository userMissionRepository;
     private final MissionAssignmentService missionAssignmentService;
     private final MissionProgressRepository missionProgressRepository;
-    private final UserBadgeStatsService userBadgeStatsService;
     private final BadgeService badgeService;
     private final CategoryChoreRepository categoryChoreRepository;
 
@@ -232,8 +230,7 @@ public class MissionService {
         missionProgressRepository.saveAll(toSave);
 
         if(missionCompleted){
-            userBadgeStatsService.incrementMissionCount(userMission.getUser().getId());
-            badgeService.evaluateBadges(userMission.getUser(), choreInstance.getChore());
+            badgeService.evaluateBadgesMission(userMission.getUser());
         }
     }
 
