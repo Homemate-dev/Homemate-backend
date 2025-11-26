@@ -56,10 +56,10 @@ public class ChoreStatsServiceTest {
         when(redisChoreStatsService.getCategoryStats()).thenReturn(categoryCounts);
 
         // when
-        List<TopItemDto> result = choreStatsService.getTopOverallWithMissions(userId, 5);
+        List<TopItemDto> result = choreStatsService.getTopOverallWithMissions(userId);
 
         // then
-        assertEquals(6, result.size()); // 미션 + Top5
+        assertEquals(7, result.size()); // 미션 + Top5
 
         // 첫 번째는 항상 미션
         assertEquals("미션 달성 집안일", result.get(0).name());
@@ -71,7 +71,8 @@ public class ChoreStatsServiceTest {
                 Category.TEN_MINUTES_CLEANING,   // 5
                 Category.WINTER,   // 4
                 Category.WEEKEND_WHOLE_ROUTINE,   // 3
-                Category.APPLIANCE_MAINTENANCE    // 2
+                Category.APPLIANCE_MAINTENANCE, // 2
+                Category.HOTEL_BATHROOM  // 1
         );
 
         for (int i = 0; i < expectedCategories.size(); i++) {
