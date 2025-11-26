@@ -2,12 +2,10 @@ package com.zerobase.homemate.notification.push.service;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.MulticastMessage;
-import com.google.firebase.messaging.Notification;
 import com.zerobase.homemate.entity.FcmToken;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.notification.push.dto.TokenWithIdDto;
 import com.zerobase.homemate.repository.FcmTokenRepository;
-import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -66,13 +64,9 @@ public class FcmPushService {
     }
 
     public void sendBatch(List<String> tokens, String title, String message) {
-        Notification notification = Notification.builder()
-                .setTitle(title)
-                .setBody(message)
-                .build();
-
         MulticastMessage fcmMessage = MulticastMessage.builder()
-                .setNotification(notification)
+                .putData("title", title)
+                .putData("body", message)
                 .addAllTokens(tokens)
                 .build();
 

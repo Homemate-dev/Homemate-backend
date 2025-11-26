@@ -104,7 +104,7 @@ public class ChoreNotificationCreateJob extends QuartzJobBean {
             try {
                 fcmPushService.send(user, title, message);
             } catch (Exception e) {
-                log.warn("Run ChoreNotificationJob: fcm push send failed - userId={}, choreInstanceId={}", userId, choreInstanceId);
+                log.error("Run ChoreNotificationJob: fcm push send failed - userId={}, choreInstanceId={}", userId, choreInstanceId, e);
             }
         }
     }
