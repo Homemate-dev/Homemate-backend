@@ -66,13 +66,9 @@ public class FcmPushService {
     }
 
     public void sendBatch(List<String> tokens, String title, String message) {
-        Notification notification = Notification.builder()
-                .setTitle(title)
-                .setBody(message)
-                .build();
-
         MulticastMessage fcmMessage = MulticastMessage.builder()
-                .setNotification(notification)
+                .putData("title", title)
+                .putData("body", message)
                 .addAllTokens(tokens)
                 .build();
 
