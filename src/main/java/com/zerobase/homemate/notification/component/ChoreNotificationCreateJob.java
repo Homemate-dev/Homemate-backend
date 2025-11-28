@@ -6,8 +6,8 @@ import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.notification.dto.ChoreNotificationCreateDto;
-import com.zerobase.homemate.notification.service.NotificationService;
 import com.zerobase.homemate.notification.push.service.FcmPushService;
+import com.zerobase.homemate.notification.service.NotificationService;
 import com.zerobase.homemate.repository.ChoreInstanceRepository;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import com.zerobase.homemate.repository.UserRepository;
@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -36,6 +37,7 @@ public class ChoreNotificationCreateJob extends QuartzJobBean {
     private final FcmPushService fcmPushService;
     private final NotificationMessageGenerator notificationMessageGenerator;
 
+    @Transactional
     @Override
     public void executeInternal(JobExecutionContext context) throws JobExecutionException {
         JobDataMap jobDataMap = context.getMergedJobDataMap();
@@ -101,8 +103,13 @@ public class ChoreNotificationCreateJob extends QuartzJobBean {
         }
 
         if (userNotificationSetting.isChoreEnabled()) {
+            String taskType = choreInstance.getChore()
+                    .getRegistrationType()
+                    .toString()
+                    .toLowerCase();
+
             try {
-                fcmPushService.send(user, title, message);
+                fcmPushService.sendNotificationPush(user, title, message, taskType);
             } catch (Exception e) {
                 log.error("Run ChoreNotificationJob: fcm push send failed - userId={}, choreInstanceId={}", userId, choreInstanceId, e);
             }

@@ -8,10 +8,13 @@ import com.zerobase.homemate.notification.push.dto.TokenWithIdDto;
 import com.zerobase.homemate.repository.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -21,9 +24,12 @@ public class FcmPushService {
     public static final int DB_BATCH_SIZE = 2000;
     public static final int FCM_BATCH_SIZE = 500;
 
+    @Value("${frontend.domain}")
+    private String domain;
+
     private final FcmTokenRepository fcmTokenRepository;
 
-    public void send(User user, String title, String message) {
+    public void sendNotificationPush(User user, String title, String message, String taskType) {
         List<FcmToken> list = fcmTokenRepository.findAllByUserAndIsActiveTrue(user);
         List<String> tokens = list.stream().map(FcmToken::getToken).toList();
 
@@ -32,10 +38,14 @@ public class FcmPushService {
             return;
         }
 
-        sendBatch(tokens, title, message);
+        String url = buildUrl(taskType);
+        Map<String, String> dataMap = Map.of("title", title, "message", message, "url", url);
+
+        sendBatch(tokens, dataMap);
     }
 
     public void sendGlobal(String title, String message) {
+        Map<String, String> dataMap = Map.of("title", title, "message", message);
         long lastId = 0L;
 
         while (true) {
@@ -46,7 +56,7 @@ public class FcmPushService {
                 sendBuffer.add(t.token());
 
                 if (sendBuffer.size() >= FCM_BATCH_SIZE) {
-                    sendBatch(sendBuffer, title, message);
+                    sendBatch(sendBuffer, dataMap);
                     sendBuffer.clear();
                 }
 
@@ -54,7 +64,7 @@ public class FcmPushService {
             }
 
             if (!sendBuffer.isEmpty()) {
-                sendBatch(sendBuffer, title, message);
+                sendBatch(sendBuffer, dataMap);
             }
 
             if (list.size() < DB_BATCH_SIZE) {
@@ -63,14 +73,20 @@ public class FcmPushService {
         }
     }
 
-    public void sendBatch(List<String> tokens, String title, String message) {
+    public void sendBatch(List<String> tokens, Map<String, String> dataMap) {
         MulticastMessage fcmMessage = MulticastMessage.builder()
-                .putData("title", title)
-                .putData("body", message)
+                .putAllData(dataMap)
                 .addAllTokens(tokens)
                 .build();
 
         FirebaseMessaging instance = FirebaseMessaging.getInstance();
         instance.sendEachForMulticastAsync(fcmMessage);
+    }
+
+    private String buildUrl(String taskType) {
+        return UriComponentsBuilder.fromUriString(domain)
+                .queryParam("from_push", 1)
+                .queryParam("task_type", taskType)
+                .toUriString();
     }
 }
