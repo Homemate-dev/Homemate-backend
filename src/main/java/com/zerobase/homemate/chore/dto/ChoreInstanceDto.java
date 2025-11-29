@@ -2,6 +2,7 @@ package com.zerobase.homemate.chore.dto;
 
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
+import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ public class ChoreInstanceDto {
         private ChoreStatus choreStatus;
         private RepeatType repeatType;
         private Integer repeatInterval;
+        private RegistrationType registrationType;
         private LocalDateTime completedAt;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
@@ -40,6 +42,7 @@ public class ChoreInstanceDto {
                 .choreStatus(choreInstance.getChoreStatus())
                 .repeatType(choreInstance.getChore().getRepeatType())
                 .repeatInterval(choreInstance.getChore().getRepeatInterval())
+                .registrationType(choreInstance.getChore().getRegistrationType())
                 .completedAt(choreInstance.getCompletedAt())
                 .createdAt(choreInstance.getCreatedAt())
                 .updatedAt(choreInstance.getUpdatedAt())
