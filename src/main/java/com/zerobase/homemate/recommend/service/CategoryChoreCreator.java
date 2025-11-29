@@ -1,5 +1,6 @@
 package com.zerobase.homemate.recommend.service;
 
+import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.*;
@@ -40,6 +41,7 @@ public class CategoryChoreCreator {
     private final MissionService missionService;
     private final UserBadgeStatsService userBadgeStatsService;
     private final ApplicationEventPublisher eventPublisher;
+    private final BadgeService badgeService;
 
     @Transactional
     public ChoreDto.ApiResponse<ChoreDto.Response> createChoreFromCategory(Long userId,
@@ -109,6 +111,13 @@ public class CategoryChoreCreator {
                 missionService.increaseMissionCountForAction(userId,
                                 UserActionType.CREATE_CHORE_RECOMMENDED)
                         .stream().filter(MissionDto.Response::isCompleted).toList();
+
+
+        if(!userMission.isEmpty()){
+            for (MissionDto.Response mission : userMission) {
+                badgeService.evaluateBadgesMission(user);
+            }
+        }
 
         userBadgeStatsService.incrementTotalRegistered(userId);
 
