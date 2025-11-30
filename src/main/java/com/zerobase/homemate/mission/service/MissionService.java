@@ -25,14 +25,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-@Slf4j
 public class MissionService {
 
     private final MissionRepository missionRepository;
@@ -193,12 +191,10 @@ public class MissionService {
     public boolean qualifiesChoreTitle(String missionTitle, String choreTitle) {
         if (missionTitle == null || choreTitle == null) return false;
 
-        log.info("choreTitle : {}", choreTitle);
 
         missionTitle = missionTitle.replaceAll("\\s+", "");
         choreTitle = choreTitle.replaceAll("\\s+", "");
 
-        log.info("after replaced choreTitle : {}", choreTitle);
 
         Set<Character> missionChars = missionTitle.chars()
             .mapToObj(c -> (char) c)
