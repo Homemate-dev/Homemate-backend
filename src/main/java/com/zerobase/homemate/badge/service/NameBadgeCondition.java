@@ -1,11 +1,10 @@
 package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.entity.Chore;
-import lombok.Getter;
 
 public class NameBadgeCondition implements BadgeCondition {
 
-    @Getter
+
     private final String keyword;
     private final int requiredCount;
     private final UserBadgeStatsService userBadgeStatsService;

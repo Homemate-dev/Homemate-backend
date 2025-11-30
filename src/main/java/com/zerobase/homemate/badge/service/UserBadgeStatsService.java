@@ -59,10 +59,7 @@ public class UserBadgeStatsService {
         String key = String.format(TITLE_KEY_FORMAT, userId);
         setLastUpdated(userId, Instant.now().getEpochSecond());
 
-        Long after = redisTemplate.opsForHash().increment(key, title, 1);
-
-        log.info("[TitleCount] userId={}, title='{}', afterIncrement={}",
-                userId, title, after);
+        redisTemplate.opsForHash().increment(key, title, 1);
     }
 
     // get Count Method

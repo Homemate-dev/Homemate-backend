@@ -66,14 +66,11 @@ public class BadgeService {
     @Transactional
     public void evaluateBadges(User user, Chore chore) {
 
-        log.info("Badge 평가 시작 - choreTitle: [{}]", chore.getTitle());
-
         userBadgeStatsService.incrementTotalCompleted(user.getId());
         if(chore.getSpace() != null) {
             userBadgeStatsService.incrementSpaceCount(user.getId(), chore.getSpace());
         }
         if(chore.getTitle() != null) {
-            log.info("title is not null : {}", chore.getTitle());
             userBadgeStatsService.incrementTitleCount(user.getId(), chore.getTitle());
         }
 
@@ -93,14 +90,6 @@ public class BadgeService {
             if(acquired.contains(type)) continue;
 
             if(condition.matchesCondition(chore)){
-                // NameBadgeCondition이면 keyword 가져와서 로그 찍기
-                if (condition instanceof NameBadgeCondition nbc) {
-                    log.info("Badge 획득 조건 충족! type: {}, missionTitle: [{}], choreTitle: [{}]",
-                            type, nbc.getKeyword(), chore.getTitle());
-                } else {
-                    log.info("Badge 획득 조건 충족! type: {}, choreTitle: [{}]", type, chore.getTitle());
-                }
-
                 toSave.add(new Badge(user, type));
             }
         }
