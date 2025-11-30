@@ -8,6 +8,7 @@ import com.zerobase.homemate.entity.enums.BadgeCategory;
 import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.repository.BadgeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BadgeService {
 
     private final BadgeRepository badgeRepository;
@@ -64,6 +66,8 @@ public class BadgeService {
     @Transactional
     public void evaluateBadges(User user, Chore chore) {
 
+        log.info("Badge 평가 시작 - choreTitle: [{}]", chore.getTitle());
+
         userBadgeStatsService.incrementTotalCompleted(user.getId());
         if(chore.getSpace() != null) {
             userBadgeStatsService.incrementSpaceCount(user.getId(), chore.getSpace());
@@ -84,7 +88,14 @@ public class BadgeService {
         for(Map.Entry<BadgeType, BadgeCondition> entry : conditions.entrySet()){
             BadgeType type = entry.getKey();
             if(acquired.contains(type)) continue;
+            // logger 추가: 조건 평가 직전
+            log.info("Badge 평가 중 - type: {}, missionTitle: [{}], choreTitle: [{}]",
+                    type,
+                    entry.getValue(),
+                    chore.getTitle());
+
             if(entry.getValue().matchesCondition(chore)){
+                log.info("Badge 획득 조건 충족! type: {}", type);
                 toSave.add(new Badge(user, type));
             }
         }
