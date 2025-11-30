@@ -236,10 +236,6 @@ public class ChoreService {
     public ApiResponse<ChoreInstanceDto.Response> completeChore(Long userId,
         Long choreInstanceId) {
 
-        log.info("completeChore 호출 - choreInstanceId: {}, userId: {}", choreInstanceId, userId);
-
-
-
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
