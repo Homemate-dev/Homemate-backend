@@ -73,6 +73,7 @@ public class BadgeService {
             userBadgeStatsService.incrementSpaceCount(user.getId(), chore.getSpace());
         }
         if(chore.getTitle() != null) {
+            log.info("title is not null : {}", chore.getTitle());
             userBadgeStatsService.incrementTitleCount(user.getId(), chore.getTitle());
         }
 
@@ -87,15 +88,19 @@ public class BadgeService {
         List<Badge> toSave = new ArrayList<>();
         for(Map.Entry<BadgeType, BadgeCondition> entry : conditions.entrySet()){
             BadgeType type = entry.getKey();
-            if(acquired.contains(type)) continue;
-            // logger 추가: 조건 평가 직전
-            log.info("Badge 평가 중 - type: {}, missionTitle: [{}], choreTitle: [{}]",
-                    type,
-                    entry.getValue(),
-                    chore.getTitle());
+            BadgeCondition condition = entry.getValue();
 
-            if(entry.getValue().matchesCondition(chore)){
-                log.info("Badge 획득 조건 충족! type: {}", type);
+            if(acquired.contains(type)) continue;
+
+            if(condition.matchesCondition(chore)){
+                // NameBadgeCondition이면 keyword 가져와서 로그 찍기
+                if (condition instanceof NameBadgeCondition nbc) {
+                    log.info("Badge 획득 조건 충족! type: {}, missionTitle: [{}], choreTitle: [{}]",
+                            type, nbc.getKeyword(), chore.getTitle());
+                } else {
+                    log.info("Badge 획득 조건 충족! type: {}, choreTitle: [{}]", type, chore.getTitle());
+                }
+
                 toSave.add(new Badge(user, type));
             }
         }

@@ -2,6 +2,7 @@ package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.entity.enums.Space;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -9,6 +10,7 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserBadgeStatsService {
 
     private final StringRedisTemplate redisTemplate;
@@ -57,7 +59,10 @@ public class UserBadgeStatsService {
         String key = String.format(TITLE_KEY_FORMAT, userId);
         setLastUpdated(userId, Instant.now().getEpochSecond());
 
-        redisTemplate.opsForHash().increment(key, title, 1);
+        Long after = redisTemplate.opsForHash().increment(key, title, 1);
+
+        log.info("[TitleCount] userId={}, title='{}', afterIncrement={}",
+                userId, title, after);
     }
 
     // get Count Method
