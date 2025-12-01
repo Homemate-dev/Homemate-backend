@@ -114,6 +114,9 @@ public class ChoreService {
 
         if(!userMission.isEmpty()){
             for (MissionDto.Response mission : userMission) {
+
+                log.info("Mission Done with CREATE_CHORE_MANUAL - user : {}, mission : {}", userId, mission.getId());
+
                 badgeService.evaluateBadgesMission(user);
             }
         }
