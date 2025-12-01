@@ -37,11 +37,11 @@ public enum BadgeType {
     EXPERT_LAUNDRY("뽀송 달인", "빨래하기 90회 완료",  null, "빨래하기", 90, BadgeCategory.TITLE, "expert_laundry.png"),
     MASTER_LAUNDRY("뽀송 마스터", "빨래하기 180회 완료", null, "빨래하기", 180, BadgeCategory.TITLE, "master_laundry.png"),
 
-    WATER_SPOTS_ERASER("물때 지우개", "거울/수전 물때 닦기 30회 완료",  null, "거울/수전 물때 닦기", 30, BadgeCategory.TITLE, "beginner_mirror.png"),
-    WATER_SPOTS_HUNTER("물때 사냥꾼", "거울/수전 물때 닦기 90회 완료",  null, "거울/수전 물때 닦기", 90, BadgeCategory.TITLE, "expert_mirror.png"),
-    WATER_SPOTS_DESTROYER("물때 박멸자", "거울/수전 물때 닦기 180회 완료", null, "거울/수전 물때 닦기", 180, BadgeCategory.TITLE, "master_mirror.png"),
+    WATER_SPOTS_ERASER("물때 지우개", "거울/수전 물 때 닦기 30회 완료",  null, "거울/수전 물 때 닦기", 30, BadgeCategory.TITLE, "beginner_mirror.png"),
+    WATER_SPOTS_HUNTER("물때 사냥꾼", "거울/수전 물 때 닦기 90회 완료",  null, "거울/수전 물 때 닦기", 90, BadgeCategory.TITLE, "expert_mirror.png"),
+    WATER_SPOTS_DESTROYER("물때 박멸자", "거울/수전 물 때 닦기 180회 완료", null, "거울/수전 물 때 닦기", 180, BadgeCategory.TITLE, "master_mirror.png"),
 
-    CHECK_FIRE_EXHAUSTER("우리집 소방관", "소화기 점검 2회 완료",  null, "소화기 점검", 2, BadgeCategory.TITLE, "beginner_fire_exhauster.png"),
+    CHECK_FIRE_EXHAUSTER("우리집 소방관", "소화기 점검 2회 완료",  null, "소화기 점검하기", 2, BadgeCategory.TITLE, "beginner_fire_exhauster.png"),
 
     BEGINNER_FAIRY("쓱쓱요정", "바닥 청소기 30회 완료",  null, "바닥 청소기 돌리기", 30, BadgeCategory.TITLE, "beginner_vacuum.png"),
     EXPERT_FAIRY("싹싹요정", "바닥 청소기 90회 완료", null,"바닥 청소기 돌리기", 90, BadgeCategory.TITLE, "expert_vacuum.png"),

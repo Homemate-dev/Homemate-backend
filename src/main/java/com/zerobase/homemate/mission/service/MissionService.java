@@ -191,8 +191,10 @@ public class MissionService {
     public boolean qualifiesChoreTitle(String missionTitle, String choreTitle) {
         if (missionTitle == null || choreTitle == null) return false;
 
+
         missionTitle = missionTitle.replaceAll("\\s+", "");
         choreTitle = choreTitle.replaceAll("\\s+", "");
+
 
         Set<Character> missionChars = missionTitle.chars()
             .mapToObj(c -> (char) c)

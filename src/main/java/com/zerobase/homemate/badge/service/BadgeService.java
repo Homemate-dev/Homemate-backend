@@ -83,8 +83,11 @@ public class BadgeService {
         List<Badge> toSave = new ArrayList<>();
         for(Map.Entry<BadgeType, BadgeCondition> entry : conditions.entrySet()){
             BadgeType type = entry.getKey();
+            BadgeCondition condition = entry.getValue();
+
             if(acquired.contains(type)) continue;
-            if(entry.getValue().matchesCondition(chore)){
+
+            if(condition.matchesCondition(chore)){
                 toSave.add(new Badge(user, type));
             }
         }

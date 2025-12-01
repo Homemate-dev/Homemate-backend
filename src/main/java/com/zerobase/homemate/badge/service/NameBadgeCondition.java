@@ -4,6 +4,7 @@ import com.zerobase.homemate.entity.Chore;
 
 public class NameBadgeCondition implements BadgeCondition {
 
+
     private final String keyword;
     private final int requiredCount;
     private final UserBadgeStatsService userBadgeStatsService;
@@ -26,4 +27,5 @@ public class NameBadgeCondition implements BadgeCondition {
         long completedCount = userBadgeStatsService.getTitleCount(chore.getUser().getId(), keyword);
         return completedCount >= requiredCount;
     }
+
 }

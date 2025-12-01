@@ -30,6 +30,7 @@ import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class ChoreService {
 
     private final ChoreRepository choreRepository;
@@ -233,10 +235,13 @@ public class ChoreService {
     @Transactional
     public ApiResponse<ChoreInstanceDto.Response> completeChore(Long userId,
         Long choreInstanceId) {
+
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
         Chore chore = choreInstance.getChore();
+
+        log.info("choreTitle: [{}]", chore.getTitle());
 
         if (!chore.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
