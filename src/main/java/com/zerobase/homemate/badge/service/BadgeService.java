@@ -8,14 +8,17 @@ import com.zerobase.homemate.entity.enums.BadgeCategory;
 import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.repository.BadgeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BadgeService {
 
     private final BadgeRepository badgeRepository;
@@ -52,8 +55,14 @@ public class BadgeService {
                 .map(type -> new Badge(user, type))
                 .toList();
 
+
         if(!badgesToSave.isEmpty()){
             badgeRepository.saveAll(badgesToSave);
+
+            for (Badge b : badgesToSave) {
+                log.info("Mission Badge Saved : type={}, acquiredAt={}", b.getBadgeType(), b.getAcquiredAt());
+            }
+
         }
     }
 
@@ -92,7 +101,13 @@ public class BadgeService {
             }
         }
 
-        if(!toSave.isEmpty()) badgeRepository.saveAll(toSave);
+        if(!toSave.isEmpty()){
+            badgeRepository.saveAll(toSave);
+            for (Badge b : toSave) {
+                log.info("badge Saved : type={}, acquiredAt={}", b.getBadgeType(), b.getAcquiredAt());
+            }
+
+        }
     }
 
     // 집안일 등록 시 호출
@@ -112,6 +127,10 @@ public class BadgeService {
 
         if(!badgesToSave.isEmpty()){
             badgeRepository.saveAll(badgesToSave);
+            for (Badge b : badgesToSave) {
+                log.info("Registration Badge Saved : type={}, acquiredAt={}", b.getBadgeType(), b.getAcquiredAt());
+            }
+
         }
     }
 
