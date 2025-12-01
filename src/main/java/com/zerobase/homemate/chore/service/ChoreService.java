@@ -108,6 +108,16 @@ public class ChoreService {
             userId, UserActionType.CREATE_CHORE_MANUAL)
                 .stream().filter(MissionDto.Response::isCompleted).toList();
 
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new CustomException(ErrorCode.USER_NOT_FOUND)
+        );
+
+        if(!userMission.isEmpty()){
+            for (MissionDto.Response mission : userMission) {
+                badgeService.evaluateBadgesMission(user);
+            }
+        }
+
         // 맞춤 알림 시간이 null일 경우 마이페이지 시간 -> 없으면 기본값(19:00) 사용
         LocalTime notificationTime = request.getNotificationTime();
         if (notificationTime == null) {
