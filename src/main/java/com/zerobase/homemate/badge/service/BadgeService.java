@@ -135,23 +135,32 @@ public class BadgeService {
     }
 
 
-    // 유저의 획득한 배지 목록
     @Transactional(readOnly = true)
     public List<BadgeProgressResponse> getAcquiredBadges(Long userId) {
-
-        Set<BadgeType> acquired = badgeRepository.findAllByUserId(userId)
-                .stream().map(Badge::getBadgeType).collect(Collectors.toSet());
+        // 유저가 획득한 배지를 Set으로 가져오기
+        Set<Badge> acquiredSet = new HashSet<>(badgeRepository.findAllByUserId(userId));
+        log.info("getAcquiredBadges - userId: {}, acquiredSet.size: {}", userId, acquiredSet.size());
 
         List<BadgeProgressResponse> all = new ArrayList<>();
-        for(BadgeType type : BadgeType.values()) {
-            long currentCount = switch(type.getCategory()) {
-                case ALL -> userBadgeStatsService.getTotalCompletedCount(userId);
-                case REGISTER -> userBadgeStatsService.getTotalRegisteredCount(userId);
-                case MISSION -> userBadgeStatsService.getTotalMissionCount(userId);
-                case TITLE -> userBadgeStatsService.getTitleCount(userId, type.getChoreTitle());
-                case SPACE -> userBadgeStatsService.getSpaceCount(userId, type.getSpace());
-            };
-            all.add(BadgeProgressResponse.of(type, (int) currentCount, acquired.contains(type)));
+        for (BadgeType type : BadgeType.values()) {
+            long currentCount = getCountByCategory(userId, type);
+
+            // 획득 여부와 acquiredAt 확인
+            Badge badge = acquiredSet.stream()
+                    .filter(b -> b.getBadgeType() == type)
+                    .findFirst()
+                    .orElse(null);
+
+            boolean acquired = badge != null;
+            LocalDateTime acquiredAt = acquired ? badge.getAcquiredAt() : null;
+
+            BadgeProgressResponse dto = BadgeProgressResponse.of(type, (int) currentCount, acquired, acquiredAt);
+            all.add(dto);
+
+            log.info(
+                    "Badge: {}, acquired: {}, acquiredAt: {}, currentCount: {}, requiredCount: {}, remainingCount: {}",
+                    type, acquired, acquiredAt, dto.currentCount(), dto.requiredCount(), dto.remainingCount()
+            );
         }
 
         all.sort(Comparator.comparing(BadgeProgressResponse::acquired).reversed()
@@ -160,25 +169,35 @@ public class BadgeService {
         return all;
     }
 
+
     // 아직 획득하지 못한 배지들 중 남은 횟수가 가장 적은 3개 리스트 반환
     @Transactional(readOnly = true)
     public List<BadgeProgressResponse> getClosestBadges(Long userId) {
-        // DB에서 이미 획득한 BadgeType 조회
-        Set<BadgeType> acquired = badgeRepository.findAllByUserId(userId).stream()
-                .map(Badge::getBadgeType)
-                .collect(Collectors.toSet());
+        Map<BadgeType, Badge> acquiredMap = badgeRepository.findAllByUserId(userId)
+                .stream()
+                .collect(Collectors.toMap(Badge::getBadgeType, b -> b));
+        log.info("getClosestBadges - userId: {}, acquiredMap.size: {}", userId, acquiredMap.size());
 
         return Arrays.stream(BadgeType.values())
                 .map(type -> {
                     int currentCount = (int) getCountByCategory(userId, type);
-                    boolean isAcquired = acquired.contains(type);
-                    return BadgeProgressResponse.of(type, currentCount, isAcquired);
+                    Badge badge = acquiredMap.get(type);
+                    boolean isAcquired = badge != null;
+                    LocalDateTime acquiredAt = isAcquired ? badge.getAcquiredAt() : null;
+
+                    BadgeProgressResponse dto = BadgeProgressResponse.of(type, currentCount, isAcquired, acquiredAt);
+                    log.info(
+                            "ClosestBadge candidate - Badge: {}, acquired: {}, acquiredAt: {}, currentCount: {}, requiredCount: {}, remainingCount: {}",
+                            type, isAcquired, acquiredAt, dto.currentCount(), dto.requiredCount(), dto.remainingCount()
+                    );
+                    return dto;
                 })
                 .filter(b -> !b.acquired()) // 아직 획득하지 않은 배지만
                 .sorted(Comparator.comparingInt(BadgeProgressResponse::remainingCount)) // 남은 횟수 적은 순
                 .limit(3)
                 .toList();
     }
+
 
     public long getCountByCategory(Long userId, BadgeType type) {
         return switch (type.getCategory()) {
