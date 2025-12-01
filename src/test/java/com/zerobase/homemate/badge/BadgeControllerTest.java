@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.BDDMockito.given;
@@ -38,7 +39,7 @@ class BadgeControllerTest {
         );
 
         given(badgeService.getAcquiredBadges(principal.id())).willReturn(
-                List.of(BadgeProgressResponse.of(BadgeType.START_HALF, 1, true))
+                List.of(BadgeProgressResponse.of(BadgeType.START_HALF, 1, true, LocalDateTime.now()))
         );
 
         mockMvc.perform(get("/badges/acquired"))
@@ -75,9 +76,9 @@ class BadgeControllerTest {
         );
 
         List<BadgeProgressResponse> mockList = List.of(
-                BadgeProgressResponse.of(BadgeType.EXPERT_BATHROOM, 2, false),
-                BadgeProgressResponse.of(BadgeType.EXPERT_FAIRY, 88, false),
-                BadgeProgressResponse.of(BadgeType.BEGINNER_KITCHEN, 25, false)
+                BadgeProgressResponse.of(BadgeType.EXPERT_BATHROOM, 2, false, null),
+                BadgeProgressResponse.of(BadgeType.EXPERT_FAIRY, 88, false, null),
+                BadgeProgressResponse.of(BadgeType.BEGINNER_KITCHEN, 25, false, null)
         );
 
         given(badgeService.getClosestBadges(principal.id()))
