@@ -2,11 +2,14 @@ package com.zerobase.homemate.badge;
 
 import com.zerobase.homemate.entity.enums.BadgeType;
 
+import java.time.LocalDateTime;
+
 public record BadgeProgressResponse (
         BadgeType badgeType,
         String badgeTitle,
         String description,
         boolean acquired,
+        LocalDateTime acquiredAt,
         int currentCount,
         int requiredCount,
         int remainingCount,
@@ -15,7 +18,8 @@ public record BadgeProgressResponse (
     public static BadgeProgressResponse of(
             BadgeType type,
             int currentCount,
-            boolean acquired
+            boolean acquired,
+            LocalDateTime acquiredAt
     ) {
         int targetCount = type.getRequireCount();
         int remainingCount = Math.max(0, targetCount - currentCount);
@@ -25,6 +29,7 @@ public record BadgeProgressResponse (
                 type.getBadgeName(),
                 type.getDescription(),
                 acquired,
+                acquiredAt,
                 currentCount,
                 type.getRequireCount(),
                 remainingCount,

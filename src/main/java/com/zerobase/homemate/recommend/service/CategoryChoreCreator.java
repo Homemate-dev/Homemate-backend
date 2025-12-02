@@ -16,6 +16,7 @@ import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.*;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ import static com.zerobase.homemate.util.ChoreDateUtils.calculateEndDate;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CategoryChoreCreator {
 
     private final UserRepository userRepository;
@@ -116,6 +118,8 @@ public class CategoryChoreCreator {
         if(!userMission.isEmpty()){
             for (MissionDto.Response mission : userMission) {
                 badgeService.evaluateBadgesMission(user);
+
+                log.info("Mission Done In CREATE_CHORE_RECOMMENDED : {}", mission.getTitle());
             }
         }
 
