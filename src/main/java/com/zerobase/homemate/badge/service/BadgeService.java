@@ -156,11 +156,6 @@ public class BadgeService {
 
             BadgeProgressResponse dto = BadgeProgressResponse.of(type, (int) currentCount, acquired, acquiredAt);
             all.add(dto);
-
-            log.info(
-                    "Badge: {}, acquired: {}, acquiredAt: {}, currentCount: {}, requiredCount: {}, remainingCount: {}",
-                    type, acquired, acquiredAt, dto.currentCount(), dto.requiredCount(), dto.remainingCount()
-            );
         }
 
         all.sort(Comparator.comparing(BadgeProgressResponse::acquired).reversed()
@@ -185,12 +180,7 @@ public class BadgeService {
                     boolean isAcquired = badge != null;
                     LocalDateTime acquiredAt = isAcquired ? badge.getAcquiredAt() : null;
 
-                    BadgeProgressResponse dto = BadgeProgressResponse.of(type, currentCount, isAcquired, acquiredAt);
-                    log.info(
-                            "ClosestBadge candidate - Badge: {}, acquired: {}, acquiredAt: {}, currentCount: {}, requiredCount: {}, remainingCount: {}",
-                            type, isAcquired, acquiredAt, dto.currentCount(), dto.requiredCount(), dto.remainingCount()
-                    );
-                    return dto;
+                    return BadgeProgressResponse.of(type, currentCount, isAcquired, acquiredAt);
                 })
                 .filter(b -> !b.acquired()) // 아직 획득하지 않은 배지만
                 .sorted(Comparator.comparingInt(BadgeProgressResponse::remainingCount)) // 남은 횟수 적은 순

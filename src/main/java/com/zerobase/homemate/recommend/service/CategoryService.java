@@ -19,6 +19,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class CategoryService {
 
     private final CategoryChoreRepository categoryChoreRepository;
@@ -66,6 +68,10 @@ public class CategoryService {
                 category,
                 Pageable.ofSize(DEFAULT_PAGE_SIZE)
         );
+
+        // 조회된 개수 로그 추가
+        log.info("getChoresByCategory - category: {}, fetched size: {}",
+                category, randomChores.size());
 
         return randomChores.stream()
                 .sorted(Comparator.comparingInt(categoryChore -> REPEAT_PRIORITY.get(categoryChore.getRepeatType())))
