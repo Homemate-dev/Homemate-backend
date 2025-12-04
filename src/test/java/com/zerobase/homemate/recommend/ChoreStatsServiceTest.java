@@ -1,11 +1,11 @@
 package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.mission.service.MissionService;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.recommend.service.stats.ChoreStatsService;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
+import com.zerobase.homemate.repository.MissionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,18 +22,18 @@ public class ChoreStatsServiceTest {
     private RedisChoreStatsService redisChoreStatsService;
     private ChoreStatsService choreStatsService;
     private CategoryChoreRepository categoryChoreRepository;
-    private MissionService missionService;
+    private MissionRepository missionRepository;
 
     @BeforeEach
     void setUp() {
         redisChoreStatsService = mock(RedisChoreStatsService.class);
         categoryChoreRepository = mock(CategoryChoreRepository.class);
-        missionService = mock(MissionService.class);
+        missionRepository = mock(MissionRepository.class);
 
         choreStatsService = new ChoreStatsService(
                 redisChoreStatsService,
                 categoryChoreRepository,
-                missionService
+                missionRepository
         );
     }
 
