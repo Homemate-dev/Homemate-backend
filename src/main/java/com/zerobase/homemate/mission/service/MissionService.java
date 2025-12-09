@@ -180,8 +180,9 @@ public class MissionService {
 
         return switch (type) {
             case COMPLETE_ANY_CHORE -> true;
-            case COMPLETE_CHORE -> choreRegistrationType == RegistrationType.CATEGORY
-            && qualifiesChoreTitle(missionTitle, choreTitle);
+            case COMPLETE_CHORE -> (choreRegistrationType == RegistrationType.CATEGORY
+                || choreRegistrationType == RegistrationType.SPACE)
+                && qualifiesChoreTitle(missionTitle, choreTitle);
             case COMPLETE_CHORE_WITH_SPACE -> choreRegistrationType == RegistrationType.SPACE
                 && missionSpace.equals(choreSpace);
             default -> false;
