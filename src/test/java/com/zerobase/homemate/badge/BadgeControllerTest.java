@@ -81,7 +81,7 @@ class BadgeControllerTest {
                 BadgeProgressResponse.of(BadgeType.BEGINNER_KITCHEN, 25, false, null)
         );
 
-        given(badgeService.getClosestBadges(principal.id()))
+        given(badgeService.getClosestBadgesCached(principal.id()))
                 .willReturn(mockList);
 
         mockMvc.perform(get("/badges/closest"))

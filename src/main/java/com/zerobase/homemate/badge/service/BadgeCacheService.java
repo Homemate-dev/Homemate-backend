@@ -31,10 +31,6 @@ public class BadgeCacheService {
     public List<BadgeProgressResponse> getCachedClosestBadges(Long userId){
         String redisKey = key(userId);
 
-        log.info("[REDIS] Template bean name = {}", redisTemplate.getClass().getName());
-        log.info("[REDIS] Connection factory = {}", redisTemplate.getConnectionFactory());
-
-
         log.info("[CACHE][READ] Try read key={} (userId={})", redisKey, userId);
 
         String json = redisTemplate.opsForValue().get(redisKey);
