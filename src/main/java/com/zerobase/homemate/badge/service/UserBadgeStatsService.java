@@ -2,6 +2,7 @@ package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.entity.enums.Space;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -9,6 +10,7 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserBadgeStatsService {
 
     private final StringRedisTemplate redisTemplate;
@@ -33,6 +35,10 @@ public class UserBadgeStatsService {
     }
 
     public void incrementTotalRegistered(Long userId){
+
+        log.info("[REDIS] Template bean name = {}", redisTemplate.getClass().getName());
+        log.info("[REDIS] Connection factory = {}", redisTemplate.getConnectionFactory());
+
         String key =  String.format(STATS_KEY_FORMAT, userId);
         setLastUpdated(userId, Instant.now().getEpochSecond());
 
@@ -105,4 +111,5 @@ public class UserBadgeStatsService {
             redisTemplate.opsForHash().put(key, FIELD_LAST_UPDATED, String.valueOf(epochSeconds));
         } catch (Exception ignored) {}
     }
+
 }

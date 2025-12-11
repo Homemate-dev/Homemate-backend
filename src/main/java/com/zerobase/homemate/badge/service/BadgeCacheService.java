@@ -19,6 +19,8 @@ public class BadgeCacheService {
     private final ObjectMapper objectMapper;
     private final StringRedisTemplate redisTemplate;
 
+
+
     private static final String KEY_PREFIX = "badge:closest:";
     private static final Duration TTL = Duration.ofSeconds(30); // 캐시 생명주기 30초
 
@@ -28,6 +30,10 @@ public class BadgeCacheService {
 
     public List<BadgeProgressResponse> getCachedClosestBadges(Long userId){
         String redisKey = key(userId);
+
+        log.info("[REDIS] Template bean name = {}", redisTemplate.getClass().getName());
+        log.info("[REDIS] Connection factory = {}", redisTemplate.getConnectionFactory());
+
 
         log.info("[CACHE][READ] Try read key={} (userId={})", redisKey, userId);
 
@@ -41,7 +47,8 @@ public class BadgeCacheService {
         try {
             List<BadgeProgressResponse> result = objectMapper.readValue(
                     json,
-                    new TypeReference<List<BadgeProgressResponse>>() {}
+                    new TypeReference<>() {
+                    }
             );
 
             log.info("[CACHE][HIT] key={} → size={}", redisKey, result.size());

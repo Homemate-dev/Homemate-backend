@@ -215,9 +215,13 @@ public class BadgeService {
         if (cached != null) {
             return cached;
         }
+        log.info("[DEBUG] MISS → 계산 시작(userId={})", userId);
 
         // 캐시가 없으면 계산
         List<BadgeProgressResponse> computed = getClosestBadges(userId);
+        log.info("[DEBUG] 계산 완료 → 결과 size={} (userId={})",
+                computed == null ? -1 : computed.size(), userId);
+
 
         // 캐시 저장
         badgeCacheService.cacheClosestBadges(userId, computed);
