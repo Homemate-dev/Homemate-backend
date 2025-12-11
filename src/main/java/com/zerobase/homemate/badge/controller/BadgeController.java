@@ -33,7 +33,7 @@ public class BadgeController {
     @GetMapping("/closest")
     public ResponseEntity<List<BadgeProgressResponse>> getClosestBadges(@AuthenticationPrincipal UserPrincipal userPrincipal){
 
-        List<BadgeProgressResponse> closest = badgeService.getClosestBadges(userPrincipal.id());
+        List<BadgeProgressResponse> closest = badgeService.getClosestBadgesCached(userPrincipal.id());
 
         return ResponseEntity.ok(closest);
     }

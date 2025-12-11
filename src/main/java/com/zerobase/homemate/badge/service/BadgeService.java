@@ -23,6 +23,7 @@ public class BadgeService {
 
     private final BadgeRepository badgeRepository;
     private final UserBadgeStatsService userBadgeStatsService;
+    private final BadgeCacheService badgeCacheService;
 
     private Map<BadgeType, BadgeCondition> conditionCache(){
         Map<BadgeType, BadgeCondition> badgeMap = new HashMap<>();
@@ -64,6 +65,8 @@ public class BadgeService {
             }
 
         }
+
+        badgeCacheService.evictClosestBadges(user.getId());
     }
 
 
@@ -108,6 +111,8 @@ public class BadgeService {
             }
 
         }
+
+        badgeCacheService.evictClosestBadges(user.getId());
     }
 
     // 집안일 등록 시 호출
@@ -132,6 +137,8 @@ public class BadgeService {
             }
 
         }
+
+        badgeCacheService.evictClosestBadges(user.getId());
     }
 
 
@@ -197,6 +204,29 @@ public class BadgeService {
             case SPACE -> userBadgeStatsService.getSpaceCount(userId, type.getSpace());
             case TITLE -> userBadgeStatsService.getTitleCount(userId, type.getChoreTitle());
         };
+    }
+
+    // Redis Caching Method (Front 호출 부탁)
+    @Transactional(readOnly = true)
+    public List<BadgeProgressResponse> getClosestBadgesCached(Long userId) {
+
+        // 캐시 먼저 확인
+        List<BadgeProgressResponse> cached = badgeCacheService.getCachedClosestBadges(userId);
+        if (cached != null) {
+            return cached;
+        }
+        log.info("[DEBUG] MISS → 계산 시작(userId={})", userId);
+
+        // 캐시가 없으면 계산
+        List<BadgeProgressResponse> computed = getClosestBadges(userId);
+        log.info("[DEBUG] 계산 완료 → 결과 size={} (userId={})",
+                computed == null ? -1 : computed.size(), userId);
+
+
+        // 캐시 저장
+        badgeCacheService.cacheClosestBadges(userId, computed);
+
+        return computed;
     }
 
 
