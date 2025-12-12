@@ -1,7 +1,6 @@
 package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
-import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.RegistrationType;
@@ -41,7 +40,6 @@ public class CategoryChoreCreator {
     private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final RedisChoreStatsService redisChoreStatsService;
     private final MissionService missionService;
-    private final UserBadgeStatsService userBadgeStatsService;
     private final ApplicationEventPublisher eventPublisher;
     private final BadgeService badgeService;
 
@@ -123,7 +121,7 @@ public class CategoryChoreCreator {
             }
         }
 
-        userBadgeStatsService.incrementTotalRegistered(userId);
+        badgeService.evaluateBadgesOnCreate(user);
 
         return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
                 .data(ChoreDto.Response.fromEntity(saved))

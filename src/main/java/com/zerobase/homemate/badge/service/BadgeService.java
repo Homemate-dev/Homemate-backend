@@ -45,6 +45,7 @@ public class BadgeService {
       */
     @Transactional
     public void evaluateBadgesMission(User user){
+        log.info("Start Mission Evaluating : {}", user.getId());
         userBadgeStatsService.incrementMissionCount(user.getId());
 
         long currentCount = userBadgeStatsService.getTotalMissionCount(user.getId());
@@ -65,7 +66,7 @@ public class BadgeService {
             }
 
         }
-
+        log.info("start to evict mission Cache : {}", user.getId());
         badgeCacheService.evictClosestBadges(user.getId());
     }
 
@@ -75,6 +76,7 @@ public class BadgeService {
      */
     @Transactional
     public void evaluateBadges(User user, Chore chore) {
+        log.info("start completion evaluating : {}", user.getId());
 
         userBadgeStatsService.incrementTotalCompleted(user.getId());
         if(chore.getSpace() != null) {
@@ -112,13 +114,14 @@ public class BadgeService {
 
         }
 
+        log.info("start evict completion Cache : {}", user.getId());
         badgeCacheService.evictClosestBadges(user.getId());
     }
 
     // 집안일 등록 시 호출
     @Transactional
     public void evaluateBadgesOnCreate(User user){
-
+        log.info("Start Create evaluating : {}", user.getId());
         userBadgeStatsService.incrementTotalRegistered(user.getId());
 
         long currentRegisterCount = userBadgeStatsService.getTotalRegisteredCount(user.getId());
@@ -138,6 +141,7 @@ public class BadgeService {
 
         }
 
+        log.info("Start evict Cache Register : {}",  user.getId());
         badgeCacheService.evictClosestBadges(user.getId());
     }
 

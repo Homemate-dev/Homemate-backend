@@ -1,6 +1,6 @@
 package com.zerobase.homemate.recommend;
 
-import com.zerobase.homemate.badge.service.UserBadgeStatsService;
+import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
@@ -66,7 +66,7 @@ public class CategoryChoreCreatorTest {
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Mock
-    private UserBadgeStatsService userBadgeStatsService;
+    private BadgeService badgeService;
 
     @Test
     @DisplayName("CategoryChore 기반 집안일 등록 테스트 - Space 매칭")
