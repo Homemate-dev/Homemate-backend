@@ -154,8 +154,8 @@ public class SpaceChoreCreatorTest {
         when(userNotificationSettingRepository.findByUserId(userId)).thenReturn(Optional.of(setting));
         when(choreRepository.save(any(Chore.class))).thenReturn(savedChore);
         when(choreInstanceGenerator.generateInstances(savedChore)).thenReturn(generatedInstances);
-        when(categoryChoreRepository.findByTitle("주방 정리하기"))
-                .thenReturn(Optional.of(categoryChore)); // CategoryChore 객체를 반환하도록 설정
+        when(categoryChoreRepository.findAllByTitle("주방 정리하기"))
+                .thenReturn(List.of(categoryChore)); // CategoryChore 객체를 반환하도록 설정
 
         // when
         ChoreDto.ApiResponse<ChoreDto.Response> response =
