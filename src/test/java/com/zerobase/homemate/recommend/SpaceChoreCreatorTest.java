@@ -1,6 +1,6 @@
 package com.zerobase.homemate.recommend;
 
-import com.zerobase.homemate.badge.service.UserBadgeStatsService;
+import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
@@ -61,7 +61,7 @@ public class SpaceChoreCreatorTest {
     private MissionService missionService;
 
     @Mock
-    private UserBadgeStatsService userBadgeStatsService;
+    private BadgeService badgeService;
 
     @Mock
     private ApplicationEventPublisher applicationEventPublisher;
@@ -167,7 +167,7 @@ public class SpaceChoreCreatorTest {
         verify(choreInstanceRepository, times(1)).saveAll(anyList());
         verify(redisChoreStatsService, times(1)).increment(any(), any());
         verify(missionService, times(1)).increaseMissionCountForAction(eq(userId), any());
-        verify(userBadgeStatsService, times(1)).incrementTotalRegistered(userId);
+        verify(badgeService, times(1)).evaluateBadgesOnCreate(user);
     }
 
 

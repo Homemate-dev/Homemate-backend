@@ -36,9 +36,6 @@ public class UserBadgeStatsService {
 
     public void incrementTotalRegistered(Long userId){
 
-        log.info("[REDIS] Template bean name = {}", redisTemplate.getClass().getName());
-        log.info("[REDIS] Connection factory = {}", redisTemplate.getConnectionFactory());
-
         String key =  String.format(STATS_KEY_FORMAT, userId);
         setLastUpdated(userId, Instant.now().getEpochSecond());
 
