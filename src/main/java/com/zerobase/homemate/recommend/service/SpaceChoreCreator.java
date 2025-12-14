@@ -4,7 +4,6 @@ import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.*;
-import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.UserActionType;
 import com.zerobase.homemate.exception.CustomException;
