@@ -89,13 +89,33 @@ public class SpaceChoreCreator {
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(saved);
         choreInstanceRepository.saveAll(instances);
 
-        CategoryChore matchedCategoryChore = categoryChoreRepository.findByTitle(template.getTitleKo())
-                .orElse(null);
+        List<CategoryChore> matchedCategoryChores =
+                categoryChoreRepository.findAllByTitle(template.getTitleKo());
 
-        if (matchedCategoryChore != null) {
-            Category category = matchedCategoryChore.getCategory();
-            redisChoreStatsService.increment(category, template.getSpace());
+        if (matchedCategoryChores.isEmpty()) {
+            log.debug(
+                    "[ChoreStats] No CategoryChore found. title={}, space={}",
+                    template.getTitleKo(),
+                    template.getSpace()
+            );
+        } else {
+            log.info(
+                    "[ChoreStats] Increment stats. title={}, categories={}, space={}",
+                    template.getTitleKo(),
+                    matchedCategoryChores.stream()
+                            .map(CategoryChore::getCategory)
+                            .toList(),
+                    template.getSpace()
+            );
+
+            for (CategoryChore categoryChore : matchedCategoryChores) {
+                redisChoreStatsService.increment(
+                        categoryChore.getCategory(),
+                        template.getSpace()
+                );
+            }
         }
+
 
         for(ChoreInstance instance : instances){
             eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(chore.getUser().getId(),

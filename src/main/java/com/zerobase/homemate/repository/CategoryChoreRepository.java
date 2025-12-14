@@ -22,7 +22,7 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
 """)
     List<CategoryChore> findByCategory(@Param("category") Category category, Pageable pageable);
 
-    Optional<CategoryChore> findByTitle(String titleKo);
+    List<CategoryChore> findAllByTitle(String titleKo);
 
     Long countByCategory(Category category);
 
