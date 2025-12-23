@@ -1,8 +1,11 @@
 name: CD for test server
 
 on:
-  push:
+  workflow_run:
+    workflows: [ "CI - build & test" ]
     branches: [ "develop" ]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
