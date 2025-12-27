@@ -1,6 +1,8 @@
 package com.zerobase.homemate.auth.service;
 
-import com.zerobase.homemate.auth.dto.AuthTokenResponseDto;
+import com.zerobase.homemate.auth.dto.TokenResponseDto;
+import com.zerobase.homemate.auth.dto.TokenResponseDto.AuthTokenResponseDto;
+import com.zerobase.homemate.auth.support.TokenRefreshPolicy;
 import com.zerobase.homemate.auth.token.AccessTokenBlocklist;
 import com.zerobase.homemate.auth.token.RefreshTokenStore;
 import com.zerobase.homemate.entity.User;
@@ -10,6 +12,8 @@ import com.zerobase.homemate.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +24,9 @@ public class AuthService {
   private final AccessTokenBlocklist accessTokenBlocklist;
   private final RefreshTokenStore refreshTokenStore;
   private final UserRepository userRepository;
+  private final TokenRefreshPolicy tokenRefreshPolicy;
 
-  public AuthTokenResponseDto refresh(String refreshToken) {
+  public TokenResponseDto.AuthTokenCreatedDto refresh(String refreshToken) {
     Claims claims = jwtService.parseAndValidateType(refreshToken, "RT");
 
     long userId = Long.parseLong(claims.getSubject());
@@ -39,21 +44,22 @@ public class AuthService {
 
     // 새 토큰 발급
     String newAccessToken = jwtService.createAccessToken(user, sid);
-    String newRefreshToken = jwtService.createRefreshToken(userId, sid);
-    String newJti = jwtService.getJti(newRefreshToken);
+    String newRefreshToken = null;
+    if (tokenRefreshPolicy.shouldRotateRefreshTokenByFixedDuration(claims)) {
+      newRefreshToken = jwtService.createRefreshToken(userId, sid);
+      String newJti = jwtService.getJti(newRefreshToken);
 
-    // 동시 갱신 경합 방지
-    boolean rotated = refreshTokenStore.rotate(userId, sid, jti, newJti);
-    if (!rotated) {
-      throw new CustomException(ErrorCode.CONCURRENT_REFRESH);
+      // 동시 갱신 경합 방지
+      boolean rotated = refreshTokenStore.rotate(userId, sid, jti, newJti);
+      if (!rotated) {
+        throw new CustomException(ErrorCode.CONCURRENT_REFRESH);
+      }
     }
 
-    return new AuthTokenResponseDto(
-        "Bearer",
-        newAccessToken,
-        jwtService.getAccessTokenValiditySeconds(),
-        newRefreshToken,
-        jwtService.getRefreshTokenValiditySeconds());
+    return new TokenResponseDto.AuthTokenCreatedDto(
+            newAccessToken,
+            Optional.ofNullable(newRefreshToken)
+    );
   }
 
   public void logout(String accessToken) {
