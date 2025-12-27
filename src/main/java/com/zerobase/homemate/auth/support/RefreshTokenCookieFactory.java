@@ -5,7 +5,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RefreshTokenFactory {
+public class RefreshTokenCookieFactory {
 
     @Value("${auth.jwt.refresh-exp-seconds}")
     private long refreshExp;

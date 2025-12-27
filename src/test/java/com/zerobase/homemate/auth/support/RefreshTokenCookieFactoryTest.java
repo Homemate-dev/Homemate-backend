@@ -7,21 +7,21 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
 
-import static com.zerobase.homemate.auth.support.RefreshTokenFactory.REFRESH_TOKEN_COOKIE_NAME;
+import static com.zerobase.homemate.auth.support.RefreshTokenCookieFactory.REFRESH_TOKEN_COOKIE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
-class RefreshTokenFactoryTest {
+class RefreshTokenCookieFactoryTest {
 
     @InjectMocks
-    private RefreshTokenFactory refreshTokenFactory;
+    private RefreshTokenCookieFactory refreshTokenCookieFactory;
 
     @Test
     @DisplayName("리프레시 토큰 쿠키 생성 테스트")
     void createRefreshToken() {
         String refreshToken = "RefreshToken";
 
-        ResponseCookie result = refreshTokenFactory.fromRefreshToken(refreshToken);
+        ResponseCookie result = refreshTokenCookieFactory.fromRefreshToken(refreshToken);
 
         assertThat(result.getName()).isEqualTo(REFRESH_TOKEN_COOKIE_NAME);
         assertThat(result.getValue()).isEqualTo(refreshToken);
