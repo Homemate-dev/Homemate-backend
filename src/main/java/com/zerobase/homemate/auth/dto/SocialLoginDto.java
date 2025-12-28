@@ -11,20 +11,21 @@ public class SocialLoginDto {
   ) {}
 
   public record LoginResponse(
-      String tokenType,
       String accessToken,
-      long accessTokenExpiresIn,
-      String refreshToken,
-      long refreshTokenExpiresIn,
       UserDto user
-  ) {
-    public record UserDto(
-        Long id,
-        SocialProvider provider,
-        String providerUserId,
-        String nickname,
-        String profileImageUrl,
-        boolean isNewUser
-    ) {}
-  }
+  ) {}
+
+  public record InternalLoginResponse(
+          LoginResponse loginResponse,
+          String refreshToken
+  ) {}
+
+  public record UserDto(
+          Long id,
+          SocialProvider provider,
+          String providerUserId,
+          String nickname,
+          String profileImageUrl,
+          boolean isNewUser
+  ) {}
 }

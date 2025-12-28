@@ -15,7 +15,7 @@ public class KakaoLoginService {
   private final KakaoClient kakaoClient;
   private final KakaoLoginTransaction kakaoLoginTransaction;
 
-  public SocialLoginDto.LoginResponse login(SocialLoginDto.KakaoLoginRequest request) {
+  public SocialLoginDto.InternalLoginResponse login(SocialLoginDto.KakaoLoginRequest request) {
     if (request.codeVerifier() == null || request.codeVerifier().isBlank()) {
       throw new CustomException(ErrorCode.PKCE_VERIFIER_REQUIRED);
     }

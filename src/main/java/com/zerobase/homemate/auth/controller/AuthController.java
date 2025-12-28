@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 import static com.zerobase.homemate.auth.support.RefreshTokenCookieFactory.REFRESH_TOKEN_COOKIE_NAME;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,31 +30,38 @@ public class AuthController {
 
     @PostMapping("/login/kakao")
     public ResponseEntity<SocialLoginDto.LoginResponse> kakao(
-            @Valid @RequestBody SocialLoginDto.KakaoLoginRequest request) {
-        return ResponseEntity.ok(kakaoLoginService.login(request));
+            @Valid @RequestBody SocialLoginDto.KakaoLoginRequest request
+    ) {
+        SocialLoginDto.InternalLoginResponse loginResult = kakaoLoginService.login(request);
+        ResponseCookie responseCookie = refreshTokenCookieFactory.fromRefreshToken(loginResult.refreshToken());
+
+        return createResponseWithCookie(loginResult.loginResponse(), OK, responseCookie);
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthTokenResponseDto> refresh(
-            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
-
+            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME) String refreshToken
+    ) {
         AuthTokenCreatedDto result = authService.refresh(refreshToken);
         AuthTokenResponseDto body = new AuthTokenResponseDto(result.accessToken());
 
         Optional<String> rt = result.newRefreshToken();
         if (rt.isPresent()) {
             ResponseCookie responseCookie = refreshTokenCookieFactory.fromRefreshToken(rt.get());
-            return createResponseWithCookie(body, HttpStatus.OK, responseCookie);
+            return createResponseWithCookie(body, OK, responseCookie);
         }
 
         return ResponseEntity.ok(body);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+    public ResponseEntity<Void> logout(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
         authService.logout(BearerTokenExtractor.resolveBearerToken(authorization));
         ResponseCookie deleteCookie = refreshTokenCookieFactory.deleteRefreshToken();
-        return createResponseWithCookie(null, HttpStatus.NO_CONTENT, deleteCookie);
+
+        return createResponseWithCookie(null, NO_CONTENT, deleteCookie);
     }
 
     private <T> ResponseEntity<T> createResponseWithCookie(T body, HttpStatus code, ResponseCookie cookie) {

@@ -23,6 +23,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.zerobase.homemate.auth.dto.SocialLoginDto.*;
+
 @Service
 @RequiredArgsConstructor
 public class KakaoLoginTransaction {
@@ -35,7 +37,7 @@ public class KakaoLoginTransaction {
   private final UserNotificationSettingRepository notificationSettingRepository;
 
   @Transactional
-  public SocialLoginDto.LoginResponse upsertAndIssue(ProfileResponse profile) {
+  public InternalLoginResponse upsertAndIssue(ProfileResponse profile) {
     LocalDateTime now = LocalDateTime.now();
 
     String kakaoUid = String.valueOf(profile.id());
@@ -107,20 +109,18 @@ public class KakaoLoginTransaction {
       throw new CustomException(ErrorCode.REFRESH_JTI_MISSING);
     }
 
-    return new SocialLoginDto.LoginResponse(
-        "Bearer",
-        at,
-        jwtService.getAccessTokenValiditySeconds(),
-        rt,
-        jwtService.getRefreshTokenValiditySeconds(),
-        new SocialLoginDto.LoginResponse.UserDto(
-            user.getId(),
-            SocialProvider.KAKAO,
-            kakaoUid,
-            user.getProfileName(),
-            user.getProfileImageUrl(),
-            isNewUser
-        )
+    return new InternalLoginResponse(
+        new LoginResponse(
+            at,
+            new UserDto(
+                user.getId(),
+                SocialProvider.KAKAO,
+                kakaoUid,
+                user.getProfileName(),
+                user.getProfileImageUrl(),
+                isNewUser)
+        ),
+        rt
     );
   }
 }
