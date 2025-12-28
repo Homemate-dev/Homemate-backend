@@ -20,4 +20,13 @@ public class RefreshTokenCookieFactory {
                 .maxAge(refreshExp)
                 .build();
     }
+
+    public ResponseCookie deleteRefreshToken() {
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+                .httpOnly(true)
+                .sameSite("Lax")
+                .secure(true)
+                .maxAge(0)
+                .build();
+    }
 }
