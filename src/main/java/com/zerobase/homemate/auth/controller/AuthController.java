@@ -52,6 +52,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         authService.logout(BearerTokenExtractor.resolveBearerToken(authorization));
-        return ResponseEntity.noContent().build();
+        String deleteCookie = refreshTokenCookieFactory.deleteRefreshToken().toString();
+        return ResponseEntity.noContent().header(deleteCookie).build();
     }
 }
