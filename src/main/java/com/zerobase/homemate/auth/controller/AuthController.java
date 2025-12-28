@@ -10,6 +10,7 @@ import com.zerobase.homemate.auth.support.RefreshTokenCookieFactory;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,20 +40,25 @@ public class AuthController {
         AuthTokenCreatedDto result = authService.refresh(refreshToken);
         AuthTokenResponseDto body = new AuthTokenResponseDto(result.accessToken());
 
-        ResponseEntity.BodyBuilder builder = ResponseEntity.ok();
-        Optional<String> rt = result.refreshToken();
+        Optional<String> rt = result.newRefreshToken();
         if (rt.isPresent()) {
             ResponseCookie responseCookie = refreshTokenCookieFactory.fromRefreshToken(rt.get());
-            builder = builder.header(HttpHeaders.SET_COOKIE, responseCookie.toString());
+            return createResponseWithCookie(body, HttpStatus.OK, responseCookie);
         }
 
-        return builder.body(body);
+        return ResponseEntity.ok(body);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         authService.logout(BearerTokenExtractor.resolveBearerToken(authorization));
-        String deleteCookie = refreshTokenCookieFactory.deleteRefreshToken().toString();
-        return ResponseEntity.noContent().header(deleteCookie).build();
+        ResponseCookie deleteCookie = refreshTokenCookieFactory.deleteRefreshToken();
+        return createResponseWithCookie(null, HttpStatus.NO_CONTENT, deleteCookie);
+    }
+
+    private <T> ResponseEntity<T> createResponseWithCookie(T body, HttpStatus code, ResponseCookie cookie) {
+        return ResponseEntity.status(code)
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(body);
     }
 }

@@ -11,7 +11,7 @@ public class TokenResponseDto {
     // 내부 사용 용도의 DTO
     public record AuthTokenCreatedDto(
             String accessToken,
-            Optional<String> refreshToken
+            Optional<String> newRefreshToken
     ) {}
 }
 
