@@ -7,10 +7,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class RefreshTokenCookieFactory {
 
+    public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
     @Value("${auth.jwt.refresh-exp-seconds}")
     private long refreshExp;
-
-    public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+    @Value("${auth.dev.enabled}")
+    private boolean devEnabled;
 
     public ResponseCookie fromRefreshToken(String refreshToken) {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
@@ -18,6 +19,7 @@ public class RefreshTokenCookieFactory {
                 .sameSite("Lax")
                 .secure(true)
                 .maxAge(refreshExp)
+                .path(resolvePath())
                 .build();
     }
 
@@ -27,6 +29,11 @@ public class RefreshTokenCookieFactory {
                 .sameSite("Lax")
                 .secure(true)
                 .maxAge(0)
+                .path(resolvePath())
                 .build();
+    }
+
+    private String resolvePath() {
+        return devEnabled ? "/test" : "/api";
     }
 }
