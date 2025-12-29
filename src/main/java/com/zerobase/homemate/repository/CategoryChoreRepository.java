@@ -80,7 +80,7 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
     WHERE c.categoryType = 'MONTHLY'
       AND c.isActive = true
 """)
-    void deactivateAllMonthly();
+    void deactivateAllMonthly(CategoryType monthly, String string);
 
     @Modifying
     @Query("""
@@ -89,7 +89,7 @@ SET c.isActive = true
 WHERE c.categoryType = 'MONTHLY'
   AND c.yearMonth = :yearMonth
 """)
-    void activateMonthly(@Param("yearMonth") String yearMonth);
+    void activateMonthly(CategoryType monthly, @Param("yearMonth") String yearMonth);
 
     @Query("""
     SELECT COUNT(c) > 0
