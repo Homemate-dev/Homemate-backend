@@ -1,6 +1,7 @@
 package com.zerobase.homemate.entity;
 
 
+import com.zerobase.homemate.entity.enums.CategoryType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,6 +18,10 @@ public class Categories {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private CategoryType type;
 
     @Column(name = "year_month", length = 7)
     private String yearMonth;    // "2025-12"
@@ -36,11 +41,16 @@ public class Categories {
     // 생성자 (월간 전용)
     public static Categories monthly(String yearMonth, String title, int order) {
         Categories c = new Categories();
+        c.type = CategoryType.MONTHLY;
         c.yearMonth = yearMonth;
         c.title = title;
         c.isActive = true;
         c.displayOrder = order;
         c.createdAt = LocalDate.now();
         return c;
+    }
+
+    public void deactivate() {
+        this.isActive = false;
     }
 }
