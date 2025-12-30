@@ -46,8 +46,11 @@ public class CategoryChore {
     private CategoryType categoryType;
 
     // 월간 추가되는 카테고리
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categories_id")
+    private Categories categories;
+
     private String yearMonth;
 
     private boolean isActive;
-
 }

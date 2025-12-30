@@ -18,6 +18,8 @@ public enum ErrorCode {
     INVALID_NOTIFICATION_TYPE("INVALID_NOTIFICATION_TYPE", "알림 설정 타입이 올바르지 않습니다.",  HttpStatus.BAD_REQUEST),
     INVALID_FREQUENCY("INVALID_FREQUENCY", "집안일의 주기가 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
     INVALID_SEASON("INVALID_SEASON", "올바른 계절값이 아닙니다.", HttpStatus.BAD_REQUEST),
+    INVALID_CATEGORY_TYPE("INVALID_CATEGORY_TYPE", "올바른 카테고리 종류가 아닙니다.", HttpStatus.BAD_REQUEST),
+    INACTIVE_CATEGORY("INACTIVE_CATEGORY", "활성화되지 않은 카테고리입니다.", HttpStatus.BAD_REQUEST),
 
     // 401 Unauthorized
     UNAUTHORIZED("UNAUTHORIZED", "인증된 토큰 값이 아닙니다.", HttpStatus.UNAUTHORIZED),
@@ -55,6 +57,7 @@ public enum ErrorCode {
     CHORE_INSTANCE_ALREADY_DELETED("CHORE_ALREADY_DELETED", "해당 날짜의 집안일은 이미 취소되었거나 삭제되었습니다.", HttpStatus.CONFLICT),
     FIRST_SETUP_ALREADY_COMPLETED("FIRST_SETUP_ALREADY_COMPLETED", "최초 알림 설정이 이미 완료되었습니다.",  HttpStatus.CONFLICT),
     CHORE_ALREADY_REGISTERED("CHORE_ALREADY_REGISTERED", "이미 등록된 집안일입니다.", HttpStatus.CONFLICT),
+
 
     // 429 Too Many Requests
     PROVIDER_RATE_LIMIT("PROVIDER_RATE_LIMIT", "소셜 제공자 호출 한도 초과입니다.", HttpStatus.TOO_MANY_REQUESTS),

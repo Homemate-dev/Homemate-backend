@@ -1,12 +1,15 @@
 package com.zerobase.homemate.recommend.service;
 
+import com.zerobase.homemate.entity.Categories;
 import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.enums.CategoryType;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Season;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
+import com.zerobase.homemate.repository.CategoriesRepository;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +29,7 @@ import java.util.Map;
 public class CategoryQueryService {
 
     private final CategoryChoreRepository categoryChoreRepository;
+    private final CategoriesRepository categoriesRepository;
     private final int DEFAULT_PAGE_SIZE = 6;
 
     private static final Map<RepeatType, Integer> REPEAT_PRIORITY = Map.of(
@@ -69,18 +73,28 @@ public class CategoryQueryService {
                 .toList();
     }
 
-    public List<ClassifyChoreResponse> getMonthlyChores(String yearMonth){
-        if(yearMonth == null){
-            throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
+
+    // 월간 카테고리 조회 시 집안일 리스트 출력
+    public List<ClassifyChoreResponse> getMonthlyChores(Long categoriesId){
+        Categories categories = categoriesRepository.findById(categoriesId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        if (categories.getType() != CategoryType.MONTHLY) {
+            throw new CustomException(ErrorCode.INVALID_CATEGORY_TYPE);
         }
 
-        List<CategoryChore> monthlyCategoryChores = categoryChoreRepository.findActiveMonthlyByYearMonth(
-                yearMonth,
-                Pageable.ofSize(DEFAULT_PAGE_SIZE)
-        );
+        if (!categories.isActive()) {
+            throw new CustomException(ErrorCode.INACTIVE_CATEGORY);
+        }
 
-        return monthlyCategoryChores.stream()
-                .sorted(Comparator.comparingInt(categoryChore -> REPEAT_PRIORITY.get(categoryChore.getRepeatType())))
+        List<CategoryChore> chores =
+                categoryChoreRepository.findByCategoriesAndIsActiveTrue(
+                        categories,
+                        Pageable.ofSize(DEFAULT_PAGE_SIZE)
+                );
+
+        return chores.stream()
+                .sorted(Comparator.comparingInt(c -> REPEAT_PRIORITY.get(c.getRepeatType())))
                 .map(ClassifyChoreResponse::fromCategory)
                 .toList();
     }

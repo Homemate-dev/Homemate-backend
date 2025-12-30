@@ -1,5 +1,6 @@
 package com.zerobase.homemate.repository;
 
+import com.zerobase.homemate.entity.Categories;
 import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.CategoryType;
@@ -61,18 +62,6 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
     );
 
 
-    @Query("""
-    SELECT c
-    FROM CategoryChore c
-    WHERE c.categoryType = 'MONTHLY'
-      AND c.yearMonth = :yearMonth
-      AND c.isActive = true
-""")
-    List<CategoryChore> findActiveMonthlyByYearMonth(
-            @Param("yearMonth") String yearMonth,
-            Pageable pageable
-    );
-
     @Modifying
     @Query("""
     UPDATE CategoryChore c
@@ -101,4 +90,11 @@ WHERE c.categoryType = 'MONTHLY'
     boolean existsActiveMonthly(@Param("yearMonth") String yearMonth);
 
 
+    @Query("""
+    SELECT c FROM Categories c
+    WHERE c.type = 'MONTHLY'
+      AND c.isActive = true
+    ORDER BY c.displayOrder ASC
+""")
+    List<CategoryChore> findByCategoriesAndIsActiveTrue(Categories categories, Pageable pageable);
 }
