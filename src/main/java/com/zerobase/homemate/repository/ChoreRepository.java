@@ -13,6 +13,4 @@ import java.util.Optional;
 public interface ChoreRepository extends JpaRepository<Chore, Long> {
 
     List<Chore> findByUserIdAndIsDeletedIsFalse(Long userId, Sort sort);
-
-    Optional<Chore> findByUserIdAndTitle(Long id, String title);
 }
