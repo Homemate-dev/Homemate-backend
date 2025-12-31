@@ -8,6 +8,7 @@ import com.zerobase.homemate.recommend.controller.CategoryController;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
+import com.zerobase.homemate.recommend.service.CategoryQueryService;
 import com.zerobase.homemate.recommend.service.CategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,6 +41,9 @@ class CategoryControllerTest {
 
     @MockitoBean
     private CategoryService categoryService;
+
+    @MockitoBean
+    private CategoryQueryService categoryQueryService;
 
     @MockitoBean
     private CategoryChoreCreator categoryChoreCreator;
@@ -127,6 +132,74 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.data.notificationTime").value("09:00:00"));
     }
 
+    @Test
+    @DisplayName("고정 카테고리 조회 성공")
+    void getFixedCategoryChores() throws Exception {
+        // given
+        Category category = Category.APPLIANCE_MAINTENANCE;
 
+        ClassifyChoreResponse response =
+                new ClassifyChoreResponse(
+                        1L,
+                        "가습기 세척하기",
+                        "1",
+                        null,
+                        Category.APPLIANCE_MAINTENANCE.getCategoryName()
+                );
 
+        given(categoryQueryService.getFixedChores(category))
+                .willReturn(List.of(response));
+
+        // when & then
+        mockMvc.perform(get("/recommend/categories/fixed/{category}", category))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("가습기 세척하기"));
+
+    }
+
+    @Test
+    @DisplayName("계절 카테고리 조회 성공")
+    void getSeasonCategoryChores() throws Exception {
+        // given
+
+        ClassifyChoreResponse response =
+                new ClassifyChoreResponse(
+                        1L,
+                        "필터 교체하기",
+                        "1",
+                        null,
+                        Season.WINTER.name()
+                );
+        given(categoryQueryService.getSeasonChores(any()))
+                .willReturn(List.of(response));
+
+        // when & then
+        mockMvc.perform(get("/recommend/categories/season"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("필터 교체하기"));
+    }
+
+    @Test
+    @DisplayName("월간 카테고리 집안일 조회 성공")
+    void getMonthlyCategoryChores() throws Exception {
+        // given
+        Long categoriesId = 1L;
+
+        ClassifyChoreResponse response =
+                new ClassifyChoreResponse(
+                        1L,
+                        "보일러 점검하기",
+                        "1",
+                        null,
+                        "1월 대청소"
+                );
+
+        given(categoryQueryService.getMonthlyChores(1L))
+                .willReturn(List.of(response));
+
+        mockMvc.perform(get("/recommend/categories/monthly/{categoryId}/chores", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].categoryName").value("1월 대청소"))
+                .andExpect(jsonPath("$[0].title").value("보일러 점검하기"));
+    }
 }

@@ -8,6 +8,7 @@ import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Season;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.repository.CategoriesRepository;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
@@ -98,4 +99,13 @@ public class CategoryQueryService {
                 .map(ClassifyChoreResponse::fromCategory)
                 .toList();
     }
+
+    // 월간 카테고리들 조회 API
+    public List<CategoryResponse> getMonthlyCategories(String yearMonth) {
+        return categoriesRepository.findActiveMonthlyByYearMonth(yearMonth)
+                .stream()
+                .map(CategoryResponse::fromCategories)
+                .toList();
+    }
+
 }

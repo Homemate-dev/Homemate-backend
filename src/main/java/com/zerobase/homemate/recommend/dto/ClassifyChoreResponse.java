@@ -16,13 +16,28 @@ public record ClassifyChoreResponse(Long choreId,
                                     String categoryName) {
 
     public static ClassifyChoreResponse fromCategory(CategoryChore categoryChore) {
+        String categoryName;
+
+        switch (categoryChore.getCategoryType()) {
+            case SEASON -> categoryName =
+                    categoryChore.getSeason().name();
+
+            case MONTHLY -> categoryName =
+                    categoryChore.getCategories().getTitle();
+
+            default -> categoryName =
+                    categoryChore.getCategory().getCategoryName();
+        }
+
         return new ClassifyChoreResponse(
                 categoryChore.getId(),
                 categoryChore.getTitle(),
-                formatFrequency(categoryChore.getRepeatType(), categoryChore.getRepeatInterval()),
+                formatFrequency(
+                        categoryChore.getRepeatType(),
+                        categoryChore.getRepeatInterval()
+                ),
                 null,
-                categoryChore.getCategory().getCategoryName()
-
+                categoryName
         );
     }
 

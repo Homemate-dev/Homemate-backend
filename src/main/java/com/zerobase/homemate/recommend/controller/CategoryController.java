@@ -87,8 +87,4 @@ public class CategoryController {
                 categoryQueryService.getMonthlyChores(categoryId)
         );
     }
-
-
-
-
 }

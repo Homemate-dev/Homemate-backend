@@ -1,5 +1,6 @@
 package com.zerobase.homemate.recommend.dto;
 
+import com.zerobase.homemate.entity.Categories;
 import com.zerobase.homemate.entity.enums.Category;
 
 public record CategoryResponse(
@@ -8,6 +9,12 @@ public record CategoryResponse(
     public static CategoryResponse fromEntity(Category category) {
         return new CategoryResponse(
                 category.getCategoryName()
+        );
+    }
+
+    public static CategoryResponse fromCategories(Categories categories) {
+        return new CategoryResponse(
+                categories.getTitle()
         );
     }
 }
