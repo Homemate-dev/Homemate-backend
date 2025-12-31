@@ -81,20 +81,15 @@ WHERE c.categoryType = 'MONTHLY'
     void activateMonthly(CategoryType monthly, @Param("yearMonth") String yearMonth);
 
     @Query("""
-    SELECT COUNT(c) > 0
-    FROM CategoryChore c
-    WHERE c.categoryType = 'MONTHLY'
-      AND c.yearMonth = :yearMonth
-      AND c.isActive = true
-""")
-    boolean existsActiveMonthly(@Param("yearMonth") String yearMonth);
-
-
-    @Query("""
     SELECT c FROM Categories c
     WHERE c.type = 'MONTHLY'
       AND c.isActive = true
     ORDER BY c.displayOrder ASC
 """)
     List<CategoryChore> findByCategoriesAndIsActiveTrue(Categories categories, Pageable pageable);
+
+
+    long countBySeasonAndCategoryType(Season currentSeason, CategoryType categoryType);
+
+    long countByCategories(Categories selected);
 }

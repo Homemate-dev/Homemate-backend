@@ -46,6 +46,7 @@ public enum ErrorCode {
     SPACE_NOT_FOUND("SPACE_NOT_FOUND", "공간 카테고리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     USER_NOTIFICATION_SETTING_NOT_FOUND("USER_NOTIFICATION_SETTING_NOT_FOUND", "사용자 알림 설정을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     URI_NOT_FOUND("URI_NOT_FOUND", "존재하지 않는 요청 엔드포인트입니다.", HttpStatus.NOT_FOUND),
+    ACTIVE_CATEGORY_NOT_FOUND("ACTIVE_CATEGORY_NOT_FOUND", "활성화된 카테고리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // 405 Method Not Allowed
     METHOD_NOT_ALLOWED("METHOD_NOT_ALLOWED", "허용되지 않은 HTTP 메서드입니다.", HttpStatus.METHOD_NOT_ALLOWED),

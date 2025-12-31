@@ -33,4 +33,11 @@ public class RecommendController {
             @AuthenticationPrincipal UserPrincipal user) {
         return choreStatsService.getTopOverallWithMissions(user.id());
     }
+
+    @GetMapping("total")
+    public List<TopItemDto> getTopCategories(
+            @AuthenticationPrincipal UserPrincipal user
+    ){
+        return choreStatsService.getTopCategories(user.id());
+    }
 }

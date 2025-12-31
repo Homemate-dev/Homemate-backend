@@ -1,83 +1,109 @@
 package com.zerobase.homemate.recommend;
 
+
+import com.zerobase.homemate.entity.Categories;
+import com.zerobase.homemate.entity.Mission;
 import com.zerobase.homemate.entity.enums.Category;
+import com.zerobase.homemate.entity.enums.CategoryType;
+import com.zerobase.homemate.entity.enums.MissionType;
+import com.zerobase.homemate.entity.enums.Season;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.recommend.service.stats.ChoreStatsService;
 import com.zerobase.homemate.recommend.service.stats.RedisChoreStatsService;
+import com.zerobase.homemate.repository.CategoriesRepository;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
 import com.zerobase.homemate.repository.MissionRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.YearMonth;
 import java.util.List;
-import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ChoreStatsServiceTest {
 
-    private RedisChoreStatsService redisChoreStatsService;
+    @InjectMocks
     private ChoreStatsService choreStatsService;
+
+    @Mock
+    private RedisChoreStatsService redisChoreStatsService;
+
+    @Mock
     private CategoryChoreRepository categoryChoreRepository;
+
+    @Mock
     private MissionRepository missionRepository;
 
-    @BeforeEach
-    void setUp() {
-        redisChoreStatsService = mock(RedisChoreStatsService.class);
-        categoryChoreRepository = mock(CategoryChoreRepository.class);
-        missionRepository = mock(MissionRepository.class);
-
-        choreStatsService = new ChoreStatsService(
-                redisChoreStatsService,
-                categoryChoreRepository,
-                missionRepository
-        );
-    }
+    @Mock
+    private CategoriesRepository categoriesRepository;
 
     @Test
-    @DisplayName("미션 달성 집안일 우선순위 조회 + Top N 조회")
-    void testGetTopOverallWithMissions() {
+    void getRandomMonthlyTop_noMonthlyCategory_throwException() {
+        when(categoriesRepository.findActiveMonthlyByYearMonth(any()))
+                .thenReturn(List.of());
+
+        assertThatThrownBy(() -> choreStatsService.getTopCategories(1L))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.ACTIVE_CATEGORY_NOT_FOUND);
+    }
+
+
+    @Test
+    void getTopCategories_success(){
         // given
-        Long userId = 1L;
+        YearMonth yearMonth = YearMonth.now();
 
-        // Redis mock 데이터
-        Map<String, Long> categoryCounts = Map.of(
-                "WINTER", 4L,
-                "SAFETY_CHECK", 6L,
-                "WEEKEND_WHOLE_ROUTINE", 3L,
-                "TEN_MINUTES_CLEANING", 5L,
-                "APPLIANCE_MAINTENANCE", 2L,
-                "HOTEL_BATHROOM", 1L
-        );
+        Mission mission = mock(Mission.class);
 
-        when(redisChoreStatsService.getCategoryStats()).thenReturn(categoryCounts);
+        when(mission.getMissionType()).thenReturn(MissionType.CHORE);
+
+        when(missionRepository.findByActiveYearMonthAndIsActiveTrueOrderByIdAsc(yearMonth))
+                .thenReturn(List.of(mission, mission));
+
+        when(categoryChoreRepository.countBySeasonAndCategoryType(
+                any(Season.class), eq(CategoryType.SEASON)
+        )).thenReturn(10L);
+
+        Categories monthly = mock(Categories.class);
+
+        when(monthly.getTitle()).thenReturn("1월 추천 집안일");
+
+        when(categoriesRepository.findActiveMonthlyByYearMonth(yearMonth.toString()))
+                .thenReturn(List.of(monthly));
+
+        when(categoryChoreRepository.countByCategories(monthly)).thenReturn(7L);
 
         // when
-        List<TopItemDto> result = choreStatsService.getTopOverallWithMissions(userId);
+        List<TopItemDto> result = choreStatsService.getTopCategories(1L);
 
         // then
-        assertEquals(7, result.size()); // 미션 + Top5
+        assertThat(result).hasSize(3);
 
-        // 첫 번째는 항상 미션
-        assertEquals("미션 달성 집안일", result.get(0).name());
-        assertEquals(Category.MISSIONS, result.get(0).category());
+        assertThat(result.get(0).name())
+                .isEqualTo(Category.MISSIONS.getCategoryName());
 
-        // TopN 순서 검증 (미션 제외)
-        List<Category> expectedCategories = List.of(
-                Category.SAFETY_CHECK,  // 6
-                Category.TEN_MINUTES_CLEANING,   // 5
-                Category.WINTER,   // 4
-                Category.WEEKEND_WHOLE_ROUTINE,   // 3
-                Category.APPLIANCE_MAINTENANCE, // 2
-                Category.HOTEL_BATHROOM  // 1
-        );
+        assertThat(result.get(1).count())
+                .isEqualTo(10L);
 
-        for (int i = 0; i < expectedCategories.size(); i++) {
-            assertEquals(expectedCategories.get(i), result.get(i + 1).category());
-        }
+        // 월간 (Category enum 없음)
+        assertThat(result.get(2).name())
+                .isEqualTo("1월 추천 집안일");
+        assertThat(result.get(2).category()).isNull();
+        assertThat(result.get(2).count()).isEqualTo(7L);
+
     }
 
 
