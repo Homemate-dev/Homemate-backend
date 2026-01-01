@@ -42,20 +42,22 @@ class KakaoLoginServiceTest {
         .willReturn(tokenRes);
     given(kakaoClient.fetchProfile("kakaoAT")).willReturn(profile);
 
-    SocialLoginDto.LoginResponse expected = new SocialLoginDto.LoginResponse(
-        "Bearer", "ourAT", 900L, "ourRT", 1_209_600L,
-        new SocialLoginDto.LoginResponse.UserDto(
+    SocialLoginDto.InternalLoginResponse expected = new SocialLoginDto.InternalLoginResponse(
+        new SocialLoginDto.LoginResponse("ourAT",
+        new SocialLoginDto.UserDto(
             1L, SocialProvider.KAKAO, "12345", "Nick", "https://img", false
-        )
+        )),
+        "ourRt"
     );
     given(kakaoLoginTx.upsertAndIssue(profile)).willReturn(expected);
 
     // when
-    SocialLoginDto.LoginResponse actual = sut.login(request);
+    SocialLoginDto.InternalLoginResponse actual = sut.login(request);
 
     // then
     assertThat(actual).isNotNull();
-    assertThat(actual.accessToken()).isEqualTo("ourAT");
+    assertThat(actual.loginResponse().accessToken()).isEqualTo("ourAT");
+
     then(kakaoClient).should().exchangeToken(request.authorizationCode(), request.redirectUri(), request.codeVerifier());
     then(kakaoClient).should().fetchProfile("kakaoAT");
     then(kakaoLoginTx).should().upsertAndIssue(profile);

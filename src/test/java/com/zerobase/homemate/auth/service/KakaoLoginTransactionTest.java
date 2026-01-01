@@ -71,18 +71,18 @@ class KakaoLoginTransactionTest {
     given(jwtService.getRefreshTokenValiditySeconds()).willReturn(1_209_600L);
 
     // when
-    SocialLoginDto.LoginResponse res = sut.upsertAndIssue(profile);
+    SocialLoginDto.InternalLoginResponse res = sut.upsertAndIssue(profile);
+    SocialLoginDto.LoginResponse loginResponse = res.loginResponse();
 
     // then
-    assertThat(res.tokenType()).isEqualTo("Bearer");
-    assertThat(res.accessToken()).isEqualTo("ourAT");
+    assertThat(loginResponse.accessToken()).isEqualTo("ourAT");
+    assertThat(loginResponse.user().id()).isEqualTo(1L);
+    assertThat(loginResponse.user().provider()).isEqualTo(SocialProvider.KAKAO);
+    assertThat(loginResponse.user().providerUserId()).isEqualTo("12345");
+    assertThat(loginResponse.user().nickname()).isEqualTo("Nick");
+    assertThat(loginResponse.user().profileImageUrl()).isEqualTo("https://img");
+    assertThat(loginResponse.user().isNewUser()).isTrue();
     assertThat(res.refreshToken()).isEqualTo("ourRT");
-    assertThat(res.user().id()).isEqualTo(1L);
-    assertThat(res.user().provider()).isEqualTo(SocialProvider.KAKAO);
-    assertThat(res.user().providerUserId()).isEqualTo("12345");
-    assertThat(res.user().nickname()).isEqualTo("Nick");
-    assertThat(res.user().profileImageUrl()).isEqualTo("https://img");
-    assertThat(res.user().isNewUser()).isTrue();
 
     ArgumentCaptor<UserNotificationSetting> cap = ArgumentCaptor.forClass(UserNotificationSetting.class);
     then(notificationSettingRepo).should().save(cap.capture());
@@ -124,10 +124,10 @@ class KakaoLoginTransactionTest {
     given(jwtService.getRefreshTokenValiditySeconds()).willReturn(1_209_600L);
 
     // when
-    SocialLoginDto.LoginResponse res = sut.upsertAndIssue(profile);
+    SocialLoginDto.InternalLoginResponse res = sut.upsertAndIssue(profile);
 
     // then
-    assertThat(res.user().isNewUser()).isFalse();
+    assertThat(res.loginResponse().user().isNewUser()).isFalse();
     assertThat(existingUser.getProfileName()).isEqualTo("NewNick");
     assertThat(existingUser.getProfileImageUrl()).isEqualTo("https://new");
     then(userRepository).should(never()).save(any());
