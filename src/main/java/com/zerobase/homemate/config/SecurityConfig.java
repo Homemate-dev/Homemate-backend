@@ -39,6 +39,13 @@ public class SecurityConfig {
   private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
   private final RestAccessDeniedHandler restAccessDeniedHandler;
 
+  private static final List<String> ORIGIN = List.of(
+          "https://app.homemate.io.kr",
+          "https://test.homemate.io.kr",
+          "https://qa-homemate.vercel.app/",
+          "http://localhost:3000/"
+  );
+
   @Bean
   public JwtAuthenticationFilter jwtAuthenticationFilter() {
     return new JwtAuthenticationFilter(jwtService, userRepository, accessTokenBlocklist);
@@ -130,14 +137,11 @@ public class SecurityConfig {
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("*"));
-
-    // 배포 후 추가(예시)
-    // config.addAllowedOrigin("https://www.homemate.com");
-
+    config.setAllowedOrigins(ORIGIN);
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setExposedHeaders(List.of("Authorization", "Location", "Link", "X-Total-Count"));
+    config.setAllowCredentials(true);
     config.setMaxAge(Duration.ofHours(1));
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
