@@ -75,10 +75,11 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
     @Query("""
 UPDATE CategoryChore c
 SET c.isActive = true
-WHERE c.categoryType = 'MONTHLY'
-  AND c.targetMonth = :targetMonth
+WHERE c.categoryType = :categoryType
+  AND c.categories.targetMonth = :targetMonth
 """)
-    void activateMonthly(CategoryType monthly, @Param("targetMonth") String yearMonth);
+    void activateMonthly(@Param("categoryType") CategoryType categoryType,
+                         @Param("targetMonth") String targetMonth);
 
     @Query("""
     SELECT c FROM Categories c
