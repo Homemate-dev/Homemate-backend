@@ -52,7 +52,7 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
     @Query("""
     SELECT c
     FROM CategoryChore c
-    WHERE c.categoryType = 'SEASONAL'
+    WHERE c.categoryType = 'SEASON'
       AND c.season = :season
       AND c.isActive = true
 """)
@@ -73,21 +73,22 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
 
     @Modifying
     @Query("""
-UPDATE CategoryChore c
-SET c.isActive = true
-WHERE c.categoryType = :categoryType
-  AND c.categories.targetMonth = :targetMonth
+    UPDATE CategoryChore c
+    SET c.isActive = true
+    WHERE c.categoryType = :categoryType
+      AND c.categories.targetMonth = :targetMonth
 """)
     void activateMonthly(@Param("categoryType") CategoryType categoryType,
                          @Param("targetMonth") String targetMonth);
 
     @Query("""
-    SELECT c FROM Categories c
-    WHERE c.type = 'MONTHLY'
-      AND c.isActive = true
-    ORDER BY c.displayOrder ASC
+    SELECT cc
+    FROM CategoryChore cc
+    JOIN cc.categories c
+    WHERE c = :category
+    AND cc.isActive = true
 """)
-    List<CategoryChore> findByCategoriesAndIsActiveTrue(Categories categories, Pageable pageable);
+    List<CategoryChore> findByCategoriesAndIsActiveTrue(@Param("category") Categories category, Pageable pageable);
 
 
     long countBySeasonAndCategoryType(Season currentSeason, CategoryType categoryType);

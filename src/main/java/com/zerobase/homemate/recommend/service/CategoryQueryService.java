@@ -101,8 +101,8 @@ public class CategoryQueryService {
     }
 
     // 월간 카테고리들 조회 API
-    public List<CategoryResponse> getMonthlyCategories(String yearMonth) {
-        return categoriesRepository.findActiveMonthlyByYearMonth(yearMonth)
+    public List<CategoryResponse> getMonthlyCategories(String targetMonth) {
+        return categoriesRepository.findActiveMonthlyByTargetMonth(targetMonth)
                 .stream()
                 .map(CategoryResponse::fromCategories)
                 .toList();

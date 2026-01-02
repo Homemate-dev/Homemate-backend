@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface CategoriesRepository extends JpaRepository<Categories, Long> {
 
-    List<Categories> findActiveMonthlyByYearMonth(String yearMonth);
+    List<Categories> findActiveMonthlyByTargetMonth(String targetMonth);
 }

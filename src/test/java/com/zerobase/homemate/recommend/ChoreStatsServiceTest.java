@@ -51,7 +51,7 @@ public class ChoreStatsServiceTest {
 
     @Test
     void getRandomMonthlyTop_noMonthlyCategory_throwException() {
-        when(categoriesRepository.findActiveMonthlyByYearMonth(any()))
+        when(categoriesRepository.findActiveMonthlyByTargetMonth(any()))
                 .thenReturn(List.of());
 
         assertThatThrownBy(() -> choreStatsService.getTopCategories(1L))
@@ -81,7 +81,7 @@ public class ChoreStatsServiceTest {
 
         when(monthly.getTitle()).thenReturn("1월 추천 집안일");
 
-        when(categoriesRepository.findActiveMonthlyByYearMonth(yearMonth.toString()))
+        when(categoriesRepository.findActiveMonthlyByTargetMonth(yearMonth.toString()))
                 .thenReturn(List.of(monthly));
 
         when(categoryChoreRepository.countByCategories(monthly)).thenReturn(7L);

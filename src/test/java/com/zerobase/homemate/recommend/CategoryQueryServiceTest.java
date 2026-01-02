@@ -142,7 +142,6 @@ public class CategoryQueryServiceTest {
                 .repeatType(RepeatType.MONTHLY)
                 .repeatInterval(1)
                 .categories(categories)
-                .yearMonth(categories.getYearMonth())
                 .build();
 
         given(categoriesRepository.findById(categories.getId())).willReturn(Optional.of(categories));
@@ -164,7 +163,7 @@ public class CategoryQueryServiceTest {
     void getMonthlyCategories_success() {
         Categories categories = Categories.monthly("2026-01", "1월 추천", 1);
 
-        given(categoriesRepository.findActiveMonthlyByYearMonth("2026-01"))
+        given(categoriesRepository.findActiveMonthlyByTargetMonth("2026-01"))
                 .willReturn(List.of(categories));
 
         List<CategoryResponse> result =

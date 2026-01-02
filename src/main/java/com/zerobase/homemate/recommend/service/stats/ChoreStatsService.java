@@ -125,7 +125,7 @@ public class ChoreStatsService {
 
     private TopItemDto getRandomMonthlyTop() {
         List<Categories> monthlyCategories =
-                categoriesRepository.findActiveMonthlyByYearMonth(YearMonth.now().toString());
+                categoriesRepository.findActiveMonthlyByTargetMonth(YearMonth.now().toString());
 
         if (monthlyCategories.isEmpty()) {
             throw new CustomException(ErrorCode.ACTIVE_CATEGORY_NOT_FOUND);
