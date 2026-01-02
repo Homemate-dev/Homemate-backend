@@ -460,23 +460,15 @@ public class ChoreService {
     public List<ChoreDto.Response> getChores(
         Long userId, ChoreFilterType filterType) {
 
-        Sort allSort =
-            Sort.by(Sort.Order.asc("startDate"),
-                Sort.Order.asc("createdAt"));
-
-        Sort spaceSort =
-            Sort.by(Sort.Order.asc("space"),
-                Sort.Order.asc("startDate"));
-
-        Sort repeatSort =
-            Sort.by(Sort.Order.asc("repeatInterval"));
-
         List<Chore> chores = switch(filterType) {
-            case ALL -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId, allSort);
-            case SPACE -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId, spaceSort);
+            case ALL -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId,
+                    Sort.by("startDate", "createdAt"));
+            case SPACE -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId,
+                    Sort.by("space", "startDate"));
             case REPEAT -> {
                 List<Chore> list =
-                    choreRepository.findByUserIdAndIsDeletedIsFalse(userId, repeatSort);
+                    choreRepository.findByUserIdAndIsDeletedIsFalse(userId,
+                        Sort.by("repeatInterval"));
 
                 list.sort(REPEAT_SORT);
 
