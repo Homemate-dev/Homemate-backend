@@ -50,8 +50,6 @@ public class CategoryChore {
     @JoinColumn(name = "categories_id")
     private Categories categories;
 
-    @Column(name = "target_month", length = 7)
-    private String targetMonth;
 
     @Column(name = "is_active")
     private boolean isActive;

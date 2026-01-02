@@ -23,8 +23,8 @@ public class Categories {
     @Column(nullable = false, length = 20)
     private CategoryType type;
 
-    @Column(name = "year_month", length = 7)
-    private String yearMonth;    // "2025-12"
+    @Column(name = "target_month", length = 7)
+    private String targetMonth;    // "2025-12"
 
     @Column(nullable = false, length = 50)
     private String title;        // "12월 추천 집안일"
