@@ -39,10 +39,10 @@ public class Categories {
     private LocalDate createdAt;
 
     // 생성자 (월간 전용)
-    public static Categories monthly(String yearMonth, String title, int order) {
+    public static Categories monthly(String targetMonth, String title, int order) {
         Categories c = new Categories();
         c.type = CategoryType.MONTHLY;
-        c.yearMonth = yearMonth;
+        c.targetMonth = targetMonth;
         c.title = title;
         c.isActive = true;
         c.displayOrder = order;
