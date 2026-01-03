@@ -1,19 +1,22 @@
 package com.zerobase.homemate.entity.enums;
 
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
+
+import java.util.Arrays;
+
 public enum RepeatType {
-    NONE(1),
-    DAILY(2),
-    WEEKLY(3),
-    MONTHLY(4),
-    YEARLY(5);
+    NONE,
+    DAILY,
+    WEEKLY,
+    MONTHLY,
+    YEARLY;
 
-    private final int order;
 
-    RepeatType(int order) {
-        this.order = order;
-    }
-
-    public int order() {
-        return order;
+    public static RepeatType from(String value) {
+        return Arrays.stream(values())
+                .filter(v -> v.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.URI_NOT_FOUND));
     }
 }

@@ -7,6 +7,8 @@ import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto.Response;
 import com.zerobase.homemate.chore.service.ChoreService;
 import com.zerobase.homemate.entity.enums.ChoreFilterType;
+import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.entity.enums.Space;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -113,16 +115,22 @@ public class ChoreController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("rate", rate));
     }
 
-    @GetMapping("")
-    public ResponseEntity<List<ChoreDto.Response>> getChores(
+    @GetMapping("/list/{filter}")
+    public ResponseEntity<List<ChoreDto.Response>> getChoreList(
         @AuthenticationPrincipal UserPrincipal user,
-        @RequestParam String filter
+        @PathVariable String filter,
+        @RequestParam(required = false) String space,
+        @RequestParam(required = false) String repeat,
+        @RequestParam(required = false) Integer repeatInterval
     ) {
 
         ChoreFilterType filterType = ChoreFilterType.from(filter);
+        Space spaceType = space != null ? Space.from(space) : null;
+        RepeatType repeatType = repeat != null ? RepeatType.from(repeat) : null;
 
         List<ChoreDto.Response> chores =
-            choreService.getChores(user.id(), filterType);
+            choreService.getChoreList(user.id(), filterType, spaceType,
+                    repeatType, repeatInterval);
 
         return ResponseEntity.status(HttpStatus.OK).body(chores);
     }
