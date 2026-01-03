@@ -2,10 +2,7 @@ package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.entity.Categories;
 import com.zerobase.homemate.entity.CategoryChore;
-import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.CategoryType;
-import com.zerobase.homemate.entity.enums.RepeatType;
-import com.zerobase.homemate.entity.enums.Season;
+import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
@@ -76,7 +73,7 @@ public class CategoryQueryService {
 
 
     // 월간 카테고리 조회 시 집안일 리스트 출력
-    public List<ClassifyChoreResponse> getMonthlyChores(Long categoriesId){
+    public List<ClassifyChoreResponse> getMonthlyChores(Long categoriesId, SubCategory subCategory){
         Categories categories = categoriesRepository.findById(categoriesId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
 
@@ -88,9 +85,25 @@ public class CategoryQueryService {
             throw new CustomException(ErrorCode.INACTIVE_CATEGORY);
         }
 
+        if(subCategory == null){
+            List<CategoryChore> chores =
+                    categoryChoreRepository.findActiveByCategoriesAndCategoryType(
+                            categories,
+                            CategoryType.MONTHLY,
+                            Pageable.ofSize(DEFAULT_PAGE_SIZE)
+                    );
+
+            return chores.stream()
+                    .sorted(Comparator.comparingInt(c -> REPEAT_PRIORITY.get(c.getRepeatType())))
+                    .map(ClassifyChoreResponse::fromCategory)
+                    .toList();
+        }
+
         List<CategoryChore> chores =
-                categoryChoreRepository.findByCategoriesAndIsActiveTrue(
+                categoryChoreRepository.findActiveByCategoryTypeAndSubCategory(
                         categories,
+                        CategoryType.MONTHLY,
+                        subCategory,
                         Pageable.ofSize(DEFAULT_PAGE_SIZE)
                 );
 

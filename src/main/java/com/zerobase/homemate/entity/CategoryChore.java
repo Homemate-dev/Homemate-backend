@@ -1,10 +1,7 @@
 package com.zerobase.homemate.entity;
 
-import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.CategoryType;
-import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.entity.enums.*;
 
-import com.zerobase.homemate.entity.enums.Season;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -49,6 +46,10 @@ public class CategoryChore {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categories_id")
     private Categories categories;
+
+    @Enumerated(EnumType.STRING)
+    private SubCategory subCategory;
+
 
 
     @Column(name = "is_active")

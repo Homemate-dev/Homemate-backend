@@ -4,6 +4,7 @@ import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.Season;
+import com.zerobase.homemate.entity.enums.SubCategory;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
@@ -81,10 +82,12 @@ public class CategoryController {
     // 월간 카테고리 조회 API
     @GetMapping("/monthly/{categoryId}/chores")
     public ResponseEntity<List<ClassifyChoreResponse>> getChoresByMonthlyCategory(
-            @PathVariable Long categoryId
-    ){
+            @PathVariable Long categoryId,
+            @RequestParam(required = false)SubCategory subCategory
+
+            ){
         return ResponseEntity.ok(
-                categoryQueryService.getMonthlyChores(categoryId)
+                categoryQueryService.getMonthlyChores(categoryId, subCategory)
         );
     }
 }

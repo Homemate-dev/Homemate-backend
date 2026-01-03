@@ -5,6 +5,7 @@ import com.zerobase.homemate.entity.CategoryChore;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.CategoryType;
 import com.zerobase.homemate.entity.enums.Season;
+import com.zerobase.homemate.entity.enums.SubCategory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -88,7 +89,28 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
     WHERE c = :category
     AND cc.isActive = true
 """)
-    List<CategoryChore> findByCategoriesAndIsActiveTrue(@Param("category") Categories category, Pageable pageable);
+    List<CategoryChore> findActiveByCategoriesAndCategoryType(
+            Categories categories,
+            CategoryType categoryType,
+            Pageable pageable
+    );
+
+    @Query("""
+SELECT cc
+FROM CategoryChore cc
+WHERE cc.categories = :categories
+  AND cc.categoryType = :categoryType
+  AND cc.subCategory = :subCategory
+  AND cc.isActive = true
+""")
+    List<CategoryChore> findActiveByCategoryTypeAndSubCategory(
+            @Param("categories") Categories categories,
+            @Param("categoryType") CategoryType categoryType,
+            @Param("subCategory") SubCategory subCategory,
+            Pageable pageable
+    );
+
+
 
 
     long countBySeasonAndCategoryType(Season currentSeason, CategoryType categoryType);

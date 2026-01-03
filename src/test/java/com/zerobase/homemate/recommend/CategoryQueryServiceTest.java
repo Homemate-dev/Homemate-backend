@@ -63,7 +63,7 @@ public class CategoryQueryServiceTest {
         given(categoriesRepository.findById(1L))
                 .willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> categoryQueryService.getMonthlyChores(1L))
+        assertThatThrownBy(() -> categoryQueryService.getMonthlyChores(1L, null))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
     }
@@ -146,14 +146,15 @@ public class CategoryQueryServiceTest {
 
         given(categoriesRepository.findById(categories.getId())).willReturn(Optional.of(categories));
 
-        given(categoryChoreRepository.findByCategoriesAndIsActiveTrue(
+        given(categoryChoreRepository.findActiveByCategoriesAndCategoryType(
                 eq(categories),
+                eq(CategoryType.MONTHLY),
                 any(Pageable.class)
         )).willReturn(List.of(testMonthChore));
 
         // when
         List<ClassifyChoreResponse> result =
-                categoryQueryService.getMonthlyChores(categories.getId());
+                categoryQueryService.getMonthlyChores(categories.getId(), null);
 
         // then
         assertThat(result).hasSize(1);

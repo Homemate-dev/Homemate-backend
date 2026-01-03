@@ -194,7 +194,7 @@ class CategoryControllerTest {
                         "1월 대청소"
                 );
 
-        given(categoryQueryService.getMonthlyChores(1L))
+        given(categoryQueryService.getMonthlyChores(1L, null))
                 .willReturn(List.of(response));
 
         mockMvc.perform(get("/recommend/categories/monthly/{categoryId}/chores", 1L))
