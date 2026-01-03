@@ -469,8 +469,4 @@ public class ChoreService {
 
         return chores.stream().map(ChoreDto.Response::fromEntity).toList();
     }
-
-    private static final Comparator<Chore> REPEAT_SORT =
-        Comparator.comparingInt((Chore c) -> c.getRepeatType().order())
-            .thenComparingInt(Chore::getRepeatInterval);
 }
