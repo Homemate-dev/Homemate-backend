@@ -1,6 +1,7 @@
 package com.zerobase.homemate.dev;
 
 import com.zerobase.homemate.auth.service.JwtService;
+import com.zerobase.homemate.auth.support.RefreshTokenCookieFactory;
 import com.zerobase.homemate.auth.token.RefreshTokenStore;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.exception.CustomException;
@@ -11,6 +12,8 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +33,7 @@ public class DevAuthController {
   private final JwtService jwtService;
   private final RefreshTokenStore refreshTokenStore;
   private final UserRepository userRepository;
+  private final RefreshTokenCookieFactory refreshTokenCookieFactory;
 
   // 개발/테스트 전용 토큰 발급 엔드포인트
   @PostMapping("/token/{id}")
@@ -43,11 +47,11 @@ public class DevAuthController {
     refreshTokenStore.save(user.getId(), sid, jwtService.getJti(rt));
 
     Map<String, String> response = new LinkedHashMap<>();
-
-    response.put("tokenType", "Bearer");
     response.put("accessToken", at);
-    response.put("refreshToken", rt);
+    ResponseCookie responseCookie = refreshTokenCookieFactory.fromRefreshToken(rt);
 
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+            .body(response);
   }
 }
