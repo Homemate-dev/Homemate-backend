@@ -86,14 +86,16 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
     SELECT cc
     FROM CategoryChore cc
     JOIN cc.categories c
-    WHERE c = :category
-    AND cc.isActive = true
+    WHERE c = :categories
+      AND cc.categoryType = :categoryType
+      AND cc.isActive = true
 """)
     List<CategoryChore> findActiveByCategoriesAndCategoryType(
-            Categories categories,
-            CategoryType categoryType,
+            @Param("categories") Categories categories,
+            @Param("categoryType") CategoryType categoryType,
             Pageable pageable
     );
+
 
     @Query("""
 SELECT cc
