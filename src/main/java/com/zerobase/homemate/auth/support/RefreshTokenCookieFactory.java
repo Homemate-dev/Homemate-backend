@@ -14,26 +14,28 @@ public class RefreshTokenCookieFactory {
     private boolean devEnabled;
 
     public ResponseCookie fromRefreshToken(String refreshToken) {
-        return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
-                .httpOnly(true)
-                .sameSite("Lax")
-                .secure(true)
-                .maxAge(refreshExp)
-                .path(resolvePath())
-                .build();
+        return buildCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, refreshExp);
     }
 
     public ResponseCookie deleteRefreshToken() {
-        return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+        return buildCookie(REFRESH_TOKEN_COOKIE_NAME, null, 0);
+    }
+
+    private ResponseCookie buildCookie(String key, String value, long expiration) {
+        return ResponseCookie.from(key, value)
                 .httpOnly(true)
-                .sameSite("Lax")
+                .sameSite(resolveSameSite())
                 .secure(true)
-                .maxAge(0)
+                .maxAge(expiration)
                 .path(resolvePath())
                 .build();
     }
 
     private String resolvePath() {
         return devEnabled ? "/test" : "/api";
+    }
+
+    private String resolveSameSite() {
+        return devEnabled ? "None" : "Lax";
     }
 }
