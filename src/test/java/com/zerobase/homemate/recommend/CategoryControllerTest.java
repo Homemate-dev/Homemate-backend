@@ -115,7 +115,7 @@ class CategoryControllerTest {
     @DisplayName("고정 카테고리 조회 성공")
     void getFixedCategoryChores() throws Exception {
         // given
-        Category category = Category.APPLIANCE_MAINTENANCE;
+        Category category = Category.TEN_MINUTES_CLEANING;
 
         ClassifyChoreResponse response =
                 new ClassifyChoreResponse(
@@ -123,7 +123,7 @@ class CategoryControllerTest {
                         "가습기 세척하기",
                         "1",
                         null,
-                        Category.APPLIANCE_MAINTENANCE.getCategoryName()
+                        Category.TEN_MINUTES_CLEANING.getCategoryName()
                 );
 
         given(categoryQueryService.getFixedChores(category))
