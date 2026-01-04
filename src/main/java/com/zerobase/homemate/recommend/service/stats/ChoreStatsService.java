@@ -39,7 +39,7 @@ public class ChoreStatsService {
 
         result.add(getMissionTop());
         result.add(getSeasonTop());
-        result.add(getRandomMonthlyTop());
+        result.add(getRandomCategoryTop());
 
         return result;
     }
@@ -74,23 +74,13 @@ public class ChoreStatsService {
         );
     }
 
-    private TopItemDto getRandomMonthlyTop() {
-        List<Categories> monthlyCategories =
-                categoriesRepository.findActiveMonthlyByTargetMonth(YearMonth.now().toString());
+    private TopItemDto getRandomCategoryTop() {
+        Category randomCategory = Category.randomExceptMission();
 
-        if (monthlyCategories.isEmpty()) {
-            throw new CustomException(ErrorCode.ACTIVE_CATEGORY_NOT_FOUND);
-        }
-
-        Categories selected =
-                monthlyCategories.get(
-                        ThreadLocalRandom.current().nextInt(monthlyCategories.size())
-                );
-
-        long count = categoryChoreRepository.countByCategories(selected);
+        long count = categoryChoreRepository.countByCategory(randomCategory);
 
         return new TopItemDto(
-                selected.getTitle(),
+                randomCategory.getCategoryName(),
                 null,
                 count
         );
