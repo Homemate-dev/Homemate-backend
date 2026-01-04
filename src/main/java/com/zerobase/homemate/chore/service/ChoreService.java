@@ -453,8 +453,42 @@ public class ChoreService {
     }
 
     public List<ChoreDto.Response> getChoreList(
-        Long userId, ChoreFilterType filterType, Space spaceType,
-        RepeatType repeatType, Integer repeatInterval) {
+        Long userId, String filter, String space,
+        String repeat, Integer repeatInterval) {
+
+        if (filter == null) {
+            throw new CustomException(ErrorCode.VALIDATION_ERROR);
+        }
+
+        ChoreFilterType filterType = parseEnum(filter, ChoreFilterType.class);
+        Space spaceType =
+                (space != null) ? parseEnum(space, Space.class) : null;
+        RepeatType repeatType =
+                (repeat != null) ? parseEnum(repeat, RepeatType.class) : null;
+
+        switch (filterType) {
+            case ALL -> {
+                if (spaceType != null || repeatType != null || repeatInterval != null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+            }
+            case SPACE -> {
+                if (spaceType == null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                } else if (repeatType != null || repeatInterval != null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+            }
+            case REPEAT -> {
+                if (repeatType == null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                } else if (repeatInterval == null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                } else if (spaceType != null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+            }
+        }
 
         Sort sort = Sort.by("startDate", "createdAt");
 
@@ -469,5 +503,13 @@ public class ChoreService {
         };
 
         return chores.stream().map(ChoreDto.Response::fromEntity).toList();
+    }
+
+    private <E extends Enum<E>> E parseEnum(String raw, Class<E> enumType) {
+        try {
+            return Enum.valueOf(enumType, raw.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new CustomException(ErrorCode.VALIDATION_ERROR);
+        }
     }
 }
