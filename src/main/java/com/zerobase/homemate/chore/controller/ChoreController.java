@@ -115,22 +115,18 @@ public class ChoreController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("rate", rate));
     }
 
-    @GetMapping("/list/{filter}")
+    @GetMapping
     public ResponseEntity<List<ChoreDto.Response>> getChoreList(
         @AuthenticationPrincipal UserPrincipal user,
-        @PathVariable String filter,
+        @RequestParam String filter,
         @RequestParam(required = false) String space,
         @RequestParam(required = false) String repeat,
         @RequestParam(required = false) Integer repeatInterval
     ) {
 
-        ChoreFilterType filterType = ChoreFilterType.from(filter);
-        Space spaceType = space != null ? Space.from(space) : null;
-        RepeatType repeatType = repeat != null ? RepeatType.from(repeat) : null;
-
         List<ChoreDto.Response> chores =
-            choreService.getChoreList(user.id(), filterType, spaceType,
-                    repeatType, repeatInterval);
+            choreService.getChoreList(user.id(), filter, space,
+                    repeat, repeatInterval);
 
         return ResponseEntity.status(HttpStatus.OK).body(chores);
     }
