@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class RefreshTokenCookieFactory {
 
     public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+    public static final String DOMAIN = ".homemate.io.kr";
     @Value("${auth.jwt.refresh-exp-seconds}")
     private long refreshExp;
     @Value("${auth.dev.enabled}")
@@ -24,18 +25,15 @@ public class RefreshTokenCookieFactory {
     private ResponseCookie buildCookie(String key, String value, long expiration) {
         return ResponseCookie.from(key, value)
                 .httpOnly(true)
-                .sameSite(resolveSameSite())
+                .sameSite("None")
                 .secure(true)
                 .maxAge(expiration)
+                .domain(DOMAIN)
                 .path(resolvePath())
                 .build();
     }
 
     private String resolvePath() {
         return devEnabled ? "/test" : "/api";
-    }
-
-    private String resolveSameSite() {
-        return devEnabled ? "None" : "Lax";
     }
 }
