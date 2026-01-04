@@ -1,10 +1,6 @@
 package com.zerobase.homemate.entity.enums;
 
-import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.exception.ErrorCode;
 import lombok.Getter;
-
-import java.util.Arrays;
 
 @Getter
 public enum Space {
@@ -18,13 +14,6 @@ public enum Space {
 
     Space(String spaceName) {
         this.spaceName = spaceName;
-    }
-
-    public static Space from (String value) {
-        return Arrays.stream(values())
-                .filter(v -> v.name().equalsIgnoreCase(value))
-                .findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.URI_NOT_FOUND));
     }
 }
 
