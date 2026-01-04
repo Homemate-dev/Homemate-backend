@@ -81,7 +81,7 @@ public class CategoryController {
         );
     }
 
-    // 전체 필터링 조회 API
+    // 전체 카테고리 필터링 조회 API
     @GetMapping("/subCategory")
     public ResponseEntity<List<SubCategoryResponse>> getSubCategoriesList(){
 
