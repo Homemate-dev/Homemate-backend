@@ -17,10 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.time.YearMonth;
+import java.util.*;
 
 @Service
 @Transactional(readOnly = true)
@@ -42,9 +40,26 @@ public class CategoryQueryService {
 
     public List<CategoryResponse> getAllCategories() {
 
-        return Arrays.stream(Category.values())
+        String targetMonth = YearMonth.now().toString();
+
+        // 1. 기본 카테고리 (Enum)
+        List<CategoryResponse> result = new ArrayList<>(Arrays.stream(Category.values())
                 .map(CategoryResponse::fromEntity)
+                .toList());
+
+        // 2. 월간 카테고리 (존재하면만 포함)
+        List<CategoryResponse> monthly = categoriesRepository
+                .findActiveMonthlyByTargetMonth(targetMonth)
+                .stream()
+                .map(CategoryResponse::fromCategories)
                 .toList();
+
+
+        if (!monthly.isEmpty()) {
+            result.addAll(monthly);
+        }
+
+        return result;
     }
 
     public List<ClassifyChoreResponse> getFixedChores(Category category){
