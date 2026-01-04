@@ -7,6 +7,7 @@ import com.zerobase.homemate.entity.enums.Season;
 import com.zerobase.homemate.entity.enums.SubCategory;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
+import com.zerobase.homemate.recommend.dto.SubCategoryResponse;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
 import com.zerobase.homemate.recommend.service.CategoryQueryService;
 import com.zerobase.homemate.recommend.service.CategoryService;
@@ -28,15 +29,6 @@ public class CategoryController {
     private final CategoryService categoryService;
     private final CategoryChoreCreator categoryChoreCreator;
     private final CategoryQueryService categoryQueryService;
-
-    // 전체 집안일에서 카테고리 필터링
-    @GetMapping("/{category}/chores")
-    public ResponseEntity<List<ClassifyChoreResponse>> getChoresByCategory(
-            @PathVariable Category category
-            ) {
-        List<ClassifyChoreResponse> responses = categoryService.getChoresByCategory(category);
-        return ResponseEntity.ok(responses);
-    }
 
     // 전체 카테고리 조회
     @GetMapping
@@ -88,6 +80,15 @@ public class CategoryController {
             ){
         return ResponseEntity.ok(
                 categoryQueryService.getMonthlyChores(categoryId, subCategory)
+        );
+    }
+
+    // 전체 필터링 조회 API
+    @GetMapping("/subCategory")
+    public ResponseEntity<List<SubCategoryResponse>> getSubCategoriesList(){
+
+        return ResponseEntity.ok(
+                categoryQueryService.getSubCategories()
         );
     }
 }

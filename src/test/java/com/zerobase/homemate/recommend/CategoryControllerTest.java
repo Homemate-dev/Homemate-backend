@@ -70,27 +70,6 @@ class CategoryControllerTest {
 
     }
 
-    @DisplayName("✅ 특정 카테고리별 집안일 조회 API 성공")
-    @Test
-    void getChoresByCategory_success() throws Exception {
-        // frequency 필드에 맞춰서 Mock 데이터 생성
-        List<ClassifyChoreResponse> mockResponse = List.of(
-                new ClassifyChoreResponse(1L, "설거지", "매일", null, "겨울철 대맞이 청소"),
-                new ClassifyChoreResponse(2L, "냉장고 청소", "매달", null,"겨울철 대맞이 청소")
-        );
-
-        when(categoryService.getChoresByCategory(eq(Category.WINTER)))
-                .thenReturn(mockResponse);
-
-        mockMvc.perform(get("/recommend/categories/WINTER/chores")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("설거지"))
-                .andExpect(jsonPath("$[0].frequency").value("매일"))
-                .andExpect(jsonPath("$[1].title").value("냉장고 청소"))
-                .andExpect(jsonPath("$[1].frequency").value("매달"));
-    }
-
     @Test
     @DisplayName("CategoryChore 기반 집안일 등록 테스트")
     void createChoreFromCategory_shouldReturnCreatedChore() throws Exception {

@@ -7,6 +7,7 @@ import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
+import com.zerobase.homemate.recommend.dto.SubCategoryResponse;
 import com.zerobase.homemate.repository.CategoriesRepository;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -121,4 +123,11 @@ public class CategoryQueryService {
                 .toList();
     }
 
+    // Category 필터링 조회 API
+    public List<SubCategoryResponse> getSubCategories() {
+
+        return Arrays.stream(SubCategory.values())
+                .map(SubCategoryResponse::fromSub)
+                .toList();
+    }
 }
