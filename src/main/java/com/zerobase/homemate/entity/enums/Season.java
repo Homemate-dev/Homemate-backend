@@ -1,8 +1,5 @@
 package com.zerobase.homemate.entity.enums;
 
-import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.exception.ErrorCode;
-
 import java.time.LocalDate;
 
 public enum Season {
@@ -20,14 +17,16 @@ public enum Season {
     }
 
     public static Season from(LocalDate date) {
-        int m = date.getMonthValue();
+        int month = date.getMonthValue();
 
         for (Season season : values()) {
-            if (season.contains(m)) {
+            if (season.contains(month)) {
                 return season;
             }
         }
-        throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
+
+        // 논리적으로는 도달할 수 없는 위치
+        return WINTER;
     }
 
     private boolean contains(int month) {

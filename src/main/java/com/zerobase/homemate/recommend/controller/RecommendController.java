@@ -28,7 +28,7 @@ public class RecommendController {
         return ResponseEntity.ok(chores);
     }
 
-    @GetMapping("total")
+    @GetMapping("/total")
     public List<TopItemDto> getTopCategories(
             @AuthenticationPrincipal UserPrincipal user
     ){
