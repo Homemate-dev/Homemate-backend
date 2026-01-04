@@ -1,0 +1,83 @@
+name: CD for test server
+
+on:
+  workflow_run:
+    workflows: [ "CI - build & test" ]
+    branches: [ "develop" ]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Java 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build (Gradle)
+        run: ./gradlew clean bootJar --no-daemon
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Extract image tags
+        id: meta
+        run: |
+          SHA=${GITHUB_SHA::7}
+          echo "img=${{ secrets.DOCKER_USERNAME }}/homemate" >> $GITHUB_OUTPUT
+          echo "tag_latest=latest" >> $GITHUB_OUTPUT
+          echo "tag_sha=${SHA}" >> $GITHUB_OUTPUT
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.img }}:${{ steps.meta.outputs.tag_latest }}
+            ${{ steps.meta.outputs.img }}:${{ steps.meta.outputs.tag_sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+
+    steps:
+      # 컨테이너 배포 (Amazon Linux: docker-compose 바이너리 사용)
+      - name: Pull & restart via docker-compose
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd /home/ubuntu/test-server
+
+            # Docker Hub 로그인
+            echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            # 최신 이미지 당겨서 교체
+            docker compose -f docker-compose.test.yml pull
+            docker compose -f docker-compose.test.yml up -d
+
+            # 상태/로그 간단 점검
+            docker compose -f docker-compose.test.yml ps
+            sleep 2
+
+            docker logs --tail=100 homemate-app || true

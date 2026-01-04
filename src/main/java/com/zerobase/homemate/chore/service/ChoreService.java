@@ -9,6 +9,7 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.UserNotificationSetting;
+import com.zerobase.homemate.entity.enums.ChoreFilterType;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.RepeatType;
@@ -27,11 +28,13 @@ import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -453,4 +456,30 @@ public class ChoreService {
 
         return Math.round(rate * 100.0) / 100.0;
     }
+
+    public List<ChoreDto.Response> getChores(
+        Long userId, ChoreFilterType filterType) {
+
+        List<Chore> chores = switch(filterType) {
+            case ALL -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId,
+                    Sort.by("startDate", "createdAt"));
+            case SPACE -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId,
+                    Sort.by("space", "startDate"));
+            case REPEAT -> {
+                List<Chore> list =
+                    choreRepository.findByUserIdAndIsDeletedIsFalse(userId,
+                        Sort.by("repeatInterval"));
+
+                list.sort(REPEAT_SORT);
+
+                yield list;
+            }
+        };
+
+        return chores.stream().map(ChoreDto.Response::fromEntity).toList();
+    }
+
+    private static final Comparator<Chore> REPEAT_SORT =
+        Comparator.comparingInt((Chore c) -> c.getRepeatType().order())
+            .thenComparingInt(Chore::getRepeatInterval);
 }
