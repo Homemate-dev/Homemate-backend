@@ -40,6 +40,13 @@ public class CategoryQueryService {
             RepeatType.NONE, 5
     );
 
+    public List<CategoryResponse> getAllCategories() {
+
+        return Arrays.stream(Category.values())
+                .map(CategoryResponse::fromEntity)
+                .toList();
+    }
+
     public List<ClassifyChoreResponse> getFixedChores(Category category){
         if(category == null){
             throw new CustomException(ErrorCode.CATEGORY_NOT_FOUND);

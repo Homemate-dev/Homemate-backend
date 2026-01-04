@@ -9,7 +9,7 @@ import com.zerobase.homemate.recommend.dto.CategoryResponse;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
 import com.zerobase.homemate.recommend.service.CategoryQueryService;
-import com.zerobase.homemate.recommend.service.CategoryService;
+import com.zerobase.homemate.recommend.service.MonthlyCategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -40,8 +40,8 @@ class CategoryControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CategoryService categoryService;
-
+    private MonthlyCategoryService monthlyCategoryService;
+    
     @MockitoBean
     private CategoryQueryService categoryQueryService;
 
@@ -60,7 +60,7 @@ class CategoryControllerTest {
                 new CategoryResponse("하루 15분 청소")
         );
 
-        when(categoryService.getAllCategories()).thenReturn(mockResponse);
+        when(categoryQueryService.getAllCategories()).thenReturn(mockResponse);
 
         mockMvc.perform(get("/recommend/categories")
                 .contentType(String.valueOf(MediaType.APPLICATION_JSON)))

@@ -10,7 +10,6 @@ import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.dto.SubCategoryResponse;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
 import com.zerobase.homemate.recommend.service.CategoryQueryService;
-import com.zerobase.homemate.recommend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +25,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryController {
 
-    private final CategoryService categoryService;
     private final CategoryChoreCreator categoryChoreCreator;
     private final CategoryQueryService categoryQueryService;
 
@@ -34,7 +32,7 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAllCategories() {
 
-        List<CategoryResponse> responses = categoryService.getAllCategories();
+        List<CategoryResponse> responses = categoryQueryService.getAllCategories();
         return ResponseEntity.ok(responses);
     }
 
