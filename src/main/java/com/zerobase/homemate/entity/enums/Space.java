@@ -1,6 +1,5 @@
 package com.zerobase.homemate.entity.enums;
 
-
 import lombok.Getter;
 
 @Getter

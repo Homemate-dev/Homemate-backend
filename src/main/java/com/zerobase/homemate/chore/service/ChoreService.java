@@ -9,11 +9,7 @@ import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.UserNotificationSetting;
-import com.zerobase.homemate.entity.enums.ChoreFilterType;
-import com.zerobase.homemate.entity.enums.ChoreStatus;
-import com.zerobase.homemate.entity.enums.RegistrationType;
-import com.zerobase.homemate.entity.enums.RepeatType;
-import com.zerobase.homemate.entity.enums.UserActionType;
+import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mission.dto.MissionDto;
@@ -28,7 +24,6 @@ import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -457,29 +452,64 @@ public class ChoreService {
         return Math.round(rate * 100.0) / 100.0;
     }
 
-    public List<ChoreDto.Response> getChores(
-        Long userId, ChoreFilterType filterType) {
+    public List<ChoreDto.Response> getChoreList(
+        Long userId, String filter, String space,
+        String repeat, Integer repeatInterval) {
+
+        if (filter == null) {
+            throw new CustomException(ErrorCode.VALIDATION_ERROR);
+        }
+
+        ChoreFilterType filterType = parseEnum(filter, ChoreFilterType.class);
+        Space spaceType =
+                (space != null) ? parseEnum(space, Space.class) : null;
+        RepeatType repeatType =
+                (repeat != null) ? parseEnum(repeat, RepeatType.class) : null;
+
+        switch (filterType) {
+            case ALL -> {
+                if (spaceType != null || repeatType != null || repeatInterval != null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+            }
+            case SPACE -> {
+                if (spaceType == null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                } else if (repeatType != null || repeatInterval != null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+            }
+            case REPEAT -> {
+                if (repeatType == null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                } else if (repeatInterval == null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                } else if (spaceType != null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+            }
+        }
+
+        Sort sort = Sort.by("startDate", "createdAt");
 
         List<Chore> chores = switch(filterType) {
-            case ALL -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId,
-                    Sort.by("startDate", "createdAt"));
-            case SPACE -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId,
-                    Sort.by("space", "startDate"));
-            case REPEAT -> {
-                List<Chore> list =
-                    choreRepository.findByUserIdAndIsDeletedIsFalse(userId,
-                        Sort.by("repeatInterval"));
-
-                list.sort(REPEAT_SORT);
-
-                yield list;
-            }
+            case ALL -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId, sort);
+            case SPACE -> choreRepository.findByUserIdAndSpaceAndIsDeletedIsFalse(
+                    userId, spaceType, sort);
+            case REPEAT ->
+                    choreRepository.
+                            findByUserIdAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
+                            userId, repeatType, repeatInterval, sort);
         };
 
         return chores.stream().map(ChoreDto.Response::fromEntity).toList();
     }
 
-    private static final Comparator<Chore> REPEAT_SORT =
-        Comparator.comparingInt((Chore c) -> c.getRepeatType().order())
-            .thenComparingInt(Chore::getRepeatInterval);
+    private <E extends Enum<E>> E parseEnum(String raw, Class<E> enumType) {
+        try {
+            return Enum.valueOf(enumType, raw.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new CustomException(ErrorCode.VALIDATION_ERROR);
+        }
+    }
 }
