@@ -26,7 +26,7 @@ class RefreshTokenCookieFactoryTest {
         assertThat(result.getName()).isEqualTo(REFRESH_TOKEN_COOKIE_NAME);
         assertThat(result.getValue()).isEqualTo(refreshToken);
         assertThat(result.isHttpOnly()).isTrue();
-        assertThat(result.getSameSite()).isEqualTo("Lax");
+        assertThat(result.getSameSite()).isEqualTo("None");
         assertThat(result.isSecure()).isTrue();
     }
 }
