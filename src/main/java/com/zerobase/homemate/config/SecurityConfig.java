@@ -42,8 +42,8 @@ public class SecurityConfig {
   private static final List<String> ORIGIN = List.of(
           "https://app.homemate.io.kr",
           "https://test.homemate.io.kr",
-          "https://qa-homemate.vercel.app/",
-          "http://localhost:3000/"
+          "https://qa-homemate.vercel.app",
+          "http://localhost:3000"
   );
 
   @Bean
