@@ -9,29 +9,37 @@ public enum BadgeType {
 
     START_HALF( "시작이 반", "아무 집안일 1회 완료",  null,  null, 1, BadgeCategory.ALL, "start_half.png"),
 
-    SEED_CHORE( "새싹 살림꾼", "아무 집안일 100회 완료",  null,null, 100, BadgeCategory.ALL, "beginner_all.png"),
-    MEDIUM_CHORE( "알뜰 살림꾼", "아무 집안일 200회 완료",  null, null,200, BadgeCategory.ALL, "expert_all.png"),
-    MASTER_CHORE( "살림 마스터", "아무 집안일 300회 완료",  null, null,300 , BadgeCategory.ALL, "master_all.png"),
+    STREAK_THREE("꾸준이", "아무 집안일 연속 3회 완료", null,null, 3, BadgeCategory.STREAK, "beginner_all.png"),
+    STREAK_FIVE("성실왕", "아무 집안일 연속 5회 완료", null,null, 5, BadgeCategory.STREAK, "beginner_five.png"),
+    STREAK_TEN("끈기왕", "아무 집안일 연속 10회 완료", null, null, 10, BadgeCategory.STREAK, "beginner_ten.png"),
 
+    SEED_CHORE( "새싹 살림꾼", "아무 집안일 100회 완료",  null,null, 30, BadgeCategory.ALL, "beginner_all.png"),
+    MEDIUM_CHORE( "알뜰 살림꾼", "아무 집안일 200회 완료",  null, null,50, BadgeCategory.ALL, "expert_all.png"),
+    MASTER_CHORE( "살림 마스터", "아무 집안일 300회 완료",  null, null,100 , BadgeCategory.ALL, "master_all.png"),
+
+    START_J("예비 J", "집안일 10회 등록하기", null, null, 10, BadgeCategory.REGISTER, ""),
     SMALL_J("소문자 J", "집안일 30회 등록하기",  null, null,30, BadgeCategory.REGISTER, "beginner_j.png"),
     LARGE_J( "대문자 J", "집안일 90회 등록하기", null, null,90, BadgeCategory.REGISTER, "expert_j.png"),
     POWER_J( "파워 J", "집안일 180회 등록하기",  null, null,180, BadgeCategory.REGISTER, "master_j.png"),
+
+    MIRACLE_MORNING("미라클 모닝", "오전 10시 이전에 집안일 10회 완료하기", null, null, 10, BadgeCategory.TIME, ""),
+    GOD_LIVE_DINNER("갓생러", "오후 6시 이후에 집안일 10회 완료하기", null, null, 10, BadgeCategory.TIME, ""),
 
     SEED_MISSION( "미션 새싹", "미션 3회 달성하기",  null, null,3, BadgeCategory.MISSION, "beginner_seed.png"),
     EXPERT_MISSION( "미션 달인", "미션 18회 달성하기",  null, null,18, BadgeCategory.MISSION, "expert_seed.png"),
     MASTER_MISSION( "미션 마스터", "미션 36회 달성하기",  null, null,36, BadgeCategory.MISSION, "master_seed.png"),
 
-    BEGINNER_KITCHEN("주방 깔끔이", "주방 집안일 30회 완료",  Space.KITCHEN, null,30, BadgeCategory.SPACE, "beginner_kitchen.png"),
-    EXPERT_KITCHEN("주방 반짝이", "주방 집안일 90회 완료",  Space.KITCHEN, null,90, BadgeCategory.SPACE, "expert_kitchen.png"),
-    MASTER_KITCHEN("주방 번쩍이", "주방 집안일 180회 완료",  Space.KITCHEN, null,180, BadgeCategory.SPACE, "master_kitchen.png"),
+    BEGINNER_KITCHEN("주방 깔끔이", "주방 집안일 30회 완료",  Space.KITCHEN, null,10, BadgeCategory.SPACE, "beginner_kitchen.png"),
+    EXPERT_KITCHEN("주방 반짝이", "주방 집안일 90회 완료",  Space.KITCHEN, null,30, BadgeCategory.SPACE, "expert_kitchen.png"),
+    MASTER_KITCHEN("주방 번쩍이", "주방 집안일 180회 완료",  Space.KITCHEN, null,60, BadgeCategory.SPACE, "master_kitchen.png"),
 
-    BEGINNER_BATHROOM("욕실 깔끔이", "욕실 집안일 30회 완료",  Space.BATHROOM, null,30, BadgeCategory.SPACE, "beginner_bathroom.png"),
-    EXPERT_BATHROOM("욕실 반짝이", "욕실 집안일 90회 완료",  Space.BATHROOM, null,90, BadgeCategory.SPACE, "expert_bathroom.png"),
-    MASTER_BATHROOM("욕실 번쩍이", "욕실 집안일 180회 완료",  Space.BATHROOM, null,180, BadgeCategory.SPACE, "master_bathroom.png"),
+    BEGINNER_BATHROOM("욕실 깔끔이", "욕실 집안일 30회 완료",  Space.BATHROOM, null,10, BadgeCategory.SPACE, "beginner_bathroom.png"),
+    EXPERT_BATHROOM("욕실 반짝이", "욕실 집안일 90회 완료",  Space.BATHROOM, null,30, BadgeCategory.SPACE, "expert_bathroom.png"),
+    MASTER_BATHROOM("욕실 번쩍이", "욕실 집안일 180회 완료",  Space.BATHROOM, null,60, BadgeCategory.SPACE, "master_bathroom.png"),
 
-    BEGINNER_PORCH("현관 깔끔이", "현관 집안일 30회 완료",  Space.PORCH, null,30, BadgeCategory.SPACE, "beginner_porch.png"),
-    EXPERT_PORCH("현관 반짝이", "현관 집안일 90회 완료",   Space.PORCH, null,90, BadgeCategory.SPACE, "expert_porch.png"),
-    MASTER_PORCH("현관 번쩍이", "현관 집안일 180회 완료",   Space.PORCH, null,180, BadgeCategory.SPACE, "master_porch.png"),
+    BEGINNER_PORCH("현관 깔끔이", "현관 집안일 30회 완료",  Space.PORCH, null,10, BadgeCategory.SPACE, "beginner_porch.png"),
+    EXPERT_PORCH("현관 반짝이", "현관 집안일 90회 완료",   Space.PORCH, null,30, BadgeCategory.SPACE, "expert_porch.png"),
+    MASTER_PORCH("현관 번쩍이", "현관 집안일 180회 완료",   Space.PORCH, null,60, BadgeCategory.SPACE, "master_porch.png"),
 
     SEED_LAUNDRY("뽀송 새싹", "빨래하기 30회 완료",  null, "빨래하기", 30, BadgeCategory.TITLE, "beginner_laundry.png"),
     EXPERT_LAUNDRY("뽀송 달인", "빨래하기 90회 완료",  null, "빨래하기", 90, BadgeCategory.TITLE, "expert_laundry.png"),

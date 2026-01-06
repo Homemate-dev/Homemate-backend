@@ -5,5 +5,7 @@ public enum BadgeCategory {
     SPACE, // 공간
     TITLE,  // 특정 이름
     MISSION, // 미션 수행
-    REGISTER // 등록
+    REGISTER, // 등록
+    TIME, // 시간대
+    STREAK // 연속
 }
