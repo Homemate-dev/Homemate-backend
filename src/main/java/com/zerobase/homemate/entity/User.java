@@ -76,4 +76,9 @@ public class User {
       this.profileImageUrl = newProfileImageUrl;
     }
   }
+
+  public void withdraw() {
+    this.userStatus = UserStatus.DELETED;
+    this.deletedAt = LocalDateTime.now();
+  }
 }

@@ -1,16 +1,22 @@
 package com.zerobase.homemate.auth.service;
 
 import com.zerobase.homemate.auth.dto.TokenResponseDto;
+import com.zerobase.homemate.auth.dto.WithdrawRequestDto;
 import com.zerobase.homemate.auth.support.TokenRefreshPolicy;
 import com.zerobase.homemate.auth.token.AccessTokenBlocklist;
 import com.zerobase.homemate.auth.token.RefreshTokenStore;
 import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.UserSocialAccount;
+import com.zerobase.homemate.entity.WithdrawLog;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.UserRepository;
+import com.zerobase.homemate.repository.UserSocialAccountRepository;
+import com.zerobase.homemate.repository.WithdrawLogRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -24,6 +30,8 @@ public class AuthService {
     private final RefreshTokenStore refreshTokenStore;
     private final UserRepository userRepository;
     private final TokenRefreshPolicy tokenRefreshPolicy;
+    private final WithdrawLogRepository withdrawLogRepository;
+    private final UserSocialAccountRepository userSocialAccountRepository;
 
     public TokenResponseDto.AuthTokenCreatedDto refresh(String refreshToken) {
         Claims claims = jwtService.parseAndValidateType(refreshToken, "RT");
@@ -74,5 +82,24 @@ public class AuthService {
         // AT 블록 / RT 삭제
         accessTokenBlocklist.block(jti, ttl);
         refreshTokenStore.delete(userId, sid);
+    }
+
+    @Transactional
+    public void withdraw(Long userId, WithdrawRequestDto requestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.withdraw();
+
+        UserSocialAccount userSocialAccount = userSocialAccountRepository.findByUser(user)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        WithdrawLog log = WithdrawLog.builder()
+                .userId(userId)
+                .providerUserId(userSocialAccount.getProviderUserId())
+                .reason(requestDto.getReason())
+                .detail(requestDto.getDetail())
+                .build();
+
+        withdrawLogRepository.save(log);
     }
 }
