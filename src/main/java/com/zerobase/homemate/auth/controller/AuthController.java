@@ -37,9 +37,8 @@ public class AuthController {
             @Valid @RequestBody SocialLoginDto.KakaoLoginRequest request
     ) {
         SocialLoginDto.InternalLoginResponse loginResult = kakaoLoginService.login(request);
-        ResponseCookie responseCookie = refreshTokenCookieFactory.fromRefreshToken(loginResult.refreshToken());
 
-        return createResponseWithCookie(loginResult.loginResponse(), OK, responseCookie);
+        return createResponseWithCookie(loginResult.loginResponse(), OK, refreshTokenCookieFactory.fromRefreshToken(loginResult.refreshToken()));
     }
 
     @PostMapping("/refresh")
@@ -50,12 +49,9 @@ public class AuthController {
         AuthTokenResponseDto body = new AuthTokenResponseDto(result.accessToken());
 
         Optional<String> rt = result.newRefreshToken();
-        if (rt.isPresent()) {
-            ResponseCookie responseCookie = refreshTokenCookieFactory.fromRefreshToken(rt.get());
-            return createResponseWithCookie(body, OK, responseCookie);
-        }
+        return rt.map(s -> createResponseWithCookie(body, OK, refreshTokenCookieFactory.fromRefreshToken(s)))
+                .orElseGet(() -> ResponseEntity.ok(body));
 
-        return ResponseEntity.ok(body);
     }
 
     @PostMapping("/logout")
@@ -63,9 +59,8 @@ public class AuthController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
         authService.logout(BearerTokenExtractor.resolveBearerToken(authorization));
-        ResponseCookie deleteCookie = refreshTokenCookieFactory.deleteRefreshToken();
 
-        return createResponseWithCookie(null, NO_CONTENT, deleteCookie);
+        return createResponseWithCookie(null, NO_CONTENT, refreshTokenCookieFactory.deleteRefreshToken());
     }
 
     @DeleteMapping("/withdraw")
@@ -75,9 +70,8 @@ public class AuthController {
     ) {
         Long userId = userPrincipal.id();
         authService.withdraw(userId, requestDto);
-        ResponseCookie deleteCookie = refreshTokenCookieFactory.deleteRefreshToken();
 
-        return createResponseWithCookie(null, NO_CONTENT, deleteCookie);
+        return createResponseWithCookie(null, NO_CONTENT, refreshTokenCookieFactory.deleteRefreshToken());
     }
 
     private <T> ResponseEntity<T> createResponseWithCookie(T body, HttpStatus code, ResponseCookie cookie) {
