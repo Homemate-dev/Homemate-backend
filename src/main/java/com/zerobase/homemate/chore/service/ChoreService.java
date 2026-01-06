@@ -349,8 +349,28 @@ public class ChoreService {
     }
 
     @Transactional
-    public void deleteChore(Long userId, Long choreInstanceId,
-                            boolean applyToAfter) {
+      public void deleteChore(Long userId, Long choreId, boolean applyToAfter) {
+
+        Chore chore = choreRepository.findById(choreId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
+
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        if (applyToAfter) {
+            choreInstanceRepository.bulkSoftDeleteAfterByChore(chore);
+            softDeleteChoreIfAllInstancesDeleted(chore);
+            chore.setEndDate(choreInstanceRepository.findBeforeDueDateByChore(chore));
+        } else {
+            List<ChoreInstance> instances = chore.getChoreInstances();
+            instances.forEach(ChoreInstance::softDelete);
+            chore.softDelete();
+        }
+    }
+
+    @Transactional
+    public void deleteChoreInstance(Long userId, Long choreInstanceId) {
 
         ChoreInstance choreInstance =
                 choreInstanceRepository.findById(choreInstanceId)
@@ -361,34 +381,16 @@ public class ChoreService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
-                choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
-            if (chore.getRepeatType() == RepeatType.NONE ||
-                    chore.getStartDate().equals(chore.getEndDate())) {
-                choreInstance.softDelete();
-                chore.softDelete();
-            } else {
-                if (applyToAfter) {
-                    if (!choreInstance.getDueDate().equals(chore.getStartDate())) {
-                        setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
-                    }
-                    choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
-                            chore, choreInstance.getDueDate(),
-                            ChoreStatus.DELETED, LocalDateTime.now());
-                } else {
-                    setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
-                    choreInstance.softDelete();
-                }
-            }
-
-            softDeleteChoreIfAllInstancesDeleted(chore);
-        } else {
-            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        if (choreInstance.getChoreStatus() == ChoreStatus.DELETED) {
+            throw new CustomException(ErrorCode.CHORE_INSTANCE_ALREADY_DELETED);
         }
+
+        choreInstance.softDelete();
+        setStartDateEndDateForCase(chore, choreInstance);
     }
 
     private void setStartDateEndDateForCase(
-        Chore chore, ChoreInstance choreInstance, boolean applyToAfter) {
+        Chore chore, ChoreInstance choreInstance) {
         EnumSet<ChoreStatus> includedStatuses =
             EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
         if (choreInstance.getDueDate().equals(chore.getStartDate())) {
@@ -405,7 +407,7 @@ public class ChoreService {
             }
 
             chore.setStartDate(nextDate);
-        } else if (choreInstance.getDueDate().equals(chore.getEndDate()) || applyToAfter) {
+        } else if (choreInstance.getDueDate().equals(chore.getEndDate())) {
             LocalDate beforeDate = choreInstanceGenerator.getBeforeDate(
                 choreInstance.getDueDate(),
                 chore.getRepeatType(),
@@ -423,13 +425,17 @@ public class ChoreService {
     }
 
     private void softDeleteChoreIfAllInstancesDeleted(Chore chore) {
+        EnumSet<ChoreStatus> choreStatuses =
+                EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
+
         List<ChoreInstance> activeInstances =
-            choreInstanceRepository.findByChoreAndChoreStatus(
-                chore, ChoreStatus.PENDING);
+            choreInstanceRepository.findByChoreAndChoreStatusIn(
+                chore, choreStatuses);
 
         if (activeInstances.isEmpty()) {
-            Chore refChore = choreRepository.getReferenceById(chore.getId());
-            refChore.softDelete();
+            chore.softDelete();
+//            Chore refChore = choreRepository.getReferenceById(chore.getId());
+//            refChore.softDelete();
         }
     }
 
