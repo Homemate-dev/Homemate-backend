@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -358,9 +359,9 @@ public class ChoreService {
         }
 
         if (applyToAfter) {
+            chore.setEndDate(choreInstanceRepository.findBeforeDueDateByChore(chore));
             choreInstanceRepository.bulkSoftDeleteAfterByChore(chore);
             softDeleteChoreIfAllInstancesDeleted(chore);
-            chore.setEndDate(choreInstanceRepository.findBeforeDueDateByChore(chore));
         } else {
             List<ChoreInstance> instances = chore.getChoreInstances();
             instances.forEach(ChoreInstance::softDelete);
@@ -384,9 +385,9 @@ public class ChoreService {
             throw new CustomException(ErrorCode.CHORE_INSTANCE_ALREADY_DELETED);
         }
 
+        setStartDateEndDateForCase(chore, choreInstance);
         choreInstance.softDelete();
         softDeleteChoreIfAllInstancesDeleted(chore);
-        setStartDateEndDateForCase(chore, choreInstance);
     }
 
     private void setStartDateEndDateForCase(
@@ -394,33 +395,19 @@ public class ChoreService {
         EnumSet<ChoreStatus> includedStatuses =
             EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
         if (choreInstance.getDueDate().equals(chore.getStartDate())) {
-            LocalDate nextDate = choreInstanceGenerator.getNextDate(
-                choreInstance.getDueDate(),
-                chore.getRepeatType(),
-                chore.getRepeatInterval());
+            Optional<ChoreInstance> nextChore =
+                    choreInstanceRepository.
+                            findFirstByChoreAndDueDateGreaterThanAndChoreStatusInOrderByDueDateAsc(
+                                    chore, choreInstance.getDueDate(), includedStatuses);
 
-            while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, nextDate, includedStatuses)) {
-                nextDate = choreInstanceGenerator.getNextDate(
-                    nextDate,
-                    chore.getRepeatType(),
-                    chore.getRepeatInterval());
-            }
-
-            chore.setStartDate(nextDate);
+            nextChore.ifPresent(instance -> chore.setStartDate(instance.getDueDate()));
         } else if (choreInstance.getDueDate().equals(chore.getEndDate())) {
-            LocalDate beforeDate = choreInstanceGenerator.getBeforeDate(
-                choreInstance.getDueDate(),
-                chore.getRepeatType(),
-                chore.getRepeatInterval());
+            Optional<ChoreInstance> beforeChore =
+                    choreInstanceRepository.
+                            findFirstByChoreAndDueDateLessThanAndChoreStatusInOrderByDueDateDesc(
+                                    chore, choreInstance.getDueDate(), includedStatuses);
 
-            while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, beforeDate, includedStatuses)) {
-                beforeDate = choreInstanceGenerator.getBeforeDate(
-                    beforeDate,
-                    chore.getRepeatType(),
-                    chore.getRepeatInterval());
-            }
-
-            chore.setEndDate(beforeDate);
+            beforeChore.ifPresent(instance -> chore.setEndDate(instance.getDueDate()));
         }
     }
 
@@ -433,9 +420,8 @@ public class ChoreService {
                 chore, choreStatuses);
 
         if (activeInstances.isEmpty()) {
-            chore.softDelete();
-//            Chore refChore = choreRepository.getReferenceById(chore.getId());
-//            refChore.softDelete();
+            Chore refChore = choreRepository.getReferenceById(chore.getId());
+            refChore.softDelete();
         }
     }
 
