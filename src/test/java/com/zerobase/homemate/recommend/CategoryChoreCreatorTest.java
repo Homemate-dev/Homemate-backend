@@ -80,7 +80,7 @@ public class CategoryChoreCreatorTest {
 
         CategoryChore categoryChore = CategoryChore.builder()
                 .id(categoryChoreId)
-                .category(Category.WINTER)
+                .category(Category.TEN_MINUTES_CLEANING)
                 .title("청소하기")
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(3)
@@ -241,7 +241,7 @@ public class CategoryChoreCreatorTest {
         CategoryChore categoryChore = CategoryChore.builder()
                 .id(categoryChoreId)
                 .title("청소하기")
-                .category(Category.WINTER)
+                .category(Category.TEN_MINUTES_CLEANING)
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(3)
                 .build();
@@ -339,7 +339,7 @@ public class CategoryChoreCreatorTest {
         CategoryChore categoryChore = CategoryChore.builder()
                 .id(categoryChoreId)
                 .title("청소하기")
-                .category(Category.WINTER)
+                .category(Category.TEN_MINUTES_CLEANING)
                 .repeatType(RepeatType.DAILY)
                 .repeatInterval(1)
                 .build();

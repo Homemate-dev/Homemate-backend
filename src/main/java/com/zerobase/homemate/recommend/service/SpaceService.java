@@ -36,13 +36,11 @@ public class SpaceService {
 
 
 
-    public List<ClassifyChoreResponse> getChoresBySpace(Space space){
-        if (space == null) {
-            throw new CustomException(ErrorCode.SPACE_NOT_FOUND);
-        }
+    public List<ClassifyChoreResponse> getSpaceChores(Space space){
 
-        List<SpaceChore> randomChores = spaceChoreRepository.findBySpace(space);
-
+        List<SpaceChore> randomChores = (space == null)
+                ? spaceChoreRepository.findAll()
+                : spaceChoreRepository.findBySpace(space);
         if (randomChores.isEmpty()) {
             throw new CustomException(ErrorCode.CHORE_NOT_FOUND);
         }

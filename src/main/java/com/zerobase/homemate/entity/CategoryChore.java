@@ -1,7 +1,6 @@
 package com.zerobase.homemate.entity;
 
-import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.RepeatType;
+import com.zerobase.homemate.entity.enums.*;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,7 +29,30 @@ public class CategoryChore {
     @Column(name = "repeat_interval")
     private Integer repeatInterval;
 
+    // 기존 FIXED 카테고리
     @Enumerated(EnumType.STRING)
     @Column(name = "category")
     private Category category;
+
+    // 신규 계절별 카테고리
+    @Enumerated(EnumType.STRING)
+    private Season season;
+
+    // 카테고리의 종류 표기
+    @Enumerated(EnumType.STRING)
+    private CategoryType categoryType;
+
+    // 월간 추가되는 카테고리
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categories_id")
+    private Categories categories;
+
+    @Enumerated(EnumType.STRING)
+    private SubCategory subCategory;
+
+
+
+    @Column(name = "is_active")
+    private boolean isActive;
+
 }
