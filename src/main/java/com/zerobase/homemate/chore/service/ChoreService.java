@@ -22,7 +22,6 @@ import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.Objects;
@@ -34,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -349,8 +349,28 @@ public class ChoreService {
     }
 
     @Transactional
-    public void deleteChore(Long userId, Long choreInstanceId,
-                            boolean applyToAfter) {
+      public void deleteChore(Long userId, Long choreId, boolean applyToAfter) {
+
+        Chore chore = choreRepository.findById(choreId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
+
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        if (applyToAfter) {
+            chore.setEndDate(choreInstanceRepository.findBeforeDueDateByChore(chore));
+            choreInstanceRepository.bulkSoftDeleteAfterByChore(chore);
+            softDeleteChoreIfAllInstancesDeleted(chore);
+        } else {
+            List<ChoreInstance> instances = chore.getChoreInstances();
+            instances.forEach(ChoreInstance::softDelete);
+            chore.softDelete();
+        }
+    }
+
+    @Transactional
+    public void deleteChoreInstance(Long userId, Long choreInstanceId) {
 
         ChoreInstance choreInstance =
                 choreInstanceRepository.findById(choreInstanceId)
@@ -361,71 +381,43 @@ public class ChoreService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        if (choreInstance.getChoreStatus() == ChoreStatus.PENDING ||
-                choreInstance.getChoreStatus() == ChoreStatus.COMPLETED) {
-            if (chore.getRepeatType() == RepeatType.NONE ||
-                    chore.getStartDate().equals(chore.getEndDate())) {
-                choreInstance.softDelete();
-                chore.softDelete();
-            } else {
-                if (applyToAfter) {
-                    if (!choreInstance.getDueDate().equals(chore.getStartDate())) {
-                        setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
-                    }
-                    choreInstanceRepository.bulkSoftDeleteAfterByChoreAndStatuses(
-                            chore, choreInstance.getDueDate(),
-                            ChoreStatus.DELETED, LocalDateTime.now());
-                } else {
-                    setStartDateEndDateForCase(chore, choreInstance, applyToAfter);
-                    choreInstance.softDelete();
-                }
-            }
-
-            softDeleteChoreIfAllInstancesDeleted(chore);
-        } else {
-            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        if (choreInstance.getChoreStatus() == ChoreStatus.DELETED) {
+            throw new CustomException(ErrorCode.CHORE_INSTANCE_ALREADY_DELETED);
         }
+
+        setStartDateEndDateForCase(chore, choreInstance);
+        choreInstance.softDelete();
+        softDeleteChoreIfAllInstancesDeleted(chore);
     }
 
     private void setStartDateEndDateForCase(
-        Chore chore, ChoreInstance choreInstance, boolean applyToAfter) {
+        Chore chore, ChoreInstance choreInstance) {
         EnumSet<ChoreStatus> includedStatuses =
             EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
         if (choreInstance.getDueDate().equals(chore.getStartDate())) {
-            LocalDate nextDate = choreInstanceGenerator.getNextDate(
-                choreInstance.getDueDate(),
-                chore.getRepeatType(),
-                chore.getRepeatInterval());
+            Optional<ChoreInstance> nextChore =
+                    choreInstanceRepository.
+                            findFirstByChoreAndDueDateGreaterThanAndChoreStatusInOrderByDueDateAsc(
+                                    chore, choreInstance.getDueDate(), includedStatuses);
 
-            while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, nextDate, includedStatuses)) {
-                nextDate = choreInstanceGenerator.getNextDate(
-                    nextDate,
-                    chore.getRepeatType(),
-                    chore.getRepeatInterval());
-            }
+            nextChore.ifPresent(instance -> chore.setStartDate(instance.getDueDate()));
+        } else if (choreInstance.getDueDate().equals(chore.getEndDate())) {
+            Optional<ChoreInstance> beforeChore =
+                    choreInstanceRepository.
+                            findFirstByChoreAndDueDateLessThanAndChoreStatusInOrderByDueDateDesc(
+                                    chore, choreInstance.getDueDate(), includedStatuses);
 
-            chore.setStartDate(nextDate);
-        } else if (choreInstance.getDueDate().equals(chore.getEndDate()) || applyToAfter) {
-            LocalDate beforeDate = choreInstanceGenerator.getBeforeDate(
-                choreInstance.getDueDate(),
-                chore.getRepeatType(),
-                chore.getRepeatInterval());
-
-            while(!choreInstanceRepository.existsByChoreAndDueDateAndChoreStatusIn(chore, beforeDate, includedStatuses)) {
-                beforeDate = choreInstanceGenerator.getBeforeDate(
-                    beforeDate,
-                    chore.getRepeatType(),
-                    chore.getRepeatInterval());
-            }
-
-            chore.setEndDate(beforeDate);
+            beforeChore.ifPresent(instance -> chore.setEndDate(instance.getDueDate()));
         }
     }
 
     private void softDeleteChoreIfAllInstancesDeleted(Chore chore) {
+        EnumSet<ChoreStatus> choreStatuses =
+                EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED);
+
         List<ChoreInstance> activeInstances =
-            choreInstanceRepository.findByChoreAndChoreStatus(
-                chore, ChoreStatus.PENDING);
+            choreInstanceRepository.findByChoreAndChoreStatusIn(
+                chore, choreStatuses);
 
         if (activeInstances.isEmpty()) {
             Chore refChore = choreRepository.getReferenceById(chore.getId());

@@ -83,7 +83,8 @@ public class ChoreInstance {
 
     public void softDelete() {
         if (this.choreStatus == ChoreStatus.PENDING ||
-            this.choreStatus == ChoreStatus.COMPLETED) {
+            this.choreStatus == ChoreStatus.COMPLETED ||
+            this.choreStatus == ChoreStatus.CANCELLED) {
             this.choreStatus = ChoreStatus.DELETED;
             this.deletedAt = LocalDateTime.now();
         }

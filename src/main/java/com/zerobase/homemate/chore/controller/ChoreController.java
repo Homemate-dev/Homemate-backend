@@ -90,13 +90,23 @@ public class ChoreController {
         return ResponseEntity.status(HttpStatus.OK).body(dates);
     }
 
-    @DeleteMapping("/{choreInstanceId}")
+    @DeleteMapping("/{choreId}")
     public ResponseEntity<Void> deleteChore(
         @AuthenticationPrincipal UserPrincipal user,
-        @PathVariable Long choreInstanceId,
+        @PathVariable Long choreId,
         @RequestParam boolean applyToAfter) {
 
-        choreService.deleteChore(user.id(), choreInstanceId, applyToAfter);
+        choreService.deleteChore(user.id(), choreId, applyToAfter);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/instance/{choreInstanceId}")
+    public ResponseEntity<Void> deleteChoreInstance(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long choreInstanceId) {
+
+        choreService.deleteChoreInstance(user.id(), choreInstanceId);
 
         return ResponseEntity.noContent().build();
     }

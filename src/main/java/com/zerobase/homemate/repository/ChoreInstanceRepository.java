@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -49,20 +50,15 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
         UPDATE ChoreInstance ci
-           SET ci.choreStatus = :deleted,
-               ci.deletedAt = :now
+           SET ci.choreStatus = com.zerobase.homemate.entity.enums.ChoreStatus.DELETED,
+               ci.deletedAt = CURRENT_TIMESTAMP
          WHERE ci.chore = :chore
-           AND ci.choreStatus IN ('PENDING', 'COMPLETED')
-           AND ci.dueDate >= :dueDate
+           AND ci.dueDate >= CURRENT_DATE
     """)
-    void bulkSoftDeleteAfterByChoreAndStatuses(
-        @Param("chore") Chore chore,
-        @Param("dueDate") LocalDate dueDate,
-        @Param("deleted") ChoreStatus deleted,
-        @Param("now") LocalDateTime now);
+    void bulkSoftDeleteAfterByChore(@Param("chore") Chore chore);
 
-    List<ChoreInstance> findByChoreAndChoreStatus(
-        Chore chore, ChoreStatus choreStatus);
+    List<ChoreInstance> findByChoreAndChoreStatusIn(
+        Chore chore, Collection<ChoreStatus> choreStatuses);
 
     @Query("""
         SELECT new com.zerobase.homemate.chore.dto.ChoreCounts(
@@ -82,6 +78,23 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
         @Param("included") Set<ChoreStatus> included
     );
 
-    boolean existsByChoreAndDueDateAndChoreStatusIn(Chore chore,
-        LocalDate dueDate, Collection<ChoreStatus> choreStatuses);
+    Optional<ChoreInstance> findFirstByChoreAndDueDateGreaterThanAndChoreStatusInOrderByDueDateAsc(
+            Chore chore, LocalDate dueDate, Collection<ChoreStatus> choreStatuses
+    );
+
+    Optional<ChoreInstance> findFirstByChoreAndDueDateLessThanAndChoreStatusInOrderByDueDateDesc(
+            Chore chore, LocalDate dueDate, Collection<ChoreStatus> choreStatuses
+    );
+    @Query("""
+        SELECT MAX(ci.dueDate)
+          FROM ChoreInstance ci
+         WHERE ci.chore = :chore
+           AND ci.dueDate <= CURRENT_DATE
+           AND ci.choreStatus IN (
+               com.zerobase.homemate.entity.enums.ChoreStatus.PENDING,
+               com.zerobase.homemate.entity.enums.ChoreStatus.COMPLETED
+           )
+    """)
+    LocalDate findBeforeDueDateByChore(@Param("chore") Chore chore);
+
 }
