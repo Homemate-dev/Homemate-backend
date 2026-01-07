@@ -85,7 +85,9 @@ public class AuthService {
     }
 
     @Transactional
-    public void withdraw(Long userId, WithdrawRequestDto requestDto) {
+    public void withdraw(long userId, String accessToken, WithdrawRequestDto requestDto) {
+        logout(accessToken);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.withdraw();

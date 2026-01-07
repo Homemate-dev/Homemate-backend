@@ -66,10 +66,12 @@ public class AuthController {
     @DeleteMapping("/withdraw")
     public ResponseEntity<Void> withdraw(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestBody WithdrawRequestDto requestDto
     ) {
-        Long userId = userPrincipal.id();
-        authService.withdraw(userId, requestDto);
+        long userId = userPrincipal.id();
+        String accessToken = BearerTokenExtractor.resolveBearerToken(authorization);
+        authService.withdraw(userId, accessToken, requestDto);
 
         return createResponseWithCookie(null, NO_CONTENT, refreshTokenCookieFactory.deleteRefreshToken());
     }
