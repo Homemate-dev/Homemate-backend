@@ -48,25 +48,45 @@ public class KakaoLoginTransaction {
         Optional<UserSocialAccount> existing =
                 socialAccountRepository.findBySocialProviderAndProviderUserId(SocialProvider.KAKAO, kakaoUid);
 
-        boolean isNewUser = existing.isEmpty();
+        boolean isNewUser;
         User user;
 
         if (existing.isPresent()) {
-            // 기존 유저
-            user = existing.get().getUser();
+            UserSocialAccount userSocialAccount = existing.get();
+            User linkedUser = userSocialAccount.getUser();
 
             // 비활성/정지 사용자는 로그인 불가
-            if (user.getUserStatus() == UserStatus.SUSPENDED) {
+            if (linkedUser.getUserStatus() == UserStatus.SUSPENDED) {
                 throw new CustomException(ErrorCode.FORBIDDEN, "정지된 사용자입니다.");
             }
 
-            // 유저 정보 최신화
-            user.loginAndProfileUpdate(nickname, profileImage, now);
-
-            // 기존 유저인데 알림 설정이 없는 경우가 있을 수 있으니 보정(개발/테스트 계정, 에러 발생 등)
-            if (!notificationSettingRepository.existsByUserId(user.getId())) {
+            // 탈퇴 유저 -> 재가입
+            if (linkedUser.getUserStatus() == UserStatus.DELETED) {
+                User newUser = User.builder()
+                        .profileName(nickname)
+                        .profileImageUrl(profileImage)
+                        .userRole(UserRole.USER)
+                        .userStatus(UserStatus.ACTIVE)
+                        .lastLoginAt(now)
+                        .build();
+                user = userRepository.save(newUser);
                 notificationSettingRepository.save(
                         UserNotificationSetting.createDefault(user, DEFAULT_NOTIFICATION_TIME));
+                userSocialAccount.rebindUser(user);
+
+                isNewUser = true;
+            } else {
+                user = linkedUser;
+                // 유저 정보 최신화
+                user.loginAndProfileUpdate(nickname, profileImage, now);
+
+                // 기존 유저인데 알림 설정이 없는 경우가 있을 수 있으니 보정(개발/테스트 계정, 에러 발생 등)
+                if (!notificationSettingRepository.existsByUserId(user.getId())) {
+                    notificationSettingRepository.save(
+                            UserNotificationSetting.createDefault(user, DEFAULT_NOTIFICATION_TIME));
+                }
+
+                isNewUser = false;
             }
         } else {
             // 신규 유저 + 유저 알림 설정(Default) + 소셜 링크 생성
@@ -94,6 +114,8 @@ public class KakaoLoginTransaction {
             } catch (DataIntegrityViolationException e) {
                 throw new CustomException(ErrorCode.SOCIAL_LINK_CONFLICT);
             }
+
+            isNewUser = true;
         }
 
         // 우리 서비스용 JWT 발급
