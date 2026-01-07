@@ -1,12 +1,14 @@
 package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.entity.enums.TimeSlot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -19,12 +21,19 @@ public class UserBadgeStatsService {
     private static final String STATS_KEY_FORMAT = "user:stats:%d";
     private static final String SPACE_KEY_FORMAT = "user:stats:%d:space";
     private static final String TITLE_KEY_FORMAT = "user:stats:%d:title";
+    private static final String TIME_FORMAT = "user:stats:%d:time";
+    private static final String STREAK_FORMAT = "user:stats:%d:streak";
 
     // Field Format
     private static final String FIELD_TOTAL_COMPLETED = "total_completed";
     private static final String FIELD_TOTAL_REGISTERED = "total_registered";
     private static final String FIELD_MISSION_COUNT = "mission_count";
     private static final String FIELD_LAST_UPDATED = "last_updated";
+    private static final String FIELD_TIME = "specific_time";
+
+    private static final String FIELD_STREAK_COUNT = "count";
+    private static final String FIELD_STREAK_LAST_DATE = "last_date";
+
 
     // Increment Methods
     public void incrementTotalCompleted(Long userId){
@@ -63,6 +72,42 @@ public class UserBadgeStatsService {
         redisTemplate.opsForHash().increment(key, title, 1);
     }
 
+    public void incrementTimeCount(Long userId, TimeSlot slot) {
+        String key = String.format(TIME_FORMAT, userId);
+        setLastUpdated(userId, Instant.now().getEpochSecond());
+
+        redisTemplate.opsForHash().increment(key, slot.name(), 1);
+    }
+
+    public void updateStreak(Long userId, LocalDate today) {
+        String key = String.format(STREAK_FORMAT, userId);
+
+        Object lastDateObj =
+                redisTemplate.opsForHash().get(key, FIELD_STREAK_LAST_DATE);
+
+        LocalDate lastDate =
+                lastDateObj == null ? null : LocalDate.parse(lastDateObj.toString());
+
+        int streak = (int) parseLongSafe(
+                redisTemplate.opsForHash().get(key, FIELD_STREAK_COUNT)
+        );
+
+        if (lastDate == null) {
+            streak = 1;
+        } else if (lastDate.equals(today)) {
+            return; // 이미 오늘 처리됨
+        } else if (lastDate.plusDays(1).equals(today)) {
+            streak += 1;
+        } else {
+            streak = 1;
+        }
+
+        redisTemplate.opsForHash().put(key, FIELD_STREAK_LAST_DATE, today.toString());
+        redisTemplate.opsForHash().put(key, FIELD_STREAK_COUNT, String.valueOf(streak));
+
+    }
+
+
     // get Count Method
     public long getTotalCompletedCount(Long userId){
         Object v = redisTemplate.opsForHash().get(String.format(STATS_KEY_FORMAT, userId), FIELD_TOTAL_COMPLETED);
@@ -89,6 +134,19 @@ public class UserBadgeStatsService {
         return parseLongSafe(v);
     }
 
+    public long getTimeCount(Long userId, TimeSlot targetTimeSlot) {
+        Object v = redisTemplate.opsForHash()
+                .get(String.format(TIME_FORMAT, userId), FIELD_TIME);
+
+        return parseLongSafe(v);
+    }
+
+
+    public long getStreakCount(Long userId) {
+        Object v = redisTemplate.opsForHash().get(String.format(STREAK_FORMAT, userId), FIELD_TIME);
+        return parseLongSafe(v);
+    }
+
 
     // Sub Method for these!
 
@@ -108,5 +166,6 @@ public class UserBadgeStatsService {
             redisTemplate.opsForHash().put(key, FIELD_LAST_UPDATED, String.valueOf(epochSeconds));
         } catch (Exception ignored) {}
     }
+
 
 }

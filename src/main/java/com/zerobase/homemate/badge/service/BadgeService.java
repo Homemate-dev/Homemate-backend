@@ -3,9 +3,11 @@ package com.zerobase.homemate.badge.service;
 import com.zerobase.homemate.badge.BadgeProgressResponse;
 import com.zerobase.homemate.entity.Badge;
 import com.zerobase.homemate.entity.Chore;
+import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.BadgeCategory;
 import com.zerobase.homemate.entity.enums.BadgeType;
+import com.zerobase.homemate.entity.enums.TimeSlot;
 import com.zerobase.homemate.repository.BadgeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,37 @@ public class BadgeService {
             }
         }
         return badgeMap;
+    }
+
+    @Transactional
+    public void evaluateBadgesOnCompletion(User user, ChoreInstance choreInstance){
+        LocalDateTime completedAt = choreInstance.getCompletedAt();
+
+        TimeSlot slot = TimeSlot.from(completedAt);
+        userBadgeStatsService.incrementTimeCount(user.getId(), slot);
+
+        userBadgeStatsService.updateStreak(
+                user.getId(),
+                completedAt.toLocalDate()
+        );
+
+        List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
+                .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
+                .map(type -> new Badge(user, type))
+                .toList();
+
+
+        if(!badgesToSave.isEmpty()){
+            badgeRepository.saveAll(badgesToSave);
+
+            for (Badge b : badgesToSave) {
+                log.info("Time & STREAK Badge Saved : type={}, acquiredAt={}", b.getBadgeType(), b.getAcquiredAt());
+            }
+
+        }
+
+        log.info("start to evict TIME & STREAK Cache : {}", user.getId());
+        badgeCacheService.evictClosestBadges(user.getId());
     }
 
     /*
@@ -207,6 +240,8 @@ public class BadgeService {
             case MISSION -> userBadgeStatsService.getTotalMissionCount(userId);
             case SPACE -> userBadgeStatsService.getSpaceCount(userId, type.getSpace());
             case TITLE -> userBadgeStatsService.getTitleCount(userId, type.getChoreTitle());
+            case TIME -> userBadgeStatsService.getTimeCount(userId, type.getTimeSlot());
+            case STREAK -> userBadgeStatsService.getStreakCount(userId);
         };
     }
 

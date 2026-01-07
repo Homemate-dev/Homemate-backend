@@ -277,7 +277,9 @@ public class ChoreService {
             default -> throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
+
         badgeService.evaluateBadges(chore.getUser(), chore);
+        badgeService.evaluateBadgesOnCompletion(chore.getUser(), choreInstance);
       
         return ApiResponse.<ChoreInstanceDto.Response>builder()
             .data(ChoreInstanceDto.Response.fromEntity(choreInstance))
