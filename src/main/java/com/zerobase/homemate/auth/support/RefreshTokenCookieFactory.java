@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class RefreshTokenCookieFactory {
 
     public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-    public static final String DOMAIN = ".homemate.io.kr";
+    //public static final String DOMAIN = ".homemate.io.kr";
     @Value("${auth.jwt.refresh-exp-seconds}")
     private long refreshExp;
     @Value("${auth.dev.enabled}")
@@ -28,7 +28,7 @@ public class RefreshTokenCookieFactory {
                 .sameSite("None")
                 .secure(true)
                 .maxAge(expiration)
-                .domain(DOMAIN)
+                //.domain(DOMAIN)
                 .path(resolvePath())
                 .build();
     }
