@@ -28,9 +28,10 @@ public class RecommendController {
         return ResponseEntity.ok(chores);
     }
 
-    @GetMapping("/trend")
-    public List<TopItemDto> getTopOverall(
-            @AuthenticationPrincipal UserPrincipal user) {
-        return choreStatsService.getTopOverallWithMissions(user.id());
+    @GetMapping("/total")
+    public List<TopItemDto> getTopCategories(
+            @AuthenticationPrincipal UserPrincipal user
+    ){
+        return choreStatsService.getTopCategories(user.id());
     }
 }

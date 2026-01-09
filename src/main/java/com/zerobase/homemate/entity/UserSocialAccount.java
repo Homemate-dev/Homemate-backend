@@ -42,4 +42,9 @@ public class UserSocialAccount {
 
   @Column(name = "connected_at")
   private LocalDateTime connectedAt;
+
+  public void rebindUser(User user) {
+    this.user = user;
+    this.connectedAt = LocalDateTime.now();
+  }
 }

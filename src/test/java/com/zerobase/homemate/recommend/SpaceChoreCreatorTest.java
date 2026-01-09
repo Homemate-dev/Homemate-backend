@@ -121,7 +121,7 @@ public class SpaceChoreCreatorTest {
                 .repeatInterval(1)
                 .build();
 
-        Category category = Category.WEEKEND_WHOLE_ROUTINE;
+        Category category = Category.AFTER_WORK_THIRTY_MINUTES;
         CategoryChore categoryChore = CategoryChore.builder()
                 .title("주방 정리하기")
                 .category(category)

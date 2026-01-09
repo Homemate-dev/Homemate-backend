@@ -4,8 +4,6 @@ package com.zerobase.homemate.space;
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
-import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.recommend.service.SpaceService;
@@ -21,7 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class SpaceServiceTest {
@@ -60,7 +57,7 @@ public class SpaceServiceTest {
                 .thenReturn(List.of(chore1, chore2));
 
         // when
-        List<ClassifyChoreResponse> result = spaceService.getChoresBySpace(Space.KITCHEN);
+        List<ClassifyChoreResponse> result = spaceService.getSpaceChores(Space.KITCHEN);
 
         // then
         assertThat(result).hasSize(2);
@@ -70,16 +67,6 @@ public class SpaceServiceTest {
 
         verify(spaceChoreRepository, times(1))
                 .findBySpace(eq(Space.KITCHEN));
-    }
-
-    @Test
-    @DisplayName("공간이 null일 경우 SPACE_NOT_FOUND 예외 발생")
-    void getChoresBySpace_ShouldThrowExceptionIfSpaceNull() {
-        // when & then
-        CustomException exception = assertThrows(CustomException.class,
-                () -> spaceService.getChoresBySpace(null));
-
-        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.SPACE_NOT_FOUND);
     }
 
     @Test

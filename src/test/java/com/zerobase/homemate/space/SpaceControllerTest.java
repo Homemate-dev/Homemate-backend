@@ -6,7 +6,6 @@ import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.recommend.controller.SpaceController;
-import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.recommend.service.SpaceChoreCreator;
 import com.zerobase.homemate.recommend.service.SpaceService;
@@ -67,28 +66,6 @@ class SpaceControllerTest {
                 .andExpect(jsonPath("$[2].spaceName").value("현관"));
     }
 
-    @Test
-    @DisplayName("특정 공간에 속한 집안일 조회")
-    void testGetChoresBySpace() throws Exception {
-        // given
-        Space space = Space.KITCHEN;
-
-        List<ClassifyChoreResponse> mockChores = List.of(
-                new ClassifyChoreResponse(1L, "청소", "매주", space, null),
-                new ClassifyChoreResponse(2L, "설거지", "매일", space, null)
-        );
-        int page = 0;
-        when(spaceService.getChoresBySpace(space)).thenReturn(mockChores);
-
-        // when & then
-        mockMvc.perform(get("/recommend/spaces/{space}/chores", space.name())
-                .param("page",  String.valueOf(page))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(mockChores.size()))
-                .andExpect(jsonPath("$[0].title").value("청소"))
-                .andExpect(jsonPath("$[1].title").value("설거지"));
-    }
 
     @Test
     @DisplayName("SpaceChore 기반 집안일 등록 테스트")

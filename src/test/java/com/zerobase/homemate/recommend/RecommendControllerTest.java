@@ -3,18 +3,18 @@ package com.zerobase.homemate.recommend;
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.entity.enums.UserRole;
 import com.zerobase.homemate.recommend.controller.RecommendController;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.recommend.service.RecommendService;
 import com.zerobase.homemate.recommend.service.stats.ChoreStatsService;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -70,47 +71,46 @@ public class RecommendControllerTest {
     }
 
     @Test
-    @DisplayName("유저별 미션 달성 집안일 + Top N 조회 (집안일 개수 포함)")
-    void testGetTopOverall() throws Exception {
+    void getTopCategories_success() throws Exception {
         // given
-        Long userId = 1L;
+        UserPrincipal user = new UserPrincipal(1L, "Delcastin", UserRole.USER.name());
 
-        var principal = new UserPrincipal(1L, "tester", "USER");
-        UsernamePasswordAuthenticationToken auth =
-                new UsernamePasswordAuthenticationToken(principal, null, List.of());
-        SecurityContextHolder.getContext().setAuthentication(auth);
+        Authentication auth =
+                new UsernamePasswordAuthenticationToken(
+                        user,
+                        null,
+                        user.authorities()
+                );
 
-
-        List<TopItemDto> topList = List.of(
-                new TopItemDto("미션 달성 집안일", Category.MISSIONS, 3L),
-                new TopItemDto("기타 집안일", Category.SAFETY_CHECK, 8L),
-                new TopItemDto("15분 청소", Category.WEEKEND_WHOLE_ROUTINE, 6L),
-                new TopItemDto("겨울철 집안일", Category.WINTER, 4L),
-                new TopItemDto("주방", Category.TEN_MINUTES_CLEANING, 2L)
+        List<TopItemDto> mockResult = List.of(
+                new TopItemDto("미션", Category.MISSIONS, 5L),
+                new TopItemDto("WINTER", null, 10L),
+                new TopItemDto("1월 추천 집안일", null, 7L)
         );
 
-        when(choreStatsService.getTopOverallWithMissions(userId))
-                .thenReturn(topList);
+        when(choreStatsService.getTopCategories(1L))
+                .thenReturn(mockResult);
 
         // when & then
-        mockMvc.perform(get("/recommend/trend")
-                        .param("topN", "5")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/recommend/total")
+                        .with(authentication(auth)))   // 👈 핵심
                 .andExpect(status().isOk())
-                // name 검증
-                .andExpect(jsonPath("$[0].name").value("미션 달성 집안일"))
-                .andExpect(jsonPath("$[1].name").value("기타 집안일"))
-                .andExpect(jsonPath("$[2].name").value("15분 청소"))
-                // category 검증 (code → category)
-                .andExpect(jsonPath("$[0].category").value("MISSIONS"))
-                .andExpect(jsonPath("$[1].category").value("SAFETY_CHECK"))
-                .andExpect(jsonPath("$[2].category").value("WEEKEND_WHOLE_ROUTINE"))
-                // count 검증
-                .andExpect(jsonPath("$[0].count").value(3))
-                .andExpect(jsonPath("$[1].count").value(8))
-                .andExpect(jsonPath("$[2].count").value(6));
+                .andExpect(jsonPath("$.length()").value(3))
 
-        verify(choreStatsService, times(1)).getTopOverallWithMissions(userId);
+                // 1번: 미션
+                .andExpect(jsonPath("$[0].name").value("미션"))
+                .andExpect(jsonPath("$[0].category").value("MISSIONS"))
+                .andExpect(jsonPath("$[0].count").value(5))
+
+                // 2번: 시즌
+                .andExpect(jsonPath("$[1].name").value("WINTER"))
+                .andExpect(jsonPath("$[1].category").doesNotExist())
+                .andExpect(jsonPath("$[1].count").value(10))
+
+                // 3번: 월간
+                .andExpect(jsonPath("$[2].name").value("1월 추천 집안일"))
+                .andExpect(jsonPath("$[2].category").doesNotExist())
+                .andExpect(jsonPath("$[2].count").value(7));
     }
 
 
