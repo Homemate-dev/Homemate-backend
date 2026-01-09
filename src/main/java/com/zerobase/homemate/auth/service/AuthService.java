@@ -10,6 +10,7 @@ import com.zerobase.homemate.entity.UserSocialAccount;
 import com.zerobase.homemate.entity.WithdrawLog;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.notification.push.service.FcmTokenService;
 import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.repository.UserSocialAccountRepository;
 import com.zerobase.homemate.repository.WithdrawLogRepository;
@@ -32,6 +33,8 @@ public class AuthService {
     private final TokenRefreshPolicy tokenRefreshPolicy;
     private final WithdrawLogRepository withdrawLogRepository;
     private final UserSocialAccountRepository userSocialAccountRepository;
+
+    private final FcmTokenService fcmTokenService;
 
     public TokenResponseDto.AuthTokenCreatedDto refresh(String refreshToken) {
         Claims claims = jwtService.parseAndValidateType(refreshToken, "RT");
@@ -91,6 +94,7 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.withdraw();
+        fcmTokenService.deleteAllToken(user);
 
         UserSocialAccount userSocialAccount = userSocialAccountRepository.findByUser(user)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
