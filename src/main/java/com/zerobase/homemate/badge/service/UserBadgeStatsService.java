@@ -29,7 +29,6 @@ public class UserBadgeStatsService {
     private static final String FIELD_TOTAL_REGISTERED = "total_registered";
     private static final String FIELD_MISSION_COUNT = "mission_count";
     private static final String FIELD_LAST_UPDATED = "last_updated";
-    private static final String FIELD_TIME = "specific_time";
 
     private static final String FIELD_STREAK_COUNT = "count";
     private static final String FIELD_STREAK_LAST_DATE = "last_date";
@@ -136,16 +135,36 @@ public class UserBadgeStatsService {
 
     public long getTimeCount(Long userId, TimeSlot targetTimeSlot) {
         Object v = redisTemplate.opsForHash()
-                .get(String.format(TIME_FORMAT, userId), FIELD_TIME);
+                .get(String.format(TIME_FORMAT, userId), targetTimeSlot.name());
 
         return parseLongSafe(v);
     }
+
 
 
     public long getStreakCount(Long userId) {
-        Object v = redisTemplate.opsForHash().get(String.format(STREAK_FORMAT, userId), FIELD_TIME);
-        return parseLongSafe(v);
+        String key = String.format(STREAK_FORMAT, userId);
+
+        Object lastDateObj =
+                redisTemplate.opsForHash().get(key, FIELD_STREAK_LAST_DATE);
+
+        if (lastDateObj == null) return 0;
+
+        LocalDate lastDate = LocalDate.parse(lastDateObj.toString());
+        long streak = parseLongSafe(
+                redisTemplate.opsForHash().get(key, FIELD_STREAK_COUNT)
+        );
+
+        LocalDate today = LocalDate.now();
+
+        if (lastDate.equals(today) || lastDate.plusDays(1).equals(today)) {
+            return streak;
+        }
+
+        return 0;
     }
+
+
 
 
     // Sub Method for these!

@@ -36,6 +36,8 @@ public class BadgeService {
                 case TITLE -> badgeMap.put(type, new NameBadgeCondition(type.getChoreTitle(), type.getRequireCount(), userBadgeStatsService));
                 case SPACE -> badgeMap.put(type, new SpaceBadgeCondition(type.getSpace(), type.getRequireCount(), userBadgeStatsService));
                 case ALL -> badgeMap.put(type, new TotalBadgeCondition(type.getRequireCount(), userBadgeStatsService));
+                case TIME -> badgeMap.put(type, new TimeBadgeCondition(type.getTimeSlot(), type.getRequireCount(), userBadgeStatsService));
+                case STREAK -> badgeMap.put(type, new StreakBadgeCondition(type.getRequireCount(), userBadgeStatsService));
                 default -> {}
             }
         }
