@@ -456,7 +456,7 @@ public class ChoreService {
         RepeatType repeatType =
                 (repeat != null) ? parseEnum(repeat, RepeatType.class) : null;
         ChoreStatus choreStatus = (status != null) ?
-                parseEnum(status, ChoreStatus.class) : null; // PENDING, COMPLETED
+                parseEnum(status, ChoreStatus.class) : null;
 
         Sort sort = Sort.by("startDate", "createdAt");
 
