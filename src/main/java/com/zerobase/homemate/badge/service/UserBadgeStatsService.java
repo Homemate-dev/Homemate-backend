@@ -23,6 +23,7 @@ public class UserBadgeStatsService {
     private static final String TITLE_KEY_FORMAT = "user:stats:%d:title";
     private static final String TIME_FORMAT = "user:stats:%d:time";
     private static final String STREAK_FORMAT = "user:stats:%d:streak";
+    private static final String ALARM_FORMAT = "user:stats:%d:alarm";
 
     // Field Format
     private static final String FIELD_TOTAL_COMPLETED = "total_completed";
@@ -32,7 +33,7 @@ public class UserBadgeStatsService {
 
     private static final String FIELD_STREAK_COUNT = "count";
     private static final String FIELD_STREAK_LAST_DATE = "last_date";
-
+    private static final String ALARM_ALTER_DATE = "alarm_alter_date";
 
     // Increment Methods
     public void incrementTotalCompleted(Long userId){
@@ -106,6 +107,19 @@ public class UserBadgeStatsService {
 
     }
 
+    public boolean markAlarmChangedIfAbsent(Long userId) {
+        String key = String.format(ALARM_FORMAT, userId);
+
+        if (redisTemplate.hasKey(key)) {
+            return false;
+        }
+
+        redisTemplate.opsForValue().set(key, String.valueOf(true));
+        return true;
+    }
+
+
+
 
     // get Count Method
     public long getTotalCompletedCount(Long userId){
@@ -162,6 +176,11 @@ public class UserBadgeStatsService {
         }
 
         return 0;
+    }
+
+    public boolean hasChangedAlarm(Long userId) {
+        String key = String.format(ALARM_FORMAT, userId);
+        return redisTemplate.hasKey(key);
     }
 
 

@@ -1,5 +1,7 @@
 package com.zerobase.homemate.mypage.notification.service;
 
+import com.zerobase.homemate.badge.service.BadgeService;
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -12,6 +14,8 @@ import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+
+import com.zerobase.homemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MyPageNotificationService {
   private final UserNotificationSettingRepository userNotificationSettingRepository;
+  private final BadgeService badgeService;
+  private final UserRepository userRepository;
 
   @Transactional(readOnly = true)
   public FirstSetupStatusResponse getFirstSetupStatus(long userId) {
@@ -30,12 +36,15 @@ public class MyPageNotificationService {
   public FirstSetupResponse completeFirstSetup(long userId, LocalTime time) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
 
+    User user = setting.getUser();
+
     if (setting.isFirstSetupCompleted()) {
       throw new CustomException(ErrorCode.FIRST_SETUP_ALREADY_COMPLETED);
     }
 
     setting.completeFirstSetup(truncateToMinutes(time));
     userNotificationSettingRepository.flush();
+    badgeService.evaluateBadgesOnAlarm(user);
 
     return FirstSetupResponse.from(setting);
   }

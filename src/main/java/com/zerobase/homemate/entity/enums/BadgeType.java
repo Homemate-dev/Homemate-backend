@@ -63,6 +63,9 @@ public enum BadgeType {
     EXPERT_TRASH_BIN("쓰레기 텅텅", "쓰레기통 비우기 90회 완료",  null, "쓰레기통 비우기", 90, BadgeCategory.TITLE, null,"expert_empty_trash.png"),
     MASTER_TRASH_BIN("텅텅 비움이", "쓰레기통 비우기 180회 완료",  null, "쓰레기통 비우기", 180, BadgeCategory.TITLE, null,"master_empty_trash.png"),
 
+    ALARM_ALTER_START("알람 처음 변경", "알람을 처음으로 변경해보기", null, null, 1, BadgeCategory.ALARM, null, ""),
+    ACCUMULATIVE_ALARM_TEN("알람 변경 후 집안일 10회 완료", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, ""),
+
     BEGINNER_BEDROOM("침실 깔끔이", "침실 집안일 30회 완료", Space.BEDROOM, null, 30, BadgeCategory.SPACE,null, "beginner_bedroom.png"),
     EXPERT_BEDROOM("침실 반짝이", "침실 집안일 90회 완료", Space.BEDROOM, null, 90, BadgeCategory.SPACE, null,"expert_bedroom.png"),
     MASTER_BEDROOM("침실 번쩍이", "침실 집안일 180회 완료", Space.BEDROOM, null, 180, BadgeCategory.SPACE, null,"master_bedroom.png");

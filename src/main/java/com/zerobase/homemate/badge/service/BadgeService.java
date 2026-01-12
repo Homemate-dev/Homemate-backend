@@ -38,6 +38,8 @@ public class BadgeService {
                 case ALL -> badgeMap.put(type, new TotalBadgeCondition(type.getRequireCount(), userBadgeStatsService));
                 case TIME -> badgeMap.put(type, new TimeBadgeCondition(type.getTimeSlot(), type.getRequireCount(), userBadgeStatsService));
                 case STREAK -> badgeMap.put(type, new StreakBadgeCondition(type.getRequireCount(), userBadgeStatsService));
+                case ALARM -> badgeMap.put(type, new AlarmBadgeCondition());
+                case ACCUMULATIVE -> badgeMap.put(type, new AccumulativeBadgeCondition());
                 default -> {}
             }
         }
@@ -180,6 +182,32 @@ public class BadgeService {
         badgeCacheService.evictClosestBadges(user.getId());
     }
 
+    @Transactional
+    public void evaluateBadgesOnAlarm(User user){
+        log.info("Start Alarm evaluating : {}", user.getId());
+
+        boolean firstChanged =
+                userBadgeStatsService.markAlarmChangedIfAbsent(user.getId());
+
+        if (!firstChanged) {
+            return;
+        }
+
+        if (!badgeRepository.existsByUserAndBadgeType(
+                user,
+                BadgeType.ALARM_ALTER_START
+        )) {
+            Badge badge = Badge.builder()
+                    .user(user)
+                    .badgeType(BadgeType.ALARM_ALTER_START)
+                    .build();
+
+            badgeRepository.save(badge);
+            badgeCacheService.evictClosestBadges(user.getId());
+        }
+    }
+
+
 
     @Transactional(readOnly = true)
     public List<BadgeProgressResponse> getAcquiredBadges(Long userId) {
@@ -244,6 +272,7 @@ public class BadgeService {
             case TITLE -> userBadgeStatsService.getTitleCount(userId, type.getChoreTitle());
             case TIME -> userBadgeStatsService.getTimeCount(userId, type.getTimeSlot());
             case STREAK -> userBadgeStatsService.getStreakCount(userId);
+            default -> throw new IllegalStateException("Unexpected value: " + type.getCategory());
         };
     }
 
