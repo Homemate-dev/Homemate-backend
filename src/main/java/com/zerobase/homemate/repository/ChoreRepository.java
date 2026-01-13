@@ -19,4 +19,8 @@ public interface ChoreRepository extends JpaRepository<Chore, Long> {
 
     List<Chore> findByUserIdAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
             Long userId, RepeatType repeatType, int repeatInterval, Sort sort);
+
+    List<Chore> findByUserIdAndSpaceAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
+            Long userId, Space space, RepeatType repeatType, int repeatInterval,
+            Sort sort);
 }

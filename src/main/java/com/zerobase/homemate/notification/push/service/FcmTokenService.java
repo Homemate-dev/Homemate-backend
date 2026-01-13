@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -64,5 +65,11 @@ public class FcmTokenService {
     @Transactional
     public void deactivateToken(FcmTokenDto.Request request) {
         fcmTokenRepository.findByToken(request.getToken()).ifPresent(FcmToken::deactivate);
+    }
+
+    @Transactional
+    public void deleteAllToken(User user) {
+        List<FcmToken> list = fcmTokenRepository.findAllByUserAndIsActiveTrue(user);
+        list.forEach(FcmToken::deactivate);
     }
 }
