@@ -128,12 +128,13 @@ public class ChoreController {
         @RequestParam String filter,
         @RequestParam(required = false) String space,
         @RequestParam(required = false) String repeat,
-        @RequestParam(required = false) Integer repeatInterval
+        @RequestParam(required = false) Integer repeatInterval,
+        @RequestParam(required = false) String status
     ) {
 
         List<ChoreDto.Response> chores =
             choreService.getChoreList(user.id(), filter, space,
-                    repeat, repeatInterval);
+                    repeat, repeatInterval, status);
 
         return ResponseEntity.status(HttpStatus.OK).body(chores);
     }

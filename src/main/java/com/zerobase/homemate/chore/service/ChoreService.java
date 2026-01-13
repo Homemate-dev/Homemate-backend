@@ -5,6 +5,7 @@ import com.zerobase.homemate.chore.dto.ChoreCounts;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
+import com.zerobase.homemate.chore.dto.ChoreStatusCountDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.User;
@@ -23,17 +24,14 @@ import com.zerobase.homemate.repository.UserRepository;
 import com.zerobase.homemate.util.ChoreInstanceGenerator;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.EnumSet;
-import java.util.Objects;
+import java.util.*;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -446,7 +444,7 @@ public class ChoreService {
 
     public List<ChoreDto.Response> getChoreList(
         Long userId, String filter, String space,
-        String repeat, Integer repeatInterval) {
+        String repeat, Integer repeatInterval, String status) {
 
         if (filter == null) {
             throw new CustomException(ErrorCode.VALIDATION_ERROR);
@@ -457,42 +455,70 @@ public class ChoreService {
                 (space != null) ? parseEnum(space, Space.class) : null;
         RepeatType repeatType =
                 (repeat != null) ? parseEnum(repeat, RepeatType.class) : null;
+        ChoreStatus choreStatus = (status != null) ?
+                parseEnum(status, ChoreStatus.class) : null;
 
-        switch (filterType) {
+        Sort sort = Sort.by("startDate", "createdAt");
+
+        List<Chore> chores = switch(filterType) {
             case ALL -> {
-                if (spaceType != null || repeatType != null || repeatInterval != null) {
+                if (spaceType != null) {
                     throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+
+                if (repeatType != null) {
+                    yield choreRepository.
+                            findByUserIdAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
+                                    userId, repeatType, repeatInterval, sort);
+                } else {
+                    yield choreRepository.findByUserIdAndIsDeletedIsFalse(userId, sort);
                 }
             }
             case SPACE -> {
                 if (spaceType == null) {
                     throw new CustomException(ErrorCode.VALIDATION_ERROR);
-                } else if (repeatType != null || repeatInterval != null) {
-                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+
+                if (repeatType != null) {
+                    yield choreRepository.
+                            findByUserIdAndSpaceAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
+                                    userId, spaceType, repeatType, repeatInterval, sort);
+                } else {
+                    yield choreRepository.
+                            findByUserIdAndSpaceAndIsDeletedIsFalse(userId, spaceType, sort);
                 }
             }
-            case REPEAT -> {
-                if (repeatType == null) {
-                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
-                } else if (repeatInterval == null) {
-                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
-                } else if (spaceType != null) {
-                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
-                }
-            }
-        }
-
-        Sort sort = Sort.by("startDate", "createdAt");
-
-        List<Chore> chores = switch(filterType) {
-            case ALL -> choreRepository.findByUserIdAndIsDeletedIsFalse(userId, sort);
-            case SPACE -> choreRepository.findByUserIdAndSpaceAndIsDeletedIsFalse(
-                    userId, spaceType, sort);
-            case REPEAT ->
-                    choreRepository.
-                            findByUserIdAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
-                            userId, repeatType, repeatInterval, sort);
         };
+
+        if (choreStatus != null) {
+            if (chores.isEmpty()) {
+                return List.of();
+            }
+
+            List<Long> choreIds = chores.stream().map(Chore::getId).toList();
+
+            Map<Long, ChoreStatusCountDto> countMap =
+                    choreInstanceRepository.countPendingCompletedByChoreIds(choreIds)
+                            .stream()
+                            .collect(java.util.stream.Collectors.toMap(
+                                    ChoreStatusCountDto::choreId,
+                                    dto -> dto
+                            ));
+
+            chores = chores.stream()
+                    .filter(chore -> {
+                        ChoreStatusCountDto c = countMap.get(chore.getId());
+
+                        if (c == null) return false;
+
+                        return switch (choreStatus) {
+                            case PENDING -> c.pendingCount() > 0;
+                            case COMPLETED -> (c.completedCount() > 0) && (c.pendingCount() == 0);
+                            default -> false;
+                        };
+                    })
+                    .toList();
+        }
 
         return chores.stream().map(ChoreDto.Response::fromEntity).toList();
     }

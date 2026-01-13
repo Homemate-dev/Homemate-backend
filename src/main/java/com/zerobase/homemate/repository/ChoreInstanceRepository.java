@@ -1,6 +1,7 @@
 package com.zerobase.homemate.repository;
 
 import com.zerobase.homemate.chore.dto.ChoreCounts;
+import com.zerobase.homemate.chore.dto.ChoreStatusCountDto;
 import com.zerobase.homemate.entity.Chore;
 import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
@@ -97,4 +98,17 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
     """)
     LocalDate findBeforeDueDateByChore(@Param("chore") Chore chore);
 
+    @Query("""
+        select new com.zerobase.homemate.chore.dto.ChoreStatusCountDto(
+            ci.chore.id,
+            sum(case when ci.choreStatus = com.zerobase.homemate.entity.enums.ChoreStatus.PENDING then 1 else 0 end),
+            sum(case when ci.choreStatus = com.zerobase.homemate.entity.enums.ChoreStatus.COMPLETED then 1 else 0 end)
+        )
+        from ChoreInstance ci
+        where ci.chore.id in :choreIds
+        group by ci.chore.id
+    """)
+    List<ChoreStatusCountDto> countPendingCompletedByChoreIds(
+            @Param("choreIds") List<Long> choreIds
+    );
 }
