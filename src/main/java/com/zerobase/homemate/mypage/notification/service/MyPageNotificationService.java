@@ -15,7 +15,6 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
-import com.zerobase.homemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class MyPageNotificationService {
   private final UserNotificationSettingRepository userNotificationSettingRepository;
   private final BadgeService badgeService;
-  private final UserRepository userRepository;
 
   @Transactional(readOnly = true)
   public FirstSetupStatusResponse getFirstSetupStatus(long userId) {

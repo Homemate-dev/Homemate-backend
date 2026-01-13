@@ -46,35 +46,81 @@ public class BadgeService {
         return badgeMap;
     }
 
+    /*
+    Time(특정 시간대), Streak(연속 집안일 완료 일 수), Accumulative(알람 설정 변경 후 집안일 누적 상태) 평가 Method
+     */
     @Transactional
-    public void evaluateBadgesOnCompletion(User user, ChoreInstance choreInstance){
+    public void evaluateBadgesOnCompletion(User user, ChoreInstance choreInstance) {
+
         LocalDateTime completedAt = choreInstance.getCompletedAt();
 
-        TimeSlot slot = TimeSlot.from(completedAt);
-        userBadgeStatsService.incrementTimeCount(user.getId(), slot);
+        updateTimeStats(user, completedAt);
+        updateStreakStats(user, completedAt);
 
+        evaluateTimeBadges(user);
+        evaluateStreakBadges(user);
+        evaluateAccumulativeBadges(user);
+
+        badgeCacheService.evictClosestBadges(user.getId());
+    }
+
+    private void evaluateAccumulativeBadges(User user) {
+        if (!userBadgeStatsService.hasChangedAlarm(user.getId())) {
+            return;
+        }
+
+        long count = userBadgeStatsService.increaseChoreCountAfterAlarm(user.getId());
+
+        if (count < BadgeType.ACCUMULATIVE_ALARM_TEN.getRequireCount()) {
+            return;
+        }
+
+        if (badgeRepository.existsByUserAndBadgeType(
+                user,
+                BadgeType.ACCUMULATIVE_ALARM_TEN
+        )) {
+            return;
+        }
+
+        badgeRepository.save(new Badge(user, BadgeType.ACCUMULATIVE_ALARM_TEN));
+    }
+
+    private void evaluateStreakBadges(User user) {
+        Arrays.stream(BadgeType.values())
+                .filter(type -> type.getCategory() == BadgeCategory.STREAK)
+                .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
+                .filter(type ->
+                        userBadgeStatsService.getStreakCount(user.getId())
+                                >= type.getRequireCount()
+                )
+                .map(type -> new Badge(user, type))
+                .forEach(badgeRepository::save);
+    }
+
+    private void evaluateTimeBadges(User user) {
+        Arrays.stream(BadgeType.values())
+                .filter(type -> type.getCategory() == BadgeCategory.TIME)
+                .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
+                .filter(type ->
+                        userBadgeStatsService.getTimeCount(
+                                user.getId(),
+                                type.getTimeSlot()
+                        ) >= type.getRequireCount()
+                )
+                .map(type -> new Badge(user, type))
+                .forEach(badgeRepository::save);
+    }
+
+    private void updateStreakStats(User user, LocalDateTime completedAt) {
         userBadgeStatsService.updateStreak(
                 user.getId(),
                 completedAt.toLocalDate()
         );
+    }
 
-        List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
-                .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
-                .map(type -> new Badge(user, type))
-                .toList();
-
-
-        if(!badgesToSave.isEmpty()){
-            badgeRepository.saveAll(badgesToSave);
-
-            for (Badge b : badgesToSave) {
-                log.info("Time & STREAK Badge Saved : type={}, acquiredAt={}", b.getBadgeType(), b.getAcquiredAt());
-            }
-
-        }
-
-        log.info("start to evict TIME & STREAK Cache : {}", user.getId());
-        badgeCacheService.evictClosestBadges(user.getId());
+    private void updateTimeStats(User user, LocalDateTime completedAt) {
+        TimeSlot slot = TimeSlot.from(completedAt);
+        userBadgeStatsService.incrementTimeCount(user.getId(), slot);
     }
 
     /*
