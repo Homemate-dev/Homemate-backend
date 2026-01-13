@@ -196,6 +196,13 @@ public class UserBadgeStatsService {
         return redisTemplate.hasKey(key);
     }
 
+    public long getAccumulativeAfterAlarm(Long userId) {
+        Object v = redisTemplate.opsForHash().get(
+                String.format(ACCUMULATIVE_FORMAT, userId),
+                FIELD_ACCUMULATIVE_ALARM
+        );
+        return parseLongSafe(v);
+    }
 
 
 

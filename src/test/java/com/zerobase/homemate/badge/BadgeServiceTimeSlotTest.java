@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
@@ -27,7 +26,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
 public class BadgeServiceTimeSlotTest {
 
 
@@ -120,7 +118,7 @@ public class BadgeServiceTimeSlotTest {
 
         // increment 이후 조회 시 9회로 가정
         given(userBadgeStatsService.getTimeCount(6L, TimeSlot.BEFORE_10))
-                .willReturn(9L);
+                .willReturn(10L);
 
         // BadgeType 순회 시 MIRACLE_MORNING만 false, 나머지는 true
         given(badgeRepository.existsByUserAndBadgeType(eq(user), any()))
@@ -139,8 +137,5 @@ public class BadgeServiceTimeSlotTest {
                                 .anyMatch(b -> b.getBadgeType() == BadgeType.MIRACLE_MORNING)
                 )
         );
-
-
     }
-
 }

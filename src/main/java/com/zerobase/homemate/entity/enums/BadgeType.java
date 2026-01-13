@@ -9,9 +9,9 @@ public enum BadgeType {
 
     START_HALF( "시작이 반", "아무 집안일 1회 완료",  null,  null, 1, BadgeCategory.ALL, null,"start_half.png"),
 
-    STREAK_THREE("꾸준이", "아무 집안일 연속 3회 완료", null,null, 3, BadgeCategory.STREAK, null,"beginner_all.png"),
-    STREAK_FIVE("성실왕", "아무 집안일 연속 5회 완료", null,null, 5, BadgeCategory.STREAK, null,"beginner_five.png"),
-    STREAK_TEN("끈기왕", "아무 집안일 연속 10회 완료", null, null, 10, BadgeCategory.STREAK, null,"beginner_ten.png"),
+    STREAK_THREE("꾸준이", "아무 집안일이든 연속으로 3일동안 완료하기", null,null, 3, BadgeCategory.STREAK, null,"beginner_all.png"),
+    STREAK_FIVE("성실왕", "아무 집안일이든 연속으로 5일동안 완료하기", null,null, 5, BadgeCategory.STREAK, null,"beginner_five.png"),
+    STREAK_TEN("끈기왕", "아무 집안일이든 연속으로 10일동안 완료하기", null, null, 10, BadgeCategory.STREAK, null,"beginner_ten.png"),
 
     SEED_CHORE( "새싹 살림꾼", "아무 집안일 100회 완료",  null,null, 30, BadgeCategory.ALL, null,"beginner_all.png"),
     MEDIUM_CHORE( "알뜰 살림꾼", "아무 집안일 200회 완료",  null, null,50, BadgeCategory.ALL,null, "expert_all.png"),
@@ -65,8 +65,8 @@ public enum BadgeType {
 
     ALARM_ALTER_START("알람 처음 변경", "알람을 처음으로 변경해보기", null, null, 1, BadgeCategory.ALARM, null, ""),
 
-    ACCUMULATIVE_ALARM_START("알람 변경 후 집안일 10회 완료", "알람을 변경한 뒤 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, ""),
-    ACCUMULATIVE_ALARM_FIVE("알람 변경 후 집안일 10회 완료", "알람을 변경한 뒤 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, ""),
+    ACCUMULATIVE_ALARM_START("알람 변경 후 집안일 1회 완료", "알람을 변경한 뒤 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, ""),
+    ACCUMULATIVE_ALARM_FIVE("알람 변경 후 집안일 5회 완료", "알람을 변경한 뒤 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, ""),
     ACCUMULATIVE_ALARM_TEN("알람 변경 후 집안일 10회 완료", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, ""),
 
     BEGINNER_BEDROOM("침실 깔끔이", "침실 집안일 30회 완료", Space.BEDROOM, null, 30, BadgeCategory.SPACE,null, "beginner_bedroom.png"),

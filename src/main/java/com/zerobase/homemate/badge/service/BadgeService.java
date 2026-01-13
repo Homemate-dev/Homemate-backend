@@ -53,40 +53,55 @@ public class BadgeService {
     public void evaluateBadgesOnCompletion(User user, ChoreInstance choreInstance) {
 
         LocalDateTime completedAt = choreInstance.getCompletedAt();
+        log.info("start evaluating when completion choreInstance : {}", choreInstance.getCompletedAt());
 
         updateTimeStats(user, completedAt);
         updateStreakStats(user, completedAt);
 
-        evaluateTimeBadges(user);
-        evaluateStreakBadges(user);
-        evaluateAccumulativeBadges(user);
+        List<Badge> badgesToGrant = new ArrayList<>();
+
+        badgesToGrant.addAll(evaluateTimeBadges(user));
+        badgesToGrant.addAll(evaluateStreakBadges(user));
+        badgesToGrant.addAll(evaluateAccumulativeBadges(user));
+
+        if (!badgesToGrant.isEmpty()) {
+            badgeRepository.saveAll(badgesToGrant);
+        }
 
         badgeCacheService.evictClosestBadges(user.getId());
     }
 
-    private void evaluateAccumulativeBadges(User user) {
+    private List<Badge> evaluateAccumulativeBadges(User user) {
         if (!userBadgeStatsService.hasChangedAlarm(user.getId())) {
-            return;
+            return List.of();
         }
 
         long count = userBadgeStatsService.increaseChoreCountAfterAlarm(user.getId());
 
-        if (count < BadgeType.ACCUMULATIVE_ALARM_TEN.getRequireCount()) {
-            return;
+        List<Badge> result = new ArrayList<>();
+
+        List<BadgeType> accumulativeTypes = Arrays.stream(BadgeType.values())
+                .filter(t -> t.getCategory() == BadgeCategory.ACCUMULATIVE)
+                .sorted(Comparator.comparingInt(BadgeType::getRequireCount))
+                .toList();
+
+        for (BadgeType type : accumulativeTypes) {
+            if (count < type.getRequireCount()) {
+                continue;
+            }
+
+            if (badgeRepository.existsByUserAndBadgeType(user, type)) {
+                continue;
+            }
+
+            result.add(new Badge(user, type));
         }
 
-        if (badgeRepository.existsByUserAndBadgeType(
-                user,
-                BadgeType.ACCUMULATIVE_ALARM_TEN
-        )) {
-            return;
-        }
-
-        badgeRepository.save(new Badge(user, BadgeType.ACCUMULATIVE_ALARM_TEN));
+        return result;
     }
 
-    private void evaluateStreakBadges(User user) {
-        Arrays.stream(BadgeType.values())
+    private List<Badge> evaluateStreakBadges(User user) {
+        return Arrays.stream(BadgeType.values())
                 .filter(type -> type.getCategory() == BadgeCategory.STREAK)
                 .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
                 .filter(type ->
@@ -94,11 +109,11 @@ public class BadgeService {
                                 >= type.getRequireCount()
                 )
                 .map(type -> new Badge(user, type))
-                .forEach(badgeRepository::save);
+                .toList();
     }
 
-    private void evaluateTimeBadges(User user) {
-        Arrays.stream(BadgeType.values())
+    private List<Badge> evaluateTimeBadges(User user) {
+        return Arrays.stream(BadgeType.values())
                 .filter(type -> type.getCategory() == BadgeCategory.TIME)
                 .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
                 .filter(type ->
@@ -108,7 +123,7 @@ public class BadgeService {
                         ) >= type.getRequireCount()
                 )
                 .map(type -> new Badge(user, type))
-                .forEach(badgeRepository::save);
+                .toList();
     }
 
     private void updateStreakStats(User user, LocalDateTime completedAt) {
@@ -318,7 +333,8 @@ public class BadgeService {
             case TITLE -> userBadgeStatsService.getTitleCount(userId, type.getChoreTitle());
             case TIME -> userBadgeStatsService.getTimeCount(userId, type.getTimeSlot());
             case STREAK -> userBadgeStatsService.getStreakCount(userId);
-            default -> throw new IllegalStateException("Unexpected value: " + type.getCategory());
+            case ALARM -> userBadgeStatsService.hasChangedAlarm(userId) ? 1L : 0L;
+            case ACCUMULATIVE -> userBadgeStatsService.getAccumulativeAfterAlarm(userId);
         };
     }
 
