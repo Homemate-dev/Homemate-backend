@@ -287,7 +287,24 @@ public class ChoreService {
         return startDate.isAfter(endDate);
     }
 
-    public ChoreDto.Response getChore(Long userId, Long choreInstanceId) {
+    public ChoreDto.Response getChoreByChoreId(Long userId, Long choreId) {
+
+        Chore chore = choreRepository.findById(choreId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
+
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        if (chore.getIsDeleted()) {
+            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        }
+
+        return ChoreDto.Response.fromEntity(chore);
+    }
+
+    public ChoreDto.Response getChoreByInstanceId(
+            Long userId, Long choreInstanceId) {
 
         ChoreInstance choreInstance =
             choreInstanceRepository.findById(choreInstanceId)

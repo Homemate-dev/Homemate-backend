@@ -57,12 +57,24 @@ public class ChoreController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/{choreInstanceId}")
+    @GetMapping("/{choreId}")
     public ResponseEntity<ChoreDto.Response> getChore(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long choreId) {
+
+        ChoreDto.Response response =
+                choreService.getChoreByChoreId(user.id(), choreId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/instance/{choreInstanceId}")
+    public ResponseEntity<ChoreDto.Response> getChoreInstance(
         @AuthenticationPrincipal UserPrincipal user,
         @PathVariable Long choreInstanceId) {
 
-        ChoreDto.Response response = choreService.getChore(user.id(), choreInstanceId);
+        ChoreDto.Response response =
+                choreService.getChoreByInstanceId(user.id(), choreInstanceId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
