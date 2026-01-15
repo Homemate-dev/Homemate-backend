@@ -123,12 +123,10 @@ public class UserBadgeStatsService {
     public boolean markAlarmChangedIfAbsent(Long userId) {
         String key = String.format(ALARM_FORMAT, userId);
 
-        if (redisTemplate.hasKey(key)) {
-            return false;
-        }
+        Boolean success = redisTemplate.opsForValue()
+                .setIfAbsent(key, "true");
 
-        redisTemplate.opsForValue().set(key, String.valueOf(true));
-        return true;
+        return Boolean.TRUE.equals(success);
     }
 
 

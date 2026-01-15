@@ -1,7 +1,6 @@
 package com.zerobase.homemate.mypage.notification.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
-import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -34,15 +33,13 @@ public class MyPageNotificationService {
   public FirstSetupResponse completeFirstSetup(long userId, LocalTime time) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
 
-    User user = setting.getUser();
-
     if (setting.isFirstSetupCompleted()) {
       throw new CustomException(ErrorCode.FIRST_SETUP_ALREADY_COMPLETED);
     }
 
     setting.completeFirstSetup(truncateToMinutes(time));
     userNotificationSettingRepository.flush();
-    badgeService.evaluateBadgesOnAlarm(user);
+
 
     return FirstSetupResponse.from(setting);
   }
@@ -60,8 +57,8 @@ public class MyPageNotificationService {
     if (!Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime)) {
       setting.changeNotificationTime(normalizedTime);
       userNotificationSettingRepository.flush();
+      badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
-
     return NotiTimeResponse.from(setting);
   }
 
@@ -95,6 +92,7 @@ public class MyPageNotificationService {
 
     if (changed) {
       userNotificationSettingRepository.flush();
+      badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
 
     return ToggleResponse.from(setting);

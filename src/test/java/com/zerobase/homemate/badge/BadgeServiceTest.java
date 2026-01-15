@@ -159,4 +159,25 @@ class BadgeServiceTest {
 
         verify(badgeCacheService).cacheClosestBadges(eq(user.getId()), anyList());
     }
+
+    @Test
+    void several_alter_alarm_settings_but_badge_get_once() {
+
+        when(userBadgeStatsService.markAlarmChangedIfAbsent(1L))
+                .thenReturn(true)
+                .thenReturn(false);
+
+        when(badgeRepository.existsByUserAndBadgeType(
+                user, BadgeType.ALARM_ALTER_START)
+        ).thenReturn(false);
+
+        // when
+        badgeService.evaluateBadgesOnAlarm(user);
+        badgeService.evaluateBadgesOnAlarm(user);
+
+        // then
+        verify(badgeRepository, times(1)).save(any(Badge.class));
+        verify(badgeCacheService, times(1))
+                .evictClosestBadges(user.getId());
+    }
 }
