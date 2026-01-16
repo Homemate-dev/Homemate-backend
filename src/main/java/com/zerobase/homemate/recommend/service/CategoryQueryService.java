@@ -113,8 +113,7 @@ public class CategoryQueryService {
             List<CategoryChore> chores =
                     categoryChoreRepository.findActiveByCategoriesAndCategoryType(
                             categories,
-                            CategoryType.MONTHLY,
-                            Pageable.ofSize(DEFAULT_PAGE_SIZE)
+                            CategoryType.MONTHLY
                     );
 
             return chores.stream()
@@ -127,8 +126,7 @@ public class CategoryQueryService {
                 categoryChoreRepository.findActiveByCategoryTypeAndSubCategory(
                         categories,
                         CategoryType.MONTHLY,
-                        subCategory,
-                        Pageable.ofSize(DEFAULT_PAGE_SIZE)
+                        subCategory
                 );
 
         return chores.stream()
