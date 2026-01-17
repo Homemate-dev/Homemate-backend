@@ -10,9 +10,9 @@ import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.dto.SubCategoryResponse;
 import com.zerobase.homemate.repository.CategoriesRepository;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
+import com.zerobase.homemate.repository.ChoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,15 +28,8 @@ public class CategoryQueryService {
 
     private final CategoryChoreRepository categoryChoreRepository;
     private final CategoriesRepository categoriesRepository;
-    private final int DEFAULT_PAGE_SIZE = 6;
-
-    private static final Map<RepeatType, Integer> REPEAT_PRIORITY = Map.of(
-            RepeatType.DAILY, 1,
-            RepeatType.WEEKLY, 2,
-            RepeatType.MONTHLY, 3,
-            RepeatType.YEARLY, 4,
-            RepeatType.NONE, 5
-    );
+    private final ChoreRepository choreRepository;
+    private final int DEFAULT_LIMIT_SIZE = 6;
 
     public List<CategoryResponse> getAllCategories() {
 
@@ -62,42 +55,51 @@ public class CategoryQueryService {
         return result;
     }
 
-    public List<ClassifyChoreResponse> getFixedChores(Category category){
+    // 고정 카테고리 조회
+    public List<ClassifyChoreResponse> getFixedChores(Category category, Long userId){
         if(category == null){
             throw new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
         }
 
-        List<CategoryChore> fixedCategoryChores = categoryChoreRepository.findActiveFixedByCategory(
-                category,
-                Pageable.ofSize(DEFAULT_PAGE_SIZE)
+        List<CategoryChore> fixedCategoryChores = new ArrayList<>(
+                categoryChoreRepository.findActiveFixedByCategory(category)
         );
 
+        Collections.shuffle(fixedCategoryChores);
 
-        return fixedCategoryChores.stream()
-                .sorted(Comparator.comparingInt(categoryChore -> REPEAT_PRIORITY.get(categoryChore.getRepeatType())))
-                .map(ClassifyChoreResponse::fromCategory)
-                .toList();
+
+        // 사용자 Chore Title 조회
+        Set<String> userChoreTitles = getUserChoreTitles(userId);
+
+
+
+        return mapWithDuplicateFlags(fixedCategoryChores.stream()
+                .limit(DEFAULT_LIMIT_SIZE).toList(), userChoreTitles);
     }
 
-    public List<ClassifyChoreResponse> getSeasonChores(Season season){
+    // 계절별 집안일 조회
+    public List<ClassifyChoreResponse> getSeasonChores(Season season, Long userId){
         if(season == null){
             throw new CustomException(ErrorCode.INVALID_SEASON);
         }
 
-        List<CategoryChore> seasonCategoryChores = categoryChoreRepository.findActiveSeasonalBySeason(
-                season,
-                Pageable.ofSize(DEFAULT_PAGE_SIZE)
+
+
+        List<CategoryChore> seasonCategoryChores = new ArrayList<>(
+                categoryChoreRepository.findActiveSeasonalBySeason(season)
         );
 
-        return seasonCategoryChores.stream()
-                .sorted(Comparator.comparingInt(categoryChore -> REPEAT_PRIORITY.get(categoryChore.getRepeatType())))
-                .map(ClassifyChoreResponse::fromCategory)
-                .toList();
+        Set<String> userChoreTitles = getUserChoreTitles(userId);
+
+        Collections.shuffle(seasonCategoryChores);
+        return mapWithDuplicateFlags(seasonCategoryChores.stream()
+                .limit(DEFAULT_LIMIT_SIZE).toList(), userChoreTitles);
     }
 
+    // 월간 카테고리 조회
+    public List<ClassifyChoreResponse> getMonthlyChores(
+            Long categoriesId, SubCategory subCategory, Long userId) {
 
-    // 월간 카테고리 조회 시 집안일 리스트 출력
-    public List<ClassifyChoreResponse> getMonthlyChores(Long categoriesId, SubCategory subCategory){
         Categories categories = categoriesRepository.findById(categoriesId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
 
@@ -109,33 +111,24 @@ public class CategoryQueryService {
             throw new CustomException(ErrorCode.INACTIVE_CATEGORY);
         }
 
-        if(subCategory == null){
-            List<CategoryChore> chores =
-                    categoryChoreRepository.findActiveByCategoriesAndCategoryType(
-                            categories,
-                            CategoryType.MONTHLY,
-                            Pageable.ofSize(DEFAULT_PAGE_SIZE)
-                    );
+        Set<String> userChoreTitles = getUserChoreTitles(userId);
 
-            return chores.stream()
-                    .sorted(Comparator.comparingInt(c -> REPEAT_PRIORITY.get(c.getRepeatType())))
-                    .map(ClassifyChoreResponse::fromCategory)
-                    .toList();
-        }
+        List<CategoryChore> chores = new ArrayList<>(
+                subCategory == null
+                        ? categoryChoreRepository.findActiveByCategoriesAndCategoryType(
+                        categories, CategoryType.MONTHLY)
+                        : categoryChoreRepository.findActiveByCategoryTypeAndSubCategory(
+                        categories, CategoryType.MONTHLY, subCategory)
+        );
 
-        List<CategoryChore> chores =
-                categoryChoreRepository.findActiveByCategoryTypeAndSubCategory(
-                        categories,
-                        CategoryType.MONTHLY,
-                        subCategory,
-                        Pageable.ofSize(DEFAULT_PAGE_SIZE)
-                );
+        Collections.shuffle(chores);
 
-        return chores.stream()
-                .sorted(Comparator.comparingInt(c -> REPEAT_PRIORITY.get(c.getRepeatType())))
-                .map(ClassifyChoreResponse::fromCategory)
-                .toList();
+        return mapWithDuplicateFlags(
+                chores.stream().toList(),
+                userChoreTitles
+        );
     }
+
 
     // 월간 카테고리들 조회 API
     public List<CategoryResponse> getMonthlyCategories(String targetMonth) {
@@ -151,5 +144,25 @@ public class CategoryQueryService {
         return Arrays.stream(SubCategory.values())
                 .map(SubCategoryResponse::fromSub)
                 .toList();
+    }
+
+    // Submethod - Duplicate Flag 매기는 Method
+    private List<ClassifyChoreResponse> mapWithDuplicateFlags(
+            List<CategoryChore> chores,
+            Set<String> userChoreTitles
+    ){
+        return chores.stream()
+                .map(c -> ClassifyChoreResponse.fromCategory(
+                        c,
+                        userChoreTitles.contains(c.getTitle())
+                ))
+                .toList();
+    }
+
+    // Submethod - 중복되는 집안일 담는 Set 반환
+    private Set<String> getUserChoreTitles(Long userId) {
+        return new HashSet<>(
+                choreRepository.findActiveTitlesByUserId(userId)
+        );
     }
 }

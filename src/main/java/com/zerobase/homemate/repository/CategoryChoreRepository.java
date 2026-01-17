@@ -6,7 +6,6 @@ import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.CategoryType;
 import com.zerobase.homemate.entity.enums.Season;
 import com.zerobase.homemate.entity.enums.SubCategory;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,14 +15,6 @@ import java.util.List;
 
 
 public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Long> {
-
-    @Query("""
-    SELECT c
-    from CategoryChore c
-    WHERE c.category = :category
-    ORDER BY function('RAND')
-""")
-    List<CategoryChore> findByCategory(@Param("category") Category category, Pageable pageable);
 
     List<CategoryChore> findAllByTitle(String titleKo);
 
@@ -44,8 +35,7 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
     ORDER BY c.id DESC
 """)
     List<CategoryChore> findActiveFixedByCategory(
-            @Param("category") Category category,
-            Pageable pageable
+            @Param("category") Category category
     );
 
 
@@ -58,8 +48,7 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
       AND c.isActive = true
 """)
     List<CategoryChore> findActiveSeasonalBySeason(
-            @Param("season") Season season,
-            Pageable pageable
+            @Param("season") Season season
     );
 
 
@@ -92,8 +81,7 @@ public interface CategoryChoreRepository extends JpaRepository<CategoryChore, Lo
 """)
     List<CategoryChore> findActiveByCategoriesAndCategoryType(
             @Param("categories") Categories categories,
-            @Param("categoryType") CategoryType categoryType,
-            Pageable pageable
+            @Param("categoryType") CategoryType categoryType
     );
 
 
@@ -108,14 +96,8 @@ WHERE cc.categories = :categories
     List<CategoryChore> findActiveByCategoryTypeAndSubCategory(
             @Param("categories") Categories categories,
             @Param("categoryType") CategoryType categoryType,
-            @Param("subCategory") SubCategory subCategory,
-            Pageable pageable
+            @Param("subCategory") SubCategory subCategory
     );
 
-
-
-
     long countBySeasonAndCategoryType(Season currentSeason, CategoryType categoryType);
-
-    long countByCategories(Categories selected);
 }

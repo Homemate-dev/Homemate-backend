@@ -13,9 +13,11 @@ public record ClassifyChoreResponse(Long choreId,
                                     String title,
                                     String frequency,
                                     Space spaceName,
-                                    String categoryName) {
+                                    String categoryName,
+                                    Boolean isDuplicate) {
 
-    public static ClassifyChoreResponse fromCategory(CategoryChore categoryChore) {
+    public static ClassifyChoreResponse fromCategory(CategoryChore categoryChore,
+                                                     boolean isDuplicate) {
         String categoryName;
 
         switch (categoryChore.getCategoryType()) {
@@ -37,7 +39,8 @@ public record ClassifyChoreResponse(Long choreId,
                         categoryChore.getRepeatInterval()
                 ),
                 null,
-                categoryName
+                categoryName,
+                isDuplicate
         );
     }
 
@@ -69,6 +72,7 @@ public record ClassifyChoreResponse(Long choreId,
                 spaceChore.getTitleKo(),
                 formatFrequency(spaceChore.getRepeatType(), spaceChore.getRepeatInterval()),
                 spaceChore.getSpace(),
+                null,
                 null
         );
     }
