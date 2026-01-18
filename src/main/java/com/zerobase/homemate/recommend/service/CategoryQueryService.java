@@ -31,6 +31,14 @@ public class CategoryQueryService {
     private final ChoreRepository choreRepository;
     private final int DEFAULT_LIMIT_SIZE = 6;
 
+    private static final Map<RepeatType, Integer> REPEAT_PRIORITY = Map.of(
+            RepeatType.DAILY, 1,
+            RepeatType.WEEKLY, 2,
+            RepeatType.MONTHLY, 3,
+            RepeatType.YEARLY, 4,
+            RepeatType.NONE, 5
+    );
+
     public List<CategoryResponse> getAllCategories() {
 
         String targetMonth = YearMonth.now().toString();
@@ -121,7 +129,6 @@ public class CategoryQueryService {
                         categories, CategoryType.MONTHLY, subCategory)
         );
 
-        Collections.shuffle(chores);
 
         return mapWithDuplicateFlags(
                 chores.stream().toList(),
@@ -152,6 +159,9 @@ public class CategoryQueryService {
             Set<String> userChoreTitles
     ){
         return chores.stream()
+                .sorted(Comparator.comparingInt(
+                        c -> REPEAT_PRIORITY.get(c.getRepeatType())
+                ))
                 .map(c -> ClassifyChoreResponse.fromCategory(
                         c,
                         userChoreTitles.contains(c.getTitle())
