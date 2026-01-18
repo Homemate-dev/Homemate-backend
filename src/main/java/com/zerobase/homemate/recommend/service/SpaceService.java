@@ -24,7 +24,6 @@ public class SpaceService {
 
     private final SpaceChoreRepository spaceChoreRepository;
     private final UserNotificationSettingRepository userNotificationSettingRepository;
-    private final int DEFAULT_LIMIT = 15;
 
     private static final Map<RepeatType, Integer> REPEAT_PRIORITY = Map.of(
             RepeatType.DAILY, 1,
@@ -48,7 +47,6 @@ public class SpaceService {
         // 페이지 내에서 RepeatType 우선순위 정렬
         List<SpaceChore> pageSpaceChores = randomChores.stream()
                 .sorted(Comparator.comparingInt(c -> REPEAT_PRIORITY.get(c.getRepeatType())))
-                .limit(DEFAULT_LIMIT)
                 .toList();
 
         return pageSpaceChores.stream()
