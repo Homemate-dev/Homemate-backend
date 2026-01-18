@@ -70,8 +70,8 @@ public enum BadgeType {
     ACCUMULATIVE_ALARM_TEN("알람 변경 후 집안일 10회 완료", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, "explorer.png"),
 
     RECOMMEND_EXPLORER("집안일 탐색꾼", "카테고리에 있는 집안일 1회 등록하기", null, null, 1, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_basic.png"),
-    RECOMMEND_ADVENTURER("집안일 모험가", "카테고리에 있는 집안일 3회 등록하기", null, null, 1, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_expert.png"),
-    RECOMMEND_COLLECTOR("집안일 콜렉터", "카테고리에 있는 집안일 10회 등록하기", null, null, 1, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_master.png"),
+    RECOMMEND_ADVENTURER("집안일 모험가", "카테고리에 있는 집안일 3회 등록하기", null, null, 3, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_expert.png"),
+    RECOMMEND_COLLECTOR("집안일 콜렉터", "카테고리에 있는 집안일 10회 등록하기", null, null, 10, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_master.png"),
 
     BEGINNER_BEDROOM("침실 깔끔이", "침실 집안일 30회 완료", Space.BEDROOM, null, 30, BadgeCategory.SPACE,null, "beginner_bedroom.png"),
     EXPERT_BEDROOM("침실 반짝이", "침실 집안일 90회 완료", Space.BEDROOM, null, 90, BadgeCategory.SPACE, null,"expert_bedroom.png"),
