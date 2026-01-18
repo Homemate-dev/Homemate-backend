@@ -9,5 +9,6 @@ public enum BadgeCategory {
     TIME, // 시간대
     STREAK, // 연속
     ALARM, // 알람 변경
-    ACCUMULATIVE // 특정 상황에서 집안일 수행하기
+    ACCUMULATIVE, // 특정 상황에서 집안일 수행하기
+    RECOMMEND_REGISTER // 추천 등록
 }

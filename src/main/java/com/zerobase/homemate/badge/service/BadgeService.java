@@ -244,6 +244,31 @@ public class BadgeService {
     }
 
     @Transactional
+    public void evaluateBadgesOnCategoryCreator(User user){
+        log.info("Start Create Recommend Evaluation : {}", user.getId());
+        userBadgeStatsService.increaseRecommendRegisterCount(user.getId());
+
+        long currentCount = userBadgeStatsService.getRecommendRegisterCount(user.getId());
+
+        List<Badge> badgesToSave = Arrays.stream(BadgeType.values())
+                .filter(type -> !badgeRepository.existsByUserAndBadgeType(user, type))
+                .filter(type -> type.getCategory() == BadgeCategory.RECOMMEND_REGISTER)
+                .filter(type -> currentCount >= type.getRequireCount())
+                .map(type -> new Badge(user, type))
+                .toList();
+
+        if(!badgesToSave.isEmpty()){
+            badgeRepository.saveAll(badgesToSave);
+            for (Badge b : badgesToSave) {
+                log.info("Recommend Registration Badge Saved : type={}, acquiredAt={}", b.getBadgeType(), b.getAcquiredAt());
+            }
+        }
+
+        log.info("Start evict Cache Recommend Register : {}",  user.getId());
+        badgeCacheService.evictClosestBadges(user.getId());
+    }
+
+    @Transactional
     public void evaluateBadgesOnAlarm(User user){
         log.info("Start Alarm evaluating : {}", user.getId());
 
@@ -335,6 +360,7 @@ public class BadgeService {
             case STREAK -> userBadgeStatsService.getStreakCount(userId);
             case ALARM -> userBadgeStatsService.hasChangedAlarm(userId) ? 1L : 0L;
             case ACCUMULATIVE -> userBadgeStatsService.getAccumulativeAfterAlarm(userId);
+            case RECOMMEND_REGISTER -> userBadgeStatsService.getRecommendRegisterCount(userId);
         };
     }
 

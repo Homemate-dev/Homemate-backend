@@ -122,6 +122,7 @@ public class CategoryChoreCreator {
         }
 
         badgeService.evaluateBadgesOnCreate(user);
+        badgeService.evaluateBadgesOnCategoryCreator(user);
 
         return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
                 .data(ChoreDto.Response.fromEntity(saved))

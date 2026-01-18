@@ -25,6 +25,7 @@ public class UserBadgeStatsService {
     private static final String STREAK_FORMAT = "user:stats:%d:streak";
     private static final String ALARM_FORMAT = "user:stats:%d:alarm";
     private static final String ACCUMULATIVE_FORMAT = "user:stats:%d:accumulative";
+    private static final String RECOMMEND_REGISTER_FORMAT = "user:stats:%d:recommend";
 
     // Field Format
     private static final String FIELD_TOTAL_COMPLETED = "total_completed";
@@ -35,6 +36,7 @@ public class UserBadgeStatsService {
     private static final String FIELD_STREAK_COUNT = "count";
     private static final String FIELD_STREAK_LAST_DATE = "last_date";
     private static final String FIELD_ACCUMULATIVE_ALARM = "accumulative_after_alarm";
+    private static final String FIELD_RECOMMEND = "recommend_register";
 
     // Increment Methods
     public void incrementTotalCompleted(Long userId){
@@ -129,6 +131,13 @@ public class UserBadgeStatsService {
         return Boolean.TRUE.equals(success);
     }
 
+    public void increaseRecommendRegisterCount(Long userId){
+        String key = String.format(RECOMMEND_REGISTER_FORMAT, userId);
+
+        redisTemplate.opsForHash()
+                .increment(key, FIELD_RECOMMEND, 1);
+    }
+
 
 
 
@@ -198,6 +207,14 @@ public class UserBadgeStatsService {
         Object v = redisTemplate.opsForHash().get(
                 String.format(ACCUMULATIVE_FORMAT, userId),
                 FIELD_ACCUMULATIVE_ALARM
+        );
+        return parseLongSafe(v);
+    }
+
+    public long getRecommendRegisterCount(Long userId){
+        Object v = redisTemplate.opsForHash().get(
+                String.format(RECOMMEND_REGISTER_FORMAT, userId),
+                FIELD_RECOMMEND
         );
         return parseLongSafe(v);
     }
