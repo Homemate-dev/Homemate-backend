@@ -9,9 +9,9 @@ public enum BadgeType {
 
     START_HALF( "시작이 반", "아무 집안일 1회 완료",  null,  null, 1, BadgeCategory.ALL, null,"start_half.png"),
 
-    STREAK_THREE("꾸준이", "아무 집안일이든 연속으로 3일동안 완료하기", null,null, 3, BadgeCategory.STREAK, null,"streak_king.png"),
-    STREAK_FIVE("성실왕", "아무 집안일이든 연속으로 5일동안 완료하기", null,null, 5, BadgeCategory.STREAK, null,"streak_king.png"),
-    STREAK_TEN("끈기왕", "아무 집안일이든 연속으로 10일동안 완료하기", null, null, 10, BadgeCategory.STREAK, null,"streak_king.png"),
+    STREAK_THREE("꾸준이", "아무 집안일이든 연속으로 3일동안 완료하기", null,null, 3, BadgeCategory.STREAK, null,"streak_basic.png"),
+    STREAK_FIVE("성실왕", "아무 집안일이든 연속으로 5일동안 완료하기", null,null, 5, BadgeCategory.STREAK, null,"streak_expert.png"),
+    STREAK_TEN("끈기왕", "아무 집안일이든 연속으로 10일동안 완료하기", null, null, 10, BadgeCategory.STREAK, null,"streak_master.png"),
 
     SEED_CHORE( "새싹 살림꾼", "아무 집안일 100회 완료",  null,null, 30, BadgeCategory.ALL, null,"beginner_all.png"),
     MEDIUM_CHORE( "알뜰 살림꾼", "아무 집안일 200회 완료",  null, null,50, BadgeCategory.ALL,null, "expert_all.png"),
