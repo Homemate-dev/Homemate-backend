@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.exception.CustomException;
@@ -26,6 +27,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class MyPageNotificationServiceTest {
   @Mock
   UserNotificationSettingRepository settingsRepo;
+
+  @Mock
+  BadgeService badgeService;
 
   @InjectMocks
   MyPageNotificationService sut;

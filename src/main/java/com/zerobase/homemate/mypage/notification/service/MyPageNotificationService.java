@@ -1,5 +1,6 @@
 package com.zerobase.homemate.mypage.notification.service;
 
+import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.entity.UserNotificationSetting;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
@@ -12,6 +13,7 @@ import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MyPageNotificationService {
   private final UserNotificationSettingRepository userNotificationSettingRepository;
+  private final BadgeService badgeService;
 
   @Transactional(readOnly = true)
   public FirstSetupStatusResponse getFirstSetupStatus(long userId) {
@@ -37,6 +40,7 @@ public class MyPageNotificationService {
     setting.completeFirstSetup(truncateToMinutes(time));
     userNotificationSettingRepository.flush();
 
+
     return FirstSetupResponse.from(setting);
   }
   
@@ -53,8 +57,8 @@ public class MyPageNotificationService {
     if (!Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime)) {
       setting.changeNotificationTime(normalizedTime);
       userNotificationSettingRepository.flush();
+      badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
-
     return NotiTimeResponse.from(setting);
   }
 
@@ -88,6 +92,7 @@ public class MyPageNotificationService {
 
     if (changed) {
       userNotificationSettingRepository.flush();
+      badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
 
     return ToggleResponse.from(setting);
