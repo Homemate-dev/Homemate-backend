@@ -148,8 +148,7 @@ public class CategoryQueryServiceTest {
 
         given(categoryChoreRepository.findActiveByCategoriesAndCategoryType(
                 eq(categories),
-                eq(CategoryType.MONTHLY),
-                any(Pageable.class)
+                eq(CategoryType.MONTHLY)
         )).willReturn(List.of(testMonthChore));
 
         // when
