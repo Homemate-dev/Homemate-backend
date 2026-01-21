@@ -10,12 +10,15 @@ import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryChoreCreator;
 import com.zerobase.homemate.recommend.service.CategoryQueryService;
 import com.zerobase.homemate.recommend.service.MonthlyCategoryService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -50,6 +53,25 @@ class CategoryControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    private UserPrincipal principal;
+    private Authentication auth;
+
+    @BeforeEach
+    void setUp() {
+        principal = new UserPrincipal(
+                1L,
+                "testUser",
+                UserRole.USER.name()
+        );
+
+        auth = new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+    }
+
 
 
     @DisplayName("카테고리 전체 조회 API 성공")
@@ -123,18 +145,24 @@ class CategoryControllerTest {
                         "가습기 세척하기",
                         "1",
                         null,
-                        Category.TEN_MINUTES_CLEANING.getCategoryName()
+                        category.getCategoryName(),
+                        null
                 );
 
-        given(categoryQueryService.getFixedChores(category))
-                .willReturn(List.of(response));
+        given(categoryQueryService.getFixedChores(
+                eq(category),
+                eq(principal.id())
+        )).willReturn(List.of(response));
 
         // when & then
-        mockMvc.perform(get("/recommend/categories/fixed/{category}", category))
+        mockMvc.perform(
+                        get("/recommend/categories/fixed/{category}", category)
+                                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("가습기 세척하기"));
-
     }
+
 
     @Test
     @DisplayName("계절 카테고리 조회 성공")
@@ -147,13 +175,17 @@ class CategoryControllerTest {
                         "필터 교체하기",
                         "1",
                         null,
-                        Season.WINTER.name()
+                        Season.WINTER.name(),
+                        null
                 );
-        given(categoryQueryService.getSeasonChores(any()))
+        given(categoryQueryService.getSeasonChores(any(), eq(principal.id())))
                 .willReturn(List.of(response));
 
         // when & then
-        mockMvc.perform(get("/recommend/categories/season"))
+        mockMvc.perform(
+                        get("/recommend/categories/season")
+                                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("필터 교체하기"));
     }
@@ -170,13 +202,17 @@ class CategoryControllerTest {
                         "보일러 점검하기",
                         "1",
                         null,
-                        "1월 대청소"
+                        "1월 대청소",
+                        null
                 );
 
-        given(categoryQueryService.getMonthlyChores(1L, null))
+        given(categoryQueryService.getMonthlyChores(eq(categoriesId), eq(null), eq(principal.id())))
                 .willReturn(List.of(response));
 
-        mockMvc.perform(get("/recommend/categories/monthly/{categoryId}/chores", 1L))
+        mockMvc.perform(
+                        get("/recommend/categories/monthly/{categoryId}/chores", 1L)
+                                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].categoryName").value("1월 대청소"))
                 .andExpect(jsonPath("$[0].title").value("보일러 점검하기"));

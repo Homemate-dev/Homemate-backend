@@ -52,20 +52,22 @@ public class CategoryController {
     // 고정 카테고리 조회 API
     @GetMapping("/fixed/{category}")
     public ResponseEntity<List<ClassifyChoreResponse>> getChoresByFixedCategory(
-            @PathVariable Category category
+            @PathVariable Category category,
+            @AuthenticationPrincipal UserPrincipal user
     ){
-        List<ClassifyChoreResponse> responses = categoryQueryService.getFixedChores(category);
+        List<ClassifyChoreResponse> responses = categoryQueryService.getFixedChores(category, user.id());
         return ResponseEntity.ok(responses);
     }
 
     // 계절 카테고리 조회 API
     @GetMapping("/season")
     public ResponseEntity<List<ClassifyChoreResponse>> getChoresBySeason(
+            @AuthenticationPrincipal UserPrincipal user
     ){
         Season currentSeason = Season.from(LocalDate.now(ZoneId.of("Asia/Seoul")));
 
         return ResponseEntity.ok(
-                categoryQueryService.getSeasonChores(currentSeason)
+                categoryQueryService.getSeasonChores(currentSeason, user.id())
         );
     }
 
@@ -73,11 +75,12 @@ public class CategoryController {
     @GetMapping("/monthly/{categoryId}/chores")
     public ResponseEntity<List<ClassifyChoreResponse>> getChoresByMonthlyCategory(
             @PathVariable Long categoryId,
-            @RequestParam(required = false)SubCategory subCategory
+            @RequestParam(required = false)SubCategory subCategory,
+            @AuthenticationPrincipal UserPrincipal user
 
             ){
         return ResponseEntity.ok(
-                categoryQueryService.getMonthlyChores(categoryId, subCategory)
+                categoryQueryService.getMonthlyChores(categoryId, subCategory, user.id())
         );
     }
 

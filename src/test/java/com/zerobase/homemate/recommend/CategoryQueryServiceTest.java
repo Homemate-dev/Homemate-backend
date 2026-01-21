@@ -13,12 +13,12 @@ import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.service.CategoryQueryService;
 import com.zerobase.homemate.repository.CategoriesRepository;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
+import com.zerobase.homemate.repository.ChoreRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Pageable;
 
 
 import java.util.List;
@@ -27,8 +27,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -42,18 +41,21 @@ public class CategoryQueryServiceTest {
     private CategoryChoreRepository categoryChoreRepository;
 
     @Mock
+    private ChoreRepository choreRepository;
+
+    @Mock
     private CategoriesRepository categoriesRepository;
 
     @Test
     void getFixedChores_nullCategory_throwsException() {
-        assertThatThrownBy(() -> categoryQueryService.getFixedChores(null))
+        assertThatThrownBy(() -> categoryQueryService.getFixedChores(null, 1L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
     }
 
     @Test
     void getSeasonChores_nullSeason_throwsException() {
-        assertThatThrownBy(() -> categoryQueryService.getSeasonChores(null))
+        assertThatThrownBy(() -> categoryQueryService.getSeasonChores(null, 1L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.INVALID_SEASON.getMessage());
     }
@@ -63,7 +65,7 @@ public class CategoryQueryServiceTest {
         given(categoriesRepository.findById(1L))
                 .willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> categoryQueryService.getMonthlyChores(1L, null))
+        assertThatThrownBy(() -> categoryQueryService.getMonthlyChores(1L, null, any()))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
     }
@@ -84,19 +86,17 @@ public class CategoryQueryServiceTest {
                 .build();
 
         given(categoryChoreRepository.findActiveFixedByCategory(
-                eq(category),
-                any(Pageable.class)
+                eq(category)
         )).willReturn(List.of(testChore));
 
         // when
         List<ClassifyChoreResponse> result =
-                categoryQueryService.getFixedChores(category);
+                categoryQueryService.getFixedChores(category, any());
 
         // then
         assertThat(result).hasSize(1);
         verify(categoryChoreRepository).findActiveFixedByCategory(
-                eq(category),
-                any(Pageable.class)
+                eq(category)
         );
     }
 
@@ -115,19 +115,17 @@ public class CategoryQueryServiceTest {
                 .build();
 
         given(categoryChoreRepository.findActiveSeasonalBySeason(
-                eq(season),
-                any(Pageable.class)
+                eq(season)
         )).willReturn(List.of(seasonTestChore));
 
         // when
         List<ClassifyChoreResponse> result =
-                categoryQueryService.getSeasonChores(season);
+                categoryQueryService.getSeasonChores(season, any());
 
         // then
         assertThat(result).hasSize(1);
         verify(categoryChoreRepository).findActiveSeasonalBySeason(
-                eq(season),
-                any(Pageable.class)
+                eq(season)
         );
     }
 
@@ -153,7 +151,7 @@ public class CategoryQueryServiceTest {
 
         // when
         List<ClassifyChoreResponse> result =
-                categoryQueryService.getMonthlyChores(categories.getId(), null);
+                categoryQueryService.getMonthlyChores(categories.getId(), null, any());
 
         // then
         assertThat(result).hasSize(1);
@@ -171,6 +169,60 @@ public class CategoryQueryServiceTest {
 
         assertThat(result).hasSize(1);
     }
+
+    @Test
+    void getFixedChores_duplicateFlag_isCorrect() {
+        // given
+        Long userId = 1L;
+        Category category = Category.TEN_MINUTES_CLEANING;
+
+        CategoryChore chore1 = CategoryChore.builder()
+                .id(1L)
+                .title("설거지하기")
+                .repeatType(RepeatType.DAILY)
+                .category(Category.TEN_MINUTES_CLEANING)
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .categoryType(CategoryType.FIXED)
+                .build();
+
+        CategoryChore chore2 = CategoryChore.builder()
+                .id(2L)
+                .title("청소기 돌리기")
+                .repeatType(RepeatType.DAILY)
+                .categoryType(CategoryType.FIXED)
+                .category(Category.TEN_MINUTES_CLEANING)
+                .repeatType(RepeatType.DAILY)
+                .repeatInterval(1)
+                .build();
+
+        given(categoryChoreRepository.findActiveFixedByCategory(eq(category)))
+                .willReturn(List.of(chore1, chore2));
+
+        // user는 이미 "설거지하기"를 등록함
+        given(choreRepository.findActiveTitlesByUserId(userId))
+                .willReturn(List.of("설거지하기"));
+
+        // when
+        List<ClassifyChoreResponse> result =
+                categoryQueryService.getFixedChores(category, userId);
+
+        // then
+        assertThat(result).hasSize(2);
+
+        assertThat(result)
+                .anyMatch(r ->
+                        r.title().equals("설거지하기") &&
+                                Boolean.TRUE.equals(r.isDuplicate())
+                );
+
+        assertThat(result)
+                .anyMatch(r ->
+                        r.title().equals("청소기 돌리기") &&
+                                Boolean.FALSE.equals(r.isDuplicate())
+                );
+    }
+
 
 
 }
