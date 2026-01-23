@@ -13,9 +13,9 @@ public enum BadgeType {
     STREAK_FIVE("성실왕", "아무 집안일이든 연속으로 5일동안 완료하기", null,null, 5, BadgeCategory.STREAK, null,"streak_expert.png"),
     STREAK_TEN("끈기왕", "아무 집안일이든 연속으로 10일동안 완료하기", null, null, 10, BadgeCategory.STREAK, null,"streak_master.png"),
 
-    SEED_CHORE( "새싹 살림꾼", "아무 집안일 100회 완료",  null,null, 30, BadgeCategory.ALL, null,"beginner_all.png"),
-    MEDIUM_CHORE( "알뜰 살림꾼", "아무 집안일 200회 완료",  null, null,50, BadgeCategory.ALL,null, "expert_all.png"),
-    MASTER_CHORE( "살림 마스터", "아무 집안일 300회 완료",  null, null,100 , BadgeCategory.ALL, null,"master_all.png"),
+    SEED_CHORE( "새싹 살림꾼", "아무 집안일 30회 완료",  null,null, 30, BadgeCategory.ALL, null,"beginner_all.png"),
+    MEDIUM_CHORE( "알뜰 살림꾼", "아무 집안일 50회 완료",  null, null,50, BadgeCategory.ALL,null, "expert_all.png"),
+    MASTER_CHORE( "살림 마스터", "아무 집안일 100회 완료",  null, null,100 , BadgeCategory.ALL, null,"master_all.png"),
 
     START_J("예비 J", "집안일 10회 등록하기", null, null, 10, BadgeCategory.REGISTER, null,"pre_start_j.png"),
     SMALL_J("소문자 J", "집안일 30회 등록하기",  null, null,30, BadgeCategory.REGISTER, null,"beginner_j.png"),
@@ -65,9 +65,9 @@ public enum BadgeType {
 
     ALARM_ALTER_START("알람 처음 변경", "알람을 처음으로 변경해보기", null, null, 1, BadgeCategory.ALARM, null, "alarm_alter.png"),
 
-    ACCUMULATIVE_ALARM_START("알람 변경 후 집안일 1회 완료", "알람을 변경한 뒤 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, "explorer.png"),
-    ACCUMULATIVE_ALARM_FIVE("알람 변경 후 집안일 5회 완료", "알람을 변경한 뒤 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, "explorer.png"),
-    ACCUMULATIVE_ALARM_TEN("알람 변경 후 집안일 10회 완료", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, "explorer.png"),
+    ACCUMULATIVE_ALARM_START("시계와 함께", "알람을 변경한 뒤 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, "begin_explorer.png"),
+    ACCUMULATIVE_ALARM_FIVE("습관 만들기 텅텅", "알람을 변경한 뒤 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, "expert_explorer.png"),
+    ACCUMULATIVE_ALARM_TEN("습관 만들기 숙련자", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, "master_explorer.png"),
 
     RECOMMEND_EXPLORER("집안일 탐색꾼", "카테고리에 있는 집안일 1회 등록하기", null, null, 1, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_basic.png"),
     RECOMMEND_ADVENTURER("집안일 모험가", "카테고리에 있는 집안일 3회 등록하기", null, null, 3, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_expert.png"),
@@ -90,6 +90,10 @@ public enum BadgeType {
     private static final String BASE_URL = "https://homemate.io.kr/badges/";
 
     public String getBadgeImageUrl(){
+
+        String url = BASE_URL + imageName;
+        System.out.println("[BadgeType] getBadgeImageUrl : " + this.imageName + "->" + url);
+
         return BASE_URL + imageName;
     }
 
