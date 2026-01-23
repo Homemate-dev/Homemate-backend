@@ -66,14 +66,14 @@ public record ClassifyChoreResponse(Long choreId,
 
     }
 
-    public static ClassifyChoreResponse fromSpace(SpaceChore spaceChore) {
+    public static ClassifyChoreResponse fromSpace(SpaceChore spaceChore, boolean isDuplicate) {
         return new ClassifyChoreResponse(
                 spaceChore.getId(),
                 spaceChore.getTitleKo(),
                 formatFrequency(spaceChore.getRepeatType(), spaceChore.getRepeatInterval()),
                 spaceChore.getSpace(),
                 null,
-                null
+                isDuplicate
         );
     }
 }
