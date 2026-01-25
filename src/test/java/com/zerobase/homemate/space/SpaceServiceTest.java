@@ -2,12 +2,17 @@ package com.zerobase.homemate.space;
 
 
 import com.zerobase.homemate.entity.SpaceChore;
+import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
+import com.zerobase.homemate.entity.enums.UserRole;
+import com.zerobase.homemate.entity.enums.UserStatus;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
 import com.zerobase.homemate.recommend.service.SpaceService;
+import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
+import com.zerobase.homemate.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +34,12 @@ public class SpaceServiceTest {
     @InjectMocks
     private SpaceService spaceService;
 
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private ChoreRepository choreRepository;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -37,6 +49,16 @@ public class SpaceServiceTest {
     @DisplayName("공간별 집안일 조회 - Repository + RepeatType 우선순위 적용")
     void getChoresBySpace_ShouldReturnSortedByRepeatType() {
         // given
+
+        User user = User.builder()
+                        .id(1L)
+                        .userRole(UserRole.USER)
+                        .userStatus(UserStatus.ACTIVE)
+                        .createdAt(LocalDateTime.now())
+                        .profileName("testUser")
+                        .build();
+
+
         SpaceChore chore1 = SpaceChore.builder()
                 .id(1L)
                 .titleKo("청소")
@@ -53,11 +75,12 @@ public class SpaceServiceTest {
                 .space(Space.KITCHEN)
                 .build();
 
+        when(userRepository.save(any(User.class))).thenReturn(user);
         when(spaceChoreRepository.findBySpace(eq(Space.KITCHEN)))
                 .thenReturn(List.of(chore1, chore2));
 
         // when
-        List<ClassifyChoreResponse> result = spaceService.getSpaceChores(Space.KITCHEN);
+        List<ClassifyChoreResponse> result = spaceService.getSpaceChores(Space.KITCHEN, user.getId());
 
         // then
         assertThat(result).hasSize(2);

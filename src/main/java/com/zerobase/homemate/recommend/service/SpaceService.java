@@ -9,6 +9,7 @@ import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.ClassifyChoreResponse;
 import com.zerobase.homemate.recommend.dto.SpaceChoreDto;
 import com.zerobase.homemate.recommend.dto.SpaceResponse;
+import com.zerobase.homemate.repository.ChoreRepository;
 import com.zerobase.homemate.repository.SpaceChoreRepository;
 import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import com.zerobase.homemate.util.ChoreDateUtils;
@@ -24,6 +25,7 @@ public class SpaceService {
 
     private final SpaceChoreRepository spaceChoreRepository;
     private final UserNotificationSettingRepository userNotificationSettingRepository;
+    private final ChoreRepository choreRepository;
 
     private static final Map<RepeatType, Integer> REPEAT_PRIORITY = Map.of(
             RepeatType.DAILY, 1,
@@ -35,7 +37,7 @@ public class SpaceService {
 
 
 
-    public List<ClassifyChoreResponse> getSpaceChores(Space space){
+    public List<ClassifyChoreResponse> getSpaceChores(Space space, Long userId){
 
         List<SpaceChore> randomChores = (space == null)
                 ? spaceChoreRepository.findAll()
@@ -44,14 +46,9 @@ public class SpaceService {
             throw new CustomException(ErrorCode.CHORE_NOT_FOUND);
         }
 
-        // 페이지 내에서 RepeatType 우선순위 정렬
-        List<SpaceChore> pageSpaceChores = randomChores.stream()
-                .sorted(Comparator.comparingInt(c -> REPEAT_PRIORITY.get(c.getRepeatType())))
-                .toList();
+        Set<String> userChores = new HashSet<>(choreRepository.findActiveTitlesByUserId(userId));
 
-        return pageSpaceChores.stream()
-                .map(ClassifyChoreResponse::fromSpace)
-                .toList();
+        return withDuplicateFlagsSpace(randomChores.stream().toList(), userChores);
     }
 
     public List<SpaceResponse> getAllSpaces() {
@@ -70,5 +67,21 @@ public class SpaceService {
             spaceChore.getRepeatType(),
             spaceChore.getRepeatInterval());
         return SpaceChoreDto.Response.of(spaceChore, userNotificationSetting, endDate);
+    }
+
+    // SubMethod - Space for Duplicate
+    private List<ClassifyChoreResponse> withDuplicateFlagsSpace(
+            List<SpaceChore> chores,
+            Set<String> userChoreTitles
+    ){
+        return chores.stream()
+                .sorted(Comparator.comparingInt(
+                        c -> REPEAT_PRIORITY.get(c.getRepeatType())
+                ))
+                .map(c -> ClassifyChoreResponse.fromSpace(
+                        c,
+                        userChoreTitles.contains(c.getTitleKo())
+                ))
+                .toList();
     }
 }

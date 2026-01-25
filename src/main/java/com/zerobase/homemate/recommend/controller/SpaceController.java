@@ -32,8 +32,11 @@ public class SpaceController {
 
     @GetMapping("/chores")
     public ResponseEntity<List<ClassifyChoreResponse>> getChoresBySpace(
-            @RequestParam(required = false) Space space) {
-        return ResponseEntity.ok(spaceService.getSpaceChores(space));
+            @RequestParam(required = false) Space space,
+            @AuthenticationPrincipal UserPrincipal user) {
+
+        List<ClassifyChoreResponse> responses = spaceService.getSpaceChores(space, user.id());
+        return ResponseEntity.ok(responses);
     }
 
     @PostMapping("/{spaceChoreId}/register")

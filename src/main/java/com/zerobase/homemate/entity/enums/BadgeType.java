@@ -29,13 +29,13 @@ public enum BadgeType {
     EXPERT_MISSION( "미션 달인", "미션 18회 달성하기",  null, null,18, BadgeCategory.MISSION, null,"expert_seed.png"),
     MASTER_MISSION( "미션 마스터", "미션 36회 달성하기",  null, null,36, BadgeCategory.MISSION, null,"master_seed.png"),
 
-    BEGINNER_KITCHEN("주방 깔끔이", "주방 집안일 30회 완료",  Space.KITCHEN, null,10, BadgeCategory.SPACE, null,"beginner_kitchen.png"),
-    EXPERT_KITCHEN("주방 반짝이", "주방 집안일 90회 완료",  Space.KITCHEN, null,30, BadgeCategory.SPACE, null,"expert_kitchen.png"),
-    MASTER_KITCHEN("주방 번쩍이", "주방 집안일 180회 완료",  Space.KITCHEN, null,60, BadgeCategory.SPACE, null,"master_kitchen.png"),
+    BEGINNER_KITCHEN("주방 깔끔이", "주방 집안일 10회 완료",  Space.KITCHEN, null,10, BadgeCategory.SPACE, null,"beginner_kitchen.png"),
+    EXPERT_KITCHEN("주방 반짝이", "주방 집안일 30회 완료",  Space.KITCHEN, null,30, BadgeCategory.SPACE, null,"expert_kitchen.png"),
+    MASTER_KITCHEN("주방 번쩍이", "주방 집안일 60회 완료",  Space.KITCHEN, null,60, BadgeCategory.SPACE, null,"master_kitchen.png"),
 
-    BEGINNER_BATHROOM("욕실 깔끔이", "욕실 집안일 30회 완료",  Space.BATHROOM, null,10, BadgeCategory.SPACE, null,"beginner_bathroom.png"),
-    EXPERT_BATHROOM("욕실 반짝이", "욕실 집안일 90회 완료",  Space.BATHROOM, null,30, BadgeCategory.SPACE, null,"expert_bathroom.png"),
-    MASTER_BATHROOM("욕실 번쩍이", "욕실 집안일 180회 완료",  Space.BATHROOM, null,60, BadgeCategory.SPACE, null,"master_bathroom.png"),
+    BEGINNER_BATHROOM("욕실 깔끔이", "욕실 집안일 10회 완료",  Space.BATHROOM, null,10, BadgeCategory.SPACE, null,"beginner_bathroom.png"),
+    EXPERT_BATHROOM("욕실 반짝이", "욕실 집안일 30회 완료",  Space.BATHROOM, null,30, BadgeCategory.SPACE, null,"expert_bathroom.png"),
+    MASTER_BATHROOM("욕실 번쩍이", "욕실 집안일 60회 완료",  Space.BATHROOM, null,60, BadgeCategory.SPACE, null,"master_bathroom.png"),
 
     BEGINNER_PORCH("현관 깔끔이", "현관 집안일 10회 완료",  Space.PORCH, null,10, BadgeCategory.SPACE, null,"beginner_porch.png"),
     EXPERT_PORCH("현관 반짝이", "현관 집안일 30회 완료",   Space.PORCH, null,30, BadgeCategory.SPACE, null,"expert_porch.png"),
@@ -65,9 +65,9 @@ public enum BadgeType {
 
     ALARM_ALTER_START("알람 처음 변경", "알람을 처음으로 변경해보기", null, null, 1, BadgeCategory.ALARM, null, "alarm_alter.png"),
 
-    ACCUMULATIVE_ALARM_START("알람 변경 후 집안일 1회 완료", "알람을 변경한 뒤 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, "explorer.png"),
-    ACCUMULATIVE_ALARM_FIVE("알람 변경 후 집안일 5회 완료", "알람을 변경한 뒤 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, "explorer.png"),
-    ACCUMULATIVE_ALARM_TEN("알람 변경 후 집안일 10회 완료", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, "explorer.png"),
+    ACCUMULATIVE_ALARM_START("시계와 함께", "알람을 변경한 뒤 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, "begin_explorer.png"),
+    ACCUMULATIVE_ALARM_FIVE("습관 만들기 텅텅", "알람을 변경한 뒤 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, "expert_explorer.png"),
+    ACCUMULATIVE_ALARM_TEN("습관 만들기 숙련자", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, "master_explorer.png"),
 
     RECOMMEND_EXPLORER("집안일 탐색꾼", "카테고리에 있는 집안일 1회 등록하기", null, null, 1, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_basic.png"),
     RECOMMEND_ADVENTURER("집안일 모험가", "카테고리에 있는 집안일 3회 등록하기", null, null, 3, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_expert.png"),
@@ -90,6 +90,10 @@ public enum BadgeType {
     private static final String BASE_URL = "https://homemate.io.kr/badges/";
 
     public String getBadgeImageUrl(){
+
+        String url = BASE_URL + imageName;
+        System.out.println("[BadgeType] getBadgeImageUrl : " + this.imageName + "->" + url);
+
         return BASE_URL + imageName;
     }
 
