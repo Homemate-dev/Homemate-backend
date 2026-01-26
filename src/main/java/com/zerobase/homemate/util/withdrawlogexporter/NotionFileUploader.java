@@ -46,6 +46,7 @@ public class NotionFileUploader {
                 uploadFile(fileId);
 
                 log.info("Notion upload succeed");
+                return;
             } catch (RestClientResponseException e) {
                 log.warn("error occurred while uploading withdraw_log: {}", e.getMessage());
                 retryCount++;
