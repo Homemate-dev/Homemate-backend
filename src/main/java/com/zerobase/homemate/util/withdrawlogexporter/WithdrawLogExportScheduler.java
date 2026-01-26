@@ -1,6 +1,7 @@
 package com.zerobase.homemate.util.withdrawlogexporter;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -15,8 +16,16 @@ public class WithdrawLogExportScheduler {
     private static final LocalDate REFERENCE_DATE = LocalDate.of(2026, 1, 5);
     private final WithdrawLogBatchService batchService;
 
+    @Value("${auth.dev.enabled}")
+    private boolean devEnabled;
+
     @Scheduled(cron = "0 0 1 * * MON")
     public void runBiWeekly() {
+        // 테스트 환경에서는 로그 미추출
+        if (devEnabled) {
+            return;
+        }
+
         if (!isBiWeekly()) {
             return;
         }
