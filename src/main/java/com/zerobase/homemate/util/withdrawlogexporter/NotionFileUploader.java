@@ -27,12 +27,12 @@ public class NotionFileUploader {
     private static final String NOTION_API_VERSION = "2025-09-03";
     private static final int MAX_RETRY_COUNT = 3;
 
+    private final RestClient restClient;
+
     @Value("${notion.api.secret}")
     private String notionApiToken;
     @Value("${notion.api.database}")
     private String databaseId;
-
-    private final RestClient restClient;
 
     public void uploadFile(File file) {
         log.info("Uploading file - {}", file.getName());

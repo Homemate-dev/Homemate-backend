@@ -1,7 +1,6 @@
 package com.zerobase.homemate.util.withdrawlogexporter;
 
 import com.zerobase.homemate.entity.WithdrawLog;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,6 +23,7 @@ public class CsvFileExporter {
     private static final String FILENAME_PREFIX = "withdraw_log_";
     private static final String FILENAME_EXTENSION = ".csv";
     private static final String HEADER = "ID,kakaoID,Reason,Detail,WithdrawDate";
+
     @Value("${app.csv.export-path:./logs/export}")
     private String exportPath;
 
@@ -59,12 +59,12 @@ public class CsvFileExporter {
 
         } catch (IOException e) {
             log.error("CSV file creation failed", e);
-            throw new RuntimeException("CSV export failed",e);
+            throw new RuntimeException("CSV export failed", e);
         }
     }
 
     private String escapeSpecialCharacters(String text) {
-        if (text == null){
+        if (text == null) {
             return "";
         }
 
