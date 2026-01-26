@@ -37,6 +37,7 @@ public class CsvFileExporter {
             }
 
             try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+                writer.write('\uFEFF'); // UTF-8 BOM
                 writer.write(HEADER);
                 writer.newLine();
 
