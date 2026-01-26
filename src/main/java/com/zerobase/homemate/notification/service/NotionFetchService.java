@@ -77,7 +77,7 @@ public class NotionFetchService {
 
         JsonNode titleProperty = restClient.get()
                 .uri(pageUrl)
-                .header(HttpHeaders.AUTHORIZATION, notionApiToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionApiToken)
                 .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
                 .retrieve()
                 .body(JsonNode.class);
@@ -92,7 +92,7 @@ public class NotionFetchService {
 
         JsonNode body = restClient.get()
                 .uri(pageUrl)
-                .header(HttpHeaders.AUTHORIZATION, notionApiToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionApiToken)
                 .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
                 .retrieve()
                 .body(JsonNode.class);
