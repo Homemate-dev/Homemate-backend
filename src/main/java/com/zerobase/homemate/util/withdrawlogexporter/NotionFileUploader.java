@@ -57,19 +57,6 @@ public class NotionFileUploader {
         }
     }
 
-    private void uploadFile(File file, String fileId) {
-        CreatePageRequest requestBody = CreatePageRequest.of(databaseId, file.getName(), fileId);
-
-        restClient.post()
-                .uri(NOTION_API_PAGE_URL)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionApiToken)
-                .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .retrieve()
-                .toBodilessEntity();
-    }
-
     private String getUploadUrl() {
         JsonNode response = restClient.post()
                 .uri(NOTION_API_FILE_UPLOAD_URL)
@@ -96,6 +83,19 @@ public class NotionFileUploader {
                 .body(JsonNode.class);
 
         return response.get("id").asText();
+    }
+
+    private void uploadFile(File file, String fileId) {
+        CreatePageRequest requestBody = CreatePageRequest.of(databaseId, "탈퇴사유 로그", fileId);
+
+        restClient.post()
+                .uri(NOTION_API_PAGE_URL)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionApiToken)
+                .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .retrieve()
+                .toBodilessEntity();
     }
 
     private void sleep(int seconds) {
