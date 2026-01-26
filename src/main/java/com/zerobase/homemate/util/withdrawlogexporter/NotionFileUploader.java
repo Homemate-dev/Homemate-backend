@@ -43,7 +43,7 @@ public class NotionFileUploader {
             try {
                 String uploadUrl = getUploadUrl();
                 String fileId = getFileId(uploadUrl, file);
-                uploadFile(file, fileId);
+                uploadFile(fileId);
 
                 log.info("Notion upload succeed");
             } catch (RestClientResponseException e) {
@@ -85,7 +85,7 @@ public class NotionFileUploader {
         return response.get("id").asText();
     }
 
-    private void uploadFile(File file, String fileId) {
+    private void uploadFile(String fileId) {
         CreatePageRequest requestBody = CreatePageRequest.of(databaseId, "탈퇴사유 로그", fileId);
 
         restClient.post()
