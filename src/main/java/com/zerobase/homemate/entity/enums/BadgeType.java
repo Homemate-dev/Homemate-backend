@@ -2,9 +2,12 @@ package com.zerobase.homemate.entity.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 
 @Getter
 @RequiredArgsConstructor
+@Slf4j
 public enum BadgeType {
 
     START_HALF( "시작이 반", "아무 집안일 1회 완료",  null,  null, 1, BadgeCategory.ALL, null,"start_half.png"),
@@ -87,14 +90,20 @@ public enum BadgeType {
     private final TimeSlot timeSlot;
     private final String imageName;
 
-    private static final String BASE_URL = "https://homemate.io.kr/test/badges/";
+    private static final String BASE_URL = "https://homemate.io.kr";
 
-    public String getBadgeImageUrl(){
+    @Value("${auth.dev.enabled:false}")
+    private boolean devEnabled;
 
-        String url = BASE_URL + imageName;
-        System.out.println("[BadgeType] getBadgeImageUrl : " + this.imageName + "->" + url);
+    public String getBadgeImageUrl() {
+        String url = devEnabled
+                ? BASE_URL + "/test/badges/"
+                : BASE_URL + "/badges/";
 
-        return BASE_URL + imageName;
+        log.info("[BadgeImageUrl] devEnabled={}, badgeImageUrl={}", devEnabled, url);
+
+        return url;
     }
+
 
 }
