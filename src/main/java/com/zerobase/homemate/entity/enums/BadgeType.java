@@ -3,7 +3,6 @@ package com.zerobase.homemate.entity.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 
 @Getter
 @RequiredArgsConstructor
@@ -92,13 +91,16 @@ public enum BadgeType {
 
     private static final String BASE_URL = "https://homemate.io.kr";
 
-    @Value("${auth.dev.enabled:false}")
-    private boolean devEnabled;
+    private static boolean devEnabled;
+
+    public static void setDevEnabled(boolean devEnabled) {
+        BadgeType.devEnabled = devEnabled;
+    }
 
     public String getBadgeImageUrl() {
         String url = devEnabled
-                ? BASE_URL + "/test/badges/"
-                : BASE_URL + "/badges/";
+                ? BASE_URL + "/test/badges/" + getImageName()
+                : BASE_URL + "/badges/" + getImageName();
 
         log.info("[BadgeImageUrl] devEnabled={}, badgeImageUrl={}", devEnabled, url);
 
