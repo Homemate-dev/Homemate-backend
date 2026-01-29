@@ -94,6 +94,14 @@ public class ChoreService {
             .registrationType(registrationType)
             .build();
 
+        boolean isDuplicate = choreRepository.existsByUserIdAndIsDeletedIsFalse(userId);
+        log.info(
+                "[CREATE_CHORE] userId={}, title='{}', isDuplicate={}",
+                userId,
+                request.getTitle(),
+                isDuplicate
+        );
+
         Chore savedChore = choreRepository.save(chore);
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(
             savedChore);

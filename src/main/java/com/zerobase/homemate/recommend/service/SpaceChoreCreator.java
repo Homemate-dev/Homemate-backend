@@ -76,6 +76,14 @@ public class SpaceChoreCreator {
                 .registrationType(RegistrationType.SPACE)
                 .build();
 
+        boolean isDuplicate = choreRepository.existsByUserIdAndIsDeletedIsFalse(userId);
+        log.info(
+                "[CREATE_RECOMMEND_CHORE] userId={}, title='{}', isDuplicate={}",
+                userId,
+                template.getTitleKo(),
+                isDuplicate
+        );
+
         Chore saved = choreRepository.save(chore);
 
         if(chore.getNotificationYn()){

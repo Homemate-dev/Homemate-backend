@@ -84,6 +84,14 @@ public class CategoryChoreCreator {
                 .registrationType(RegistrationType.CATEGORY)
                 .build();
 
+        boolean isDuplicate = choreRepository.existsByUserIdAndIsDeletedIsFalse(userId);
+        log.info(
+                "[CREATE_RECOMMEND_CHORE] userId={}, title='{}', isDuplicate={}",
+                userId,
+                template.getTitle(),
+                isDuplicate
+        );
+
         // 5. 저장
         Chore saved = choreRepository.save(chore);
 
