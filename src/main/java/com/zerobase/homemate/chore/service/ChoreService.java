@@ -146,7 +146,7 @@ public class ChoreService {
         badgeService.evaluateBadgesOnCreate(chore.getUser());
 
         return ApiResponse.<ChoreDto.Response>builder()
-            .data(ChoreDto.Response.fromEntity(savedChore))
+            .data(ChoreDto.Response.fromCreate(savedChore, isDuplicate))
             .missionResults(userMission)
             .build();
     }
@@ -180,6 +180,8 @@ public class ChoreService {
             !chore.getStartDate().equals(request.getStartDate());
         boolean endDateChanged =
             !chore.getEndDate().equals(request.getEndDate());
+
+
 
         if (isRepeatChanged || startDateChanged || endDateChanged) {
             return updateChoreInstance(chore, choreInstance, request);
@@ -240,9 +242,15 @@ public class ChoreService {
             }
         );
 
+
+
         chore.setTitle(request.getTitle());
         chore.setNotificationYn(request.getNotificationYn());
         chore.setSpace(request.getSpace());
+
+        log.info("[CHORE-UPDATE] userId={}, choreId={}, beforeTitle={}, afterTitle={}",
+                chore.getUser(), chore.getId(), chore.getTitle(), request.getTitle());
+
 
         return ApiResponse.<ChoreDto.Response>builder()
             .data(ChoreDto.Response.fromEntity(chore))
@@ -382,6 +390,9 @@ public class ChoreService {
         if (!chore.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
+
+        log.info("[CHORE-DELETE] userId={}, choreId={}, title={}, isDeleted -> true",
+                userId, choreId, chore.getTitle());
 
         if (applyToAfter) {
             chore.setEndDate(choreInstanceRepository.findBeforeDueDateByChore(chore));
