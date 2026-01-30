@@ -105,10 +105,9 @@ public class ChoreController {
     @DeleteMapping("/{choreId}")
     public ResponseEntity<Void> deleteChore(
         @AuthenticationPrincipal UserPrincipal user,
-        @PathVariable Long choreId,
-        @RequestParam boolean applyToAfter) {
+        @PathVariable Long choreId) {
 
-        choreService.deleteChore(user.id(), choreId, applyToAfter);
+        choreService.deleteChore(user.id(), choreId);
 
         return ResponseEntity.noContent().build();
     }
@@ -116,9 +115,10 @@ public class ChoreController {
     @DeleteMapping("/instance/{choreInstanceId}")
     public ResponseEntity<Void> deleteChoreInstance(
             @AuthenticationPrincipal UserPrincipal user,
-            @PathVariable Long choreInstanceId) {
+            @PathVariable Long choreInstanceId,
+            @RequestParam boolean applyToAfter) {
 
-        choreService.deleteChoreInstance(user.id(), choreInstanceId);
+        choreService.deleteChoreInstance(user.id(), choreInstanceId, applyToAfter);
 
         return ResponseEntity.noContent().build();
     }
