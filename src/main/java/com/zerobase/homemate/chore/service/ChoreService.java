@@ -94,7 +94,8 @@ public class ChoreService {
             .registrationType(registrationType)
             .build();
 
-        boolean isDuplicate = choreRepository.existsByUserIdAndIsDeletedIsFalse(userId);
+        boolean isDuplicate = choreRepository.existsByUserIdAndTitleAndIsDeletedIsFalse(
+                userId, request.getTitle());
         log.info(
                 "[CREATE_CHORE] userId={}, title='{}', isDuplicate={}",
                 userId,

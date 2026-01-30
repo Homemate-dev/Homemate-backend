@@ -76,7 +76,7 @@ public class SpaceChoreCreator {
                 .registrationType(RegistrationType.SPACE)
                 .build();
 
-        boolean isDuplicate = choreRepository.existsByUserIdAndIsDeletedIsFalse(userId);
+        boolean isDuplicate = choreRepository.existsByUserIdAndTitleAndIsDeletedIsFalse(userId, chore.getTitle());
         log.info(
                 "[CREATE_RECOMMEND_CHORE] userId={}, title='{}', isDuplicate={}",
                 userId,

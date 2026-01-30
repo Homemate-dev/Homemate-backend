@@ -34,5 +34,6 @@ public interface ChoreRepository extends JpaRepository<Chore, Long> {
 """)
     List<String> findActiveTitlesByUserId(@Param("userId") Long userId);
 
-    boolean existsByUserIdAndIsDeletedIsFalse(@Param("userId") Long userId);
+
+    boolean existsByUserIdAndTitleAndIsDeletedIsFalse(@Param("userId") Long userId, String title);
 }
