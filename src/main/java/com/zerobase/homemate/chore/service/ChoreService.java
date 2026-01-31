@@ -95,6 +95,18 @@ public class ChoreService {
             .registrationType(registrationType)
             .build();
 
+        boolean isDuplicate = choreRepository.existsByUserIdAndTitleAndIsDeletedIsFalse(userId, chore.getTitle());
+        log.info(
+                "[CREATE_CHORE] userId={}, title='{}', isDuplicate={}, repeatType={}, startDate={}, endDate={}",
+                userId,
+                request.getTitle(),
+                isDuplicate,
+                request.getRepeatType(),
+                request.getStartDate(),
+                endDate
+        );
+
+
         Chore savedChore = choreRepository.save(chore);
         List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(
             savedChore);
@@ -174,6 +186,12 @@ public class ChoreService {
         boolean endDateChanged =
             !chore.getEndDate().equals(request.getEndDate());
 
+
+        log.info("[UPDATE_CHORES] userId={}, beforeTitle={}, afterTitle={}," +
+                " isRepeatChanged={}, startDateChanged={}, endDateChanged={}",
+                userId, chore.getTitle(), request.getTitle(),
+                isRepeatChanged, startDateChanged, endDateChanged);
+
         if (isRepeatChanged || startDateChanged || endDateChanged) {
             return updateChoreInstance(chore, choreInstance, request);
         } else {
@@ -195,6 +213,15 @@ public class ChoreService {
         } else {
             choreInstance.cancelChore();
         }
+
+        log.info(
+                "[UPDATE_SPLIT] userId={}, choreId={}, title={}, applyToAfter={}, fromDate={}",
+                chore.getUser().getId(),
+                chore.getId(),
+                chore.getTitle(),
+                request.getApplyToAfter(),
+                choreInstance.getDueDate()
+        );
 
         return createChores(chore.getUser().getId(),
             ChoreDto.CreateRequest.builder()
