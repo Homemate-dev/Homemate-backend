@@ -21,7 +21,7 @@ public interface UserSocialAccountRepository extends JpaRepository<UserSocialAcc
   @Modifying(clearAutomatically = true)
   @Query("""
             UPDATE UserSocialAccount sa
-            SET sa.providerUserId = null
+            SET sa.providerUserId = 'DELETED'
             WHERE sa.id IN :ids
             """)
   void deleteSocialAccountData(
