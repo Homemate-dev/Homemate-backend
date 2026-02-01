@@ -95,12 +95,17 @@ public class ChoreService {
             .registrationType(registrationType)
             .build();
 
-        boolean isDuplicate = choreRepository
-                .existsByUserIdAndTitleAndRegistrationTypeInAndIsDeletedFalse(
-                        userId,
-                        request.getTitle(),
-                        List.of(RegistrationType.CATEGORY, RegistrationType.SPACE)
-                );
+        boolean isDuplicate = false;
+
+        if (chore.getRegistrationType() != RegistrationType.MANUAL && chore.getRegistrationType() != RegistrationType.RECOMMEND) {
+            isDuplicate = choreRepository
+                    .existsByUserIdAndTitleAndRegistrationTypeInAndIsDeletedFalse(
+                            userId,
+                            request.getTitle(),
+                            List.of(RegistrationType.CATEGORY, RegistrationType.SPACE)
+                    );
+        }
+
 
         log.info(
                 "[CREATE_CHORE] userId={}, title='{}', isDuplicate={}, repeatType={}, startDate={}, endDate={}, registrationType={}",

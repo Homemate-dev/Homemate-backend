@@ -106,6 +106,7 @@ public class ChoreDto {
                 .createdAt(chore.getCreatedAt())
                 .updatedAt(chore.getUpdatedAt())
                 .deletedAt(chore.getDeletedAt())
+                .isDuplicate(false)
                 .build();
         }
 
