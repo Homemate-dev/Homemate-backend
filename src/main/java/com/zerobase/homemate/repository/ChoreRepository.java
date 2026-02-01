@@ -3,6 +3,7 @@ package com.zerobase.homemate.repository;
 import com.zerobase.homemate.entity.Chore;
 import java.util.List;
 
+import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import org.springframework.data.domain.Sort;
@@ -35,5 +36,5 @@ public interface ChoreRepository extends JpaRepository<Chore, Long> {
     List<String> findActiveTitlesByUserId(@Param("userId") Long userId);
 
 
-    boolean existsByUserIdAndTitleAndIsDeletedIsFalse(@Param("userId") Long userId, String title);
+    boolean existsByUserIdAndTitleAndRegistrationTypeInAndIsDeletedFalse(@Param("userId") Long userId, String title, List<RegistrationType> registrationTypes);
 }

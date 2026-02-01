@@ -84,12 +84,18 @@ public class CategoryChoreCreator {
                 .registrationType(RegistrationType.CATEGORY)
                 .build();
 
-        boolean isDuplicate = choreRepository.existsByUserIdAndTitleAndIsDeletedIsFalse(userId, chore.getTitle());
+        boolean isDuplicate = choreRepository
+                .existsByUserIdAndTitleAndRegistrationTypeInAndIsDeletedFalse(
+                        userId,
+                        chore.getTitle(),
+                        List.of(RegistrationType.CATEGORY, RegistrationType.SPACE)
+                );
         log.info(
-                "[CREATE_RECOMMEND_CHORE] userId={}, title='{}', isDuplicate={}",
+                "[CREATE_RECOMMEND_CHORE] userId={}, title='{}', isDuplicate={}, registrationType={}",
                 userId,
                 template.getTitle(),
-                isDuplicate
+                isDuplicate,
+                chore.getRegistrationType()
         );
 
         // 5. 저장
@@ -133,7 +139,7 @@ public class CategoryChoreCreator {
         badgeService.evaluateBadgesOnCategoryCreator(user);
 
         return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
-                .data(ChoreDto.Response.fromEntity(saved))
+                .data(ChoreDto.Response.fromCreate(saved, isDuplicate))
                 .missionResults(userMission)
                 .build();
     }

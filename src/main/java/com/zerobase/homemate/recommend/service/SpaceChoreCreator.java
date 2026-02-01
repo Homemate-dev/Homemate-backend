@@ -76,12 +76,18 @@ public class SpaceChoreCreator {
                 .registrationType(RegistrationType.SPACE)
                 .build();
 
-        boolean isDuplicate = choreRepository.existsByUserIdAndTitleAndIsDeletedIsFalse(userId, chore.getTitle());
+        boolean isDuplicate = choreRepository
+                .existsByUserIdAndTitleAndRegistrationTypeInAndIsDeletedFalse(
+                        userId,
+                        chore.getTitle(),
+                        List.of(RegistrationType.CATEGORY, RegistrationType.SPACE)
+                );
         log.info(
-                "[CREATE_RECOMMEND_CHORE] userId={}, title='{}', isDuplicate={}",
+                "[CREATE_SPACE_CHORE] userId={}, title='{}', isDuplicate={}, registrationType={}",
                 userId,
                 template.getTitleKo(),
-                isDuplicate
+                isDuplicate,
+                chore.getRegistrationType()
         );
 
         Chore saved = choreRepository.save(chore);
@@ -144,7 +150,7 @@ public class SpaceChoreCreator {
         badgeService.evaluateBadgesOnCreate(user);
 
         return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
-                .data(ChoreDto.Response.fromEntity(saved))
+                .data(ChoreDto.Response.fromCreate(saved, isDuplicate))
                 .missionResults(userMission)
                 .build();
     }
