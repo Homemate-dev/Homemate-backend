@@ -2,10 +2,7 @@ package com.zerobase.homemate.recommend;
 
 import com.zerobase.homemate.entity.Categories;
 import com.zerobase.homemate.entity.CategoryChore;
-import com.zerobase.homemate.entity.enums.Category;
-import com.zerobase.homemate.entity.enums.CategoryType;
-import com.zerobase.homemate.entity.enums.RepeatType;
-import com.zerobase.homemate.entity.enums.Season;
+import com.zerobase.homemate.entity.enums.*;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.CategoryResponse;
@@ -200,7 +197,7 @@ public class CategoryQueryServiceTest {
                 .willReturn(List.of(chore1, chore2));
 
         // user는 이미 "설거지하기"를 등록함
-        given(choreRepository.findActiveTitlesByUserId(userId))
+        given(choreRepository.findActiveTitlesByUserIdAndRegistrationTypes(userId, List.of(RegistrationType.CATEGORY, RegistrationType.SPACE)))
                 .willReturn(List.of("설거지하기"));
 
         // when
