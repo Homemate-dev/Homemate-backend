@@ -2,6 +2,7 @@ package com.zerobase.homemate.mypage.notification.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.entity.UserNotificationSetting;
+import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupResponse;
@@ -13,6 +14,7 @@ import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -90,12 +92,13 @@ public class MyPageNotificationService {
       }
     }
 
+    Optional<BadgeType> newBadge = Optional.empty();
     if (changed) {
       userNotificationSettingRepository.flush();
-      badgeService.evaluateBadgesOnAlarm(setting.getUser());
+      newBadge = badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
 
-    return ToggleResponse.from(setting);
+    return ToggleResponse.from(setting, newBadge);
   }
 
   private UserNotificationSetting getSettingOrThrow(long userId) {

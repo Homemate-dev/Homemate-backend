@@ -176,7 +176,8 @@ class MyPageNotificationControllerTest {
     long userId = 1L;
     var resp = new ToggleResponse(
         true, true, true,
-        LocalDateTime.of(2025, 9, 19, 7, 10, 0)
+        LocalDateTime.of(2025, 9, 19, 7, 10, 0),
+            null
     );
     given(myPageNotificationService.toggleNotification(userId, NotificationType.MASTER, true))
         .willReturn(resp);
@@ -209,7 +210,8 @@ class MyPageNotificationControllerTest {
     long userId = 1L;
     var resp = new ToggleResponse(
         true, true, true,
-        LocalDateTime.of(2025, 9, 19, 7, 10, 0)
+        LocalDateTime.of(2025, 9, 19, 7, 10, 0),
+            null
     );
     given(myPageNotificationService.toggleNotification(userId, NotificationType.CHORE, true))
         .willReturn(resp);
@@ -241,7 +243,7 @@ class MyPageNotificationControllerTest {
     long userId = 1L;
     var resp = new ToggleResponse(
         true, true, false,
-        LocalDateTime.of(2025, 9, 19, 7, 10, 0)
+        LocalDateTime.of(2025, 9, 19, 7, 10, 0), null
     );
     given(myPageNotificationService.toggleNotification(userId, NotificationType.NOTICE, false))
         .willReturn(resp);
