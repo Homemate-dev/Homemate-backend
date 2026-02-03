@@ -48,23 +48,21 @@ public class MyPageNotificationService {
   
   @Transactional(readOnly = true)
   public NotiTimeResponse getNotificationTime(long userId) {
-
-    Optional<BadgeType> newBadge = Optional.empty();
-
-    return NotiTimeResponse.from(getSettingOrThrow(userId), newBadge);
+    return NotiTimeResponse.from(getSettingOrThrow(userId),
+            Optional.empty());
   }
 
   @Transactional
   public NotiTimeResponse updateNotificationTime(long userId, LocalTime time) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
     LocalTime normalizedTime = truncateToMinutes(time);
-    Optional<BadgeType> newBadge = Optional.empty();
     if (!Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime)) {
       setting.changeNotificationTime(normalizedTime);
       userNotificationSettingRepository.flush();
-
-      newBadge = badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
+
+    Optional<BadgeType> newBadge = !Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime) ?
+            badgeService.evaluateBadgesOnAlarm(setting.getUser()) : Optional.empty();
     return NotiTimeResponse.from(setting, newBadge);
   }
 
@@ -96,11 +94,12 @@ public class MyPageNotificationService {
       }
     }
 
-    Optional<BadgeType> newBadge = Optional.empty();
     if (changed) {
       userNotificationSettingRepository.flush();
-      newBadge = badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
+
+    Optional<BadgeType> newBadge = changed ?
+            badgeService.evaluateBadgesOnAlarm(setting.getUser()) : Optional.empty();
 
     return ToggleResponse.from(setting, newBadge);
   }
