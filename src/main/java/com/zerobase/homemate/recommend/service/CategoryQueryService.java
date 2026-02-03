@@ -77,7 +77,7 @@ public class CategoryQueryService {
 
 
         // 사용자 Chore Title 조회
-        Set<String> userChoreTitles = getUserChoreTitles(userId);
+        Set<String> userChoreTitles = getUserSystemChoreTitles(userId);
 
 
 
@@ -97,7 +97,7 @@ public class CategoryQueryService {
                 categoryChoreRepository.findActiveSeasonalBySeason(season)
         );
 
-        Set<String> userChoreTitles = getUserChoreTitles(userId);
+        Set<String> userChoreTitles = getUserSystemChoreTitles(userId);
 
         Collections.shuffle(seasonCategoryChores);
         return mapWithDuplicateFlags(seasonCategoryChores.stream()
@@ -119,7 +119,7 @@ public class CategoryQueryService {
             throw new CustomException(ErrorCode.INACTIVE_CATEGORY);
         }
 
-        Set<String> userChoreTitles = getUserChoreTitles(userId);
+        Set<String> userChoreTitles = getUserSystemChoreTitles(userId);
 
         List<CategoryChore> chores = new ArrayList<>(
                 subCategory == null
@@ -170,9 +170,12 @@ public class CategoryQueryService {
     }
 
     // Submethod - 중복되는 집안일 담는 Set 반환
-    private Set<String> getUserChoreTitles(Long userId) {
+    private Set<String> getUserSystemChoreTitles(Long userId) {
         return new HashSet<>(
-                choreRepository.findActiveTitlesByUserId(userId)
+                choreRepository.findActiveTitlesByUserIdAndRegistrationTypes(
+                        userId,
+                        List.of(RegistrationType.CATEGORY, RegistrationType.SPACE)
+                )
         );
     }
 }
