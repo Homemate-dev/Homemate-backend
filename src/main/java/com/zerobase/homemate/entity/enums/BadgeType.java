@@ -65,11 +65,11 @@ public enum BadgeType {
     EXPERT_TRASH_BIN("쓰레기 텅텅", "쓰레기통 비우기 90회 완료",  null, "쓰레기통 비우기", 90, BadgeCategory.TITLE, null,"expert_empty_trash.png"),
     MASTER_TRASH_BIN("텅텅 비움이", "쓰레기통 비우기 180회 완료",  null, "쓰레기통 비우기", 180, BadgeCategory.TITLE, null,"master_empty_trash.png"),
 
-    ALARM_ALTER_START("알람 처음 변경", "알람을 처음으로 변경해보기", null, null, 1, BadgeCategory.ALARM, null, "alarm_alter.png"),
+    ALARM_ALTER_START("알림 요정", "알람을 처음으로 변경해보기", null, null, 1, BadgeCategory.ALARM, null, "real_alarm_alter.png"),
 
-    ACCUMULATIVE_ALARM_START("시계와 함께", "알람을 변경한 뒤 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, "begin_explorer.png"),
-    ACCUMULATIVE_ALARM_FIVE("습관 만들기 텅텅", "알람을 변경한 뒤 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, "expert_explorer.png"),
-    ACCUMULATIVE_ALARM_TEN("습관 만들기 숙련자", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, "master_explorer.png"),
+    ACCUMULATIVE_ALARM_START("알림 캐처", "알람을 변경한 뒤 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, "alarm_catcher.png"),
+    ACCUMULATIVE_ALARM_FIVE("알림 트래커", "알람을 변경한 뒤 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, "alarm_tracker.png"),
+    ACCUMULATIVE_ALARM_TEN("알림 헌터", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, "alarm_hunter.png"),
 
     RECOMMEND_EXPLORER("집안일 탐색꾼", "카테고리에 있는 집안일 1회 등록하기", null, null, 1, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_basic.png"),
     RECOMMEND_ADVENTURER("집안일 모험가", "카테고리에 있는 집안일 3회 등록하기", null, null, 3, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_expert.png"),
