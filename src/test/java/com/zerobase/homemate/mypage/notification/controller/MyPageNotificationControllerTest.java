@@ -125,7 +125,7 @@ class MyPageNotificationControllerTest {
   @DisplayName("GET 알림 시간 조회 성공")
   void getTime_ok() throws Exception {
     long userId = 1L;
-    var resp = new NotiTimeResponse(LocalTime.of(18,0), LocalDateTime.now());
+    var resp = new NotiTimeResponse(LocalTime.of(18,0), LocalDateTime.now(), null);
 
     given(myPageNotificationService.getNotificationTime(userId)).willReturn(resp);
 
@@ -146,7 +146,7 @@ class MyPageNotificationControllerTest {
   @DisplayName("PATCH 알림 시간 수정 성공")
   void updateTime_ok() throws Exception {
     long userId = 1L;
-    var resp = new NotiTimeResponse(LocalTime.of(18, 0), LocalDateTime.now());
+    var resp = new NotiTimeResponse(LocalTime.of(18, 0), LocalDateTime.now(), null);
     given(myPageNotificationService.updateNotificationTime(eq(userId), eq(LocalTime.of(18, 0))))
         .willReturn(resp);
 
