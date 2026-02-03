@@ -150,7 +150,7 @@ public class SpaceChoreCreator {
         badgeService.evaluateBadgesOnCreate(user);
 
         return ChoreDto.ApiResponse.<ChoreDto.Response>builder()
-                .data(ChoreDto.Response.fromCreate(saved, isDuplicate))
+                .data(ChoreDto.Response.fromEntity(saved))
                 .missionResults(userMission)
                 .build();
     }

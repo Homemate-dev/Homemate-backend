@@ -88,7 +88,6 @@ public class ChoreDto {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private LocalDateTime deletedAt;
-        private Boolean isDuplicate;
 
         public static Response fromEntity(Chore chore) {
             return Response.builder()
@@ -106,28 +105,7 @@ public class ChoreDto {
                 .createdAt(chore.getCreatedAt())
                 .updatedAt(chore.getUpdatedAt())
                 .deletedAt(chore.getDeletedAt())
-                .isDuplicate(false)
                 .build();
-        }
-
-        public static Response fromCreate(Chore chore, boolean isDuplicate){
-            return Response.builder()
-                    .id(chore.getId())
-                    .title(chore.getTitle())
-                    .notificationYn(chore.getNotificationYn())
-                    .notificationTime(chore.getNotificationTime())
-                    .repeatType(chore.getRepeatType())
-                    .space(chore.getSpace())
-                    .repeatInterval(chore.getRepeatInterval())
-                    .startDate(chore.getStartDate())
-                    .endDate(chore.getEndDate())
-                    .isDeleted(chore.getIsDeleted())
-                    .registrationType(chore.getRegistrationType())
-                    .createdAt(chore.getCreatedAt())
-                    .updatedAt(chore.getUpdatedAt())
-                    .deletedAt(chore.getDeletedAt())
-                    .isDuplicate(isDuplicate)
-                    .build();
         }
     }
 
