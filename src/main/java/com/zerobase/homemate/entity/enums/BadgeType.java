@@ -98,13 +98,10 @@ public enum BadgeType {
     }
 
     public String getBadgeImageUrl() {
-        String url = devEnabled
+
+        return devEnabled
                 ? BASE_URL + "/test/badges/" + getImageName()
                 : BASE_URL + "/badges/" + getImageName();
-
-        log.info("[BadgeImageUrl] devEnabled={}, badgeImageUrl={}", devEnabled, url);
-
-        return url;
     }
 
 
