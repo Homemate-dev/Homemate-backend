@@ -40,6 +40,7 @@ public class CategoryChore {
 
     // 카테고리의 종류 표기
     @Enumerated(EnumType.STRING)
+    @Column(name = "category_type", nullable = false)
     private CategoryType categoryType;
 
     // 월간 추가되는 카테고리
