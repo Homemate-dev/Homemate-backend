@@ -269,14 +269,14 @@ public class BadgeService {
     }
 
     @Transactional
-    public void evaluateBadgesOnAlarm(User user){
+    public Optional<BadgeType> evaluateBadgesOnAlarm(User user){
         log.info("Start Alarm evaluating : {}", user.getId());
 
         boolean firstChanged =
                 userBadgeStatsService.markAlarmChangedIfAbsent(user.getId());
 
         if (!firstChanged) {
-            return;
+            return Optional.empty();
         }
 
         if (!badgeRepository.existsByUserAndBadgeType(
@@ -290,7 +290,10 @@ public class BadgeService {
 
             badgeRepository.save(badge);
             badgeCacheService.evictClosestBadges(user.getId());
+            return Optional.of(badge.getBadgeType());
         }
+
+        return Optional.empty();
     }
 
 

@@ -2,6 +2,7 @@ package com.zerobase.homemate.mypage.notification.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.entity.UserNotificationSetting;
+import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupResponse;
@@ -13,6 +14,7 @@ import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,20 +48,22 @@ public class MyPageNotificationService {
   
   @Transactional(readOnly = true)
   public NotiTimeResponse getNotificationTime(long userId) {
-    return NotiTimeResponse.from(getSettingOrThrow(userId));
+    return NotiTimeResponse.from(getSettingOrThrow(userId),
+            Optional.empty());
   }
 
   @Transactional
   public NotiTimeResponse updateNotificationTime(long userId, LocalTime time) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
     LocalTime normalizedTime = truncateToMinutes(time);
-
     if (!Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime)) {
       setting.changeNotificationTime(normalizedTime);
       userNotificationSettingRepository.flush();
-      badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
-    return NotiTimeResponse.from(setting);
+
+    Optional<BadgeType> newBadge = !Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime) ?
+            badgeService.evaluateBadgesOnAlarm(setting.getUser()) : Optional.empty();
+    return NotiTimeResponse.from(setting, newBadge);
   }
 
   @Transactional
@@ -92,10 +96,12 @@ public class MyPageNotificationService {
 
     if (changed) {
       userNotificationSettingRepository.flush();
-      badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
 
-    return ToggleResponse.from(setting);
+    Optional<BadgeType> newBadge = changed ?
+            badgeService.evaluateBadgesOnAlarm(setting.getUser()) : Optional.empty();
+
+    return ToggleResponse.from(setting, newBadge);
   }
 
   private UserNotificationSetting getSettingOrThrow(long userId) {
