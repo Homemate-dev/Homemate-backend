@@ -111,6 +111,10 @@ public class CategoryQueryService {
         Categories categories = categoriesRepository.findById(categoriesId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
 
+        log.info("[CHORE] categoryId={}, active={}",
+                categories.getId(),
+                categories.isActive());
+
         if (categories.getType() != CategoryType.MONTHLY) {
             throw new CustomException(ErrorCode.INVALID_CATEGORY_TYPE);
         }
@@ -129,6 +133,12 @@ public class CategoryQueryService {
                         categories, CategoryType.MONTHLY, subCategory)
         );
 
+        log.info("[CHORE] fetched chores size={}", chores.size());
+        chores.forEach(c -> log.info("[CHORE] id={}, title={}, active={}, type={}",
+                c.getId(),
+                c.getTitle(),
+                c.isActive(),
+                c.getCategoryType()));
 
         return mapWithDuplicateFlags(
                 chores.stream().toList(),
