@@ -8,6 +8,7 @@ import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.BadgeCategory;
 import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.entity.enums.TimeSlot;
+import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
 import com.zerobase.homemate.repository.BadgeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class BadgeService {
     private final BadgeRepository badgeRepository;
     private final UserBadgeStatsService userBadgeStatsService;
     private final BadgeCacheService badgeCacheService;
+    private final MyPageNotificationService myPageNotificationService;
 
     private Map<BadgeType, BadgeCondition> conditionCache(){
         Map<BadgeType, BadgeCondition> badgeMap = new HashMap<>();
@@ -73,6 +75,10 @@ public class BadgeService {
 
     private List<Badge> evaluateAccumulativeBadges(User user) {
         if (!userBadgeStatsService.hasChangedAlarm(user.getId())) {
+            return List.of();
+        }
+
+        if(!myPageNotificationService.isChoreAlarmEffectivelyOn(user.getId())){
             return List.of();
         }
 

@@ -133,4 +133,10 @@ public class MyPageNotificationService {
       s.changeMasterEnabled(chore);
     }
   }
+
+  public boolean isChoreAlarmEffectivelyOn(Long userId) {
+    return userNotificationSettingRepository.findByUserId(userId)
+            .map(s -> s.isMasterEnabled() && s.isChoreEnabled())
+            .orElse(false);
+  }
 }

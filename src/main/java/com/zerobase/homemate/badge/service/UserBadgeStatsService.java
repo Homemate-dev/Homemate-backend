@@ -112,7 +112,7 @@ public class UserBadgeStatsService {
 
     public long increaseChoreCountAfterAlarm(Long userId) {
         if (!hasChangedAlarm(userId)) {
-            return 0;
+            return getAccumulativeAfterAlarm(userId);
         }
 
         String key = String.format(ACCUMULATIVE_FORMAT, userId);
