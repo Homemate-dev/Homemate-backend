@@ -272,6 +272,10 @@ public class BadgeService {
     public Optional<BadgeType> evaluateBadgesOnAlarm(User user){
         log.info("Start Alarm evaluating : {}", user.getId());
 
+        if(badgeRepository.existsByUserAndBadgeType(user, BadgeType.ALARM_ALTER_START)){
+            return Optional.empty();
+        }
+
         boolean firstChanged =
                 userBadgeStatsService.markAlarmChangedIfAbsent(user.getId());
 
@@ -279,21 +283,15 @@ public class BadgeService {
             return Optional.empty();
         }
 
-        if (!badgeRepository.existsByUserAndBadgeType(
-                user,
-                BadgeType.ALARM_ALTER_START
-        )) {
-            Badge badge = Badge.builder()
-                    .user(user)
-                    .badgeType(BadgeType.ALARM_ALTER_START)
-                    .build();
+        Badge badge = Badge.builder()
+                .user(user)
+                .badgeType(BadgeType.ALARM_ALTER_START)
+                .build();
 
-            badgeRepository.save(badge);
-            badgeCacheService.evictClosestBadges(user.getId());
-            return Optional.of(badge.getBadgeType());
-        }
+        badgeRepository.save(badge);
+        badgeCacheService.evictClosestBadges(user.getId());
 
-        return Optional.empty();
+        return Optional.of(badge.getBadgeType());
     }
 
 
