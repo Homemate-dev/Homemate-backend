@@ -57,7 +57,6 @@ public class MyPageNotificationService {
     if (!Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime)) {
       setting.changeNotificationTime(normalizedTime);
       userNotificationSettingRepository.flush();
-      badgeService.evaluateBadgesOnAlarm(setting.getUser());
     }
     return NotiTimeResponse.from(setting);
   }
@@ -65,6 +64,11 @@ public class MyPageNotificationService {
   @Transactional
   public ToggleResponse toggleNotification(long userId, NotificationType type, boolean enabled) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
+    
+    boolean wasMasterEnabled = setting.isMasterEnabled();
+    boolean wasNoticeEnabled = setting.isNoticeEnabled();
+    boolean wasChoiceEnabled = setting.isChoreEnabled();
+    
     boolean changed = false;
 
     switch (type) {
@@ -90,9 +94,21 @@ public class MyPageNotificationService {
       }
     }
 
-    if (changed) {
+    boolean isMasterEnabled = setting.isMasterEnabled();
+    boolean isNoticeEnabled = setting.isNoticeEnabled();
+    boolean isChoiceEnabled = setting.isChoreEnabled();
+
+    boolean alarmTurnedOn = (!wasMasterEnabled && isMasterEnabled
+            || !wasChoiceEnabled && isChoiceEnabled
+            || !wasNoticeEnabled && isNoticeEnabled);
+
+    if (changed && alarmTurnedOn) {
+      // Off -> On이 있는 경우
       userNotificationSettingRepository.flush();
       badgeService.evaluateBadgesOnAlarm(setting.getUser());
+    } else if(changed){
+      // On -> Off 만 있는 경우
+      userNotificationSettingRepository.flush();
     }
 
     return ToggleResponse.from(setting);
