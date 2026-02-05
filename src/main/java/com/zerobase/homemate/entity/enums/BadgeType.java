@@ -59,17 +59,17 @@ public enum BadgeType {
 
     BEGINNER_MORNING("상쾌한 모닝", "기상 후 침구 정리하기 30회 완료",  null, "기상 후 침구 정리하기", 30, BadgeCategory.TITLE, null,"beginner_arrange_bed.png"),
     EXPERT_MORNING("개운한 모닝", "기상 후 침구 정리하기 90회 완료",  null, "기상 후 침구 정리하기", 90, BadgeCategory.TITLE, null,"expert_arrange_bed.png"),
-    MASTER_MORNING("미라클 모닝", "기상 후 침구 정리하기 180회 완료",  null, "기상 후 침구 정리하기", 180, BadgeCategory.TITLE, null,"master_arrange_bed.png"),
+    MASTER_MORNING("완벽한 모닝", "기상 후 침구 정리하기 180회 완료",  null, "기상 후 침구 정리하기", 180, BadgeCategory.TITLE, null,"master_arrange_bed.png"),
 
     BEGINNER_TRASH_BIN("쓰레기 텅", "쓰레기통 비우기 30회 완료",  null, "쓰레기통 비우기", 30, BadgeCategory.TITLE, null,"beginner_empty_trash.png"),
     EXPERT_TRASH_BIN("쓰레기 텅텅", "쓰레기통 비우기 90회 완료",  null, "쓰레기통 비우기", 90, BadgeCategory.TITLE, null,"expert_empty_trash.png"),
     MASTER_TRASH_BIN("텅텅 비움이", "쓰레기통 비우기 180회 완료",  null, "쓰레기통 비우기", 180, BadgeCategory.TITLE, null,"master_empty_trash.png"),
 
-    ALARM_ALTER_START("알림 요정", "알람을 처음으로 변경해보기", null, null, 1, BadgeCategory.ALARM, null, "real_alarm_alter.png"),
+    ALARM_ALTER_START("알림 요정", "알람 설정을 ON으로 변경해보기", null, null, 1, BadgeCategory.ALARM, null, "real_alarm_alter.png"),
 
-    ACCUMULATIVE_ALARM_START("알림 캐처", "알람을 변경한 뒤 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, "alarm_catcher.png"),
-    ACCUMULATIVE_ALARM_FIVE("알림 트래커", "알람을 변경한 뒤 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, "alarm_tracker.png"),
-    ACCUMULATIVE_ALARM_TEN("알림 헌터", "알람을 변경한 뒤 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, "alarm_hunter.png"),
+    ACCUMULATIVE_ALARM_START("알림 캐처", "푸시 알림 활성화 후 집안일을 1회 완료하기", null, null, 1, BadgeCategory.ACCUMULATIVE, null, "alarm_catcher.png"),
+    ACCUMULATIVE_ALARM_FIVE("알림 트래커", "푸시 알림 활성화 후 집안일을 5회 완료하기", null, null, 5, BadgeCategory.ACCUMULATIVE, null, "alarm_tracker.png"),
+    ACCUMULATIVE_ALARM_TEN("알림 헌터", "푸시 알림 활성화 후 집안일을 10회 완료하기", null, null, 10, BadgeCategory.ACCUMULATIVE, null, "alarm_hunter.png"),
 
     RECOMMEND_EXPLORER("집안일 탐색꾼", "카테고리에 있는 집안일 1회 등록하기", null, null, 1, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_basic.png"),
     RECOMMEND_ADVENTURER("집안일 모험가", "카테고리에 있는 집안일 3회 등록하기", null, null, 3, BadgeCategory.RECOMMEND_REGISTER, null, "recommend_expert.png"),
