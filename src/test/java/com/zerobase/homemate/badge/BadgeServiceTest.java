@@ -5,8 +5,8 @@ import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.badge.service.UserBadgeStatsService;
 import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.*;
-import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
 import com.zerobase.homemate.repository.BadgeRepository;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ class BadgeServiceTest {
     private UserBadgeStatsService userBadgeStatsService;
     private BadgeCacheService badgeCacheService;
     private BadgeService badgeService;
-    private MyPageNotificationService myPageNotificationService;
+    private UserNotificationSettingRepository userNotificationSettingRepository;
 
     private User user;
 
@@ -41,7 +41,7 @@ class BadgeServiceTest {
                 badgeRepository,
                 userBadgeStatsService,
                 badgeCacheService,
-                myPageNotificationService
+                userNotificationSettingRepository
         );
 
         user = User.builder()
