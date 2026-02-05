@@ -1,15 +1,14 @@
 package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.badge.BadgeProgressResponse;
-import com.zerobase.homemate.entity.Badge;
-import com.zerobase.homemate.entity.Chore;
-import com.zerobase.homemate.entity.ChoreInstance;
-import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.BadgeCategory;
 import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.entity.enums.TimeSlot;
-import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.BadgeRepository;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class BadgeService {
     private final BadgeRepository badgeRepository;
     private final UserBadgeStatsService userBadgeStatsService;
     private final BadgeCacheService badgeCacheService;
-    private final MyPageNotificationService myPageNotificationService;
+    private final UserNotificationSettingRepository userNotificationSettingRepository;
 
     private Map<BadgeType, BadgeCondition> conditionCache(){
         Map<BadgeType, BadgeCondition> badgeMap = new HashMap<>();
@@ -78,7 +77,10 @@ public class BadgeService {
             return List.of();
         }
 
-        if(!myPageNotificationService.isChoreAlarmEffectivelyOn(user.getId())){
+        UserNotificationSetting setting = userNotificationSettingRepository.findByUser(user)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+
+        if(!setting.isChoreEnabled() && !setting.isMasterEnabled()){
             return List.of();
         }
 
