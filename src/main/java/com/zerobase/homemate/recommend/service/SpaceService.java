@@ -2,6 +2,7 @@ package com.zerobase.homemate.recommend.service;
 
 import com.zerobase.homemate.entity.SpaceChore;
 import com.zerobase.homemate.entity.UserNotificationSetting;
+import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.exception.CustomException;
@@ -46,7 +47,7 @@ public class SpaceService {
             throw new CustomException(ErrorCode.CHORE_NOT_FOUND);
         }
 
-        Set<String> userChores = new HashSet<>(choreRepository.findActiveTitlesByUserId(userId));
+        Set<String> userChores = new HashSet<>(choreRepository.findActiveTitlesByUserIdAndRegistrationTypes(userId, List.of(RegistrationType.CATEGORY, RegistrationType.SPACE)));
 
         return withDuplicateFlagsSpace(randomChores.stream().toList(), userChores);
     }

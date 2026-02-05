@@ -2,6 +2,7 @@ package com.zerobase.homemate.mypage.notification.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
 import com.zerobase.homemate.entity.UserNotificationSetting;
+import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.exception.CustomException;
 import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupResponse;
@@ -13,6 +14,7 @@ import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,7 +48,8 @@ public class MyPageNotificationService {
   
   @Transactional(readOnly = true)
   public NotiTimeResponse getNotificationTime(long userId) {
-    return NotiTimeResponse.from(getSettingOrThrow(userId));
+    return NotiTimeResponse.from(getSettingOrThrow(userId),
+            Optional.empty());
   }
 
   @Transactional
@@ -64,11 +67,11 @@ public class MyPageNotificationService {
   @Transactional
   public ToggleResponse toggleNotification(long userId, NotificationType type, boolean enabled) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
-    
+
     boolean wasMasterEnabled = setting.isMasterEnabled();
     boolean wasNoticeEnabled = setting.isNoticeEnabled();
     boolean wasChoiceEnabled = setting.isChoreEnabled();
-    
+
     boolean changed = false;
 
     switch (type) {
@@ -111,7 +114,10 @@ public class MyPageNotificationService {
       userNotificationSettingRepository.flush();
     }
 
-    return ToggleResponse.from(setting);
+    Optional<BadgeType> newBadge = changed ?
+            badgeService.evaluateBadgesOnAlarm(setting.getUser()) : Optional.empty();
+
+    return ToggleResponse.from(setting, newBadge);
   }
 
   private UserNotificationSetting getSettingOrThrow(long userId) {
