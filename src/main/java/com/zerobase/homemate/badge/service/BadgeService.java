@@ -1,14 +1,14 @@
 package com.zerobase.homemate.badge.service;
 
 import com.zerobase.homemate.badge.BadgeProgressResponse;
-import com.zerobase.homemate.entity.Badge;
-import com.zerobase.homemate.entity.Chore;
-import com.zerobase.homemate.entity.ChoreInstance;
-import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.*;
 import com.zerobase.homemate.entity.enums.BadgeCategory;
 import com.zerobase.homemate.entity.enums.BadgeType;
 import com.zerobase.homemate.entity.enums.TimeSlot;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.repository.BadgeRepository;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +26,7 @@ public class BadgeService {
     private final BadgeRepository badgeRepository;
     private final UserBadgeStatsService userBadgeStatsService;
     private final BadgeCacheService badgeCacheService;
+    private final UserNotificationSettingRepository userNotificationSettingRepository;
 
     private Map<BadgeType, BadgeCondition> conditionCache(){
         Map<BadgeType, BadgeCondition> badgeMap = new HashMap<>();
@@ -73,6 +74,13 @@ public class BadgeService {
 
     private List<Badge> evaluateAccumulativeBadges(User user) {
         if (!userBadgeStatsService.hasChangedAlarm(user.getId())) {
+            return List.of();
+        }
+
+        UserNotificationSetting setting = userNotificationSettingRepository.findByUser(user)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND));
+
+        if(!setting.isChoreEnabled() && !setting.isMasterEnabled()){
             return List.of();
         }
 
@@ -272,6 +280,10 @@ public class BadgeService {
     public Optional<BadgeType> evaluateBadgesOnAlarm(User user){
         log.info("Start Alarm evaluating : {}", user.getId());
 
+        if(badgeRepository.existsByUserAndBadgeType(user, BadgeType.ALARM_ALTER_START)){
+            return Optional.empty();
+        }
+
         boolean firstChanged =
                 userBadgeStatsService.markAlarmChangedIfAbsent(user.getId());
 
@@ -279,21 +291,15 @@ public class BadgeService {
             return Optional.empty();
         }
 
-        if (!badgeRepository.existsByUserAndBadgeType(
-                user,
-                BadgeType.ALARM_ALTER_START
-        )) {
-            Badge badge = Badge.builder()
-                    .user(user)
-                    .badgeType(BadgeType.ALARM_ALTER_START)
-                    .build();
+        Badge badge = Badge.builder()
+                .user(user)
+                .badgeType(BadgeType.ALARM_ALTER_START)
+                .build();
 
-            badgeRepository.save(badge);
-            badgeCacheService.evictClosestBadges(user.getId());
-            return Optional.of(badge.getBadgeType());
-        }
+        badgeRepository.save(badge);
+        badgeCacheService.evictClosestBadges(user.getId());
 
-        return Optional.empty();
+        return Optional.of(badge.getBadgeType());
     }
 
 

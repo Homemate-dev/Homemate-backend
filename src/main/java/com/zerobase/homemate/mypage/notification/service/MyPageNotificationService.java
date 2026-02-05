@@ -48,27 +48,29 @@ public class MyPageNotificationService {
   
   @Transactional(readOnly = true)
   public NotiTimeResponse getNotificationTime(long userId) {
-    return NotiTimeResponse.from(getSettingOrThrow(userId),
-            Optional.empty());
+    return NotiTimeResponse.from(getSettingOrThrow(userId));
   }
 
   @Transactional
   public NotiTimeResponse updateNotificationTime(long userId, LocalTime time) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
     LocalTime normalizedTime = truncateToMinutes(time);
+
     if (!Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime)) {
       setting.changeNotificationTime(normalizedTime);
       userNotificationSettingRepository.flush();
     }
-
-    Optional<BadgeType> newBadge = !Objects.equals(truncateToMinutes(setting.getNotificationTime()), normalizedTime) ?
-            badgeService.evaluateBadgesOnAlarm(setting.getUser()) : Optional.empty();
-    return NotiTimeResponse.from(setting, newBadge);
+    return NotiTimeResponse.from(setting);
   }
 
   @Transactional
   public ToggleResponse toggleNotification(long userId, NotificationType type, boolean enabled) {
     UserNotificationSetting setting = getSettingOrThrow(userId);
+
+    boolean wasMasterEnabled = setting.isMasterEnabled();
+    boolean wasNoticeEnabled = setting.isNoticeEnabled();
+    boolean wasChoiceEnabled = setting.isChoreEnabled();
+
     boolean changed = false;
 
     switch (type) {
@@ -94,11 +96,20 @@ public class MyPageNotificationService {
       }
     }
 
-    if (changed) {
-      userNotificationSettingRepository.flush();
+    if (!changed) {
+      return ToggleResponse.from(setting, Optional.empty());
     }
+    userNotificationSettingRepository.flush();
 
-    Optional<BadgeType> newBadge = changed ?
+    boolean isMasterEnabled = setting.isMasterEnabled();
+    boolean isNoticeEnabled = setting.isNoticeEnabled();
+    boolean isChoiceEnabled = setting.isChoreEnabled();
+
+    boolean alarmTurnedOn = (!wasMasterEnabled && isMasterEnabled
+            || !wasChoiceEnabled && isChoiceEnabled
+            || !wasNoticeEnabled && isNoticeEnabled);
+
+    Optional<BadgeType> newBadge = alarmTurnedOn ?
             badgeService.evaluateBadgesOnAlarm(setting.getUser()) : Optional.empty();
 
     return ToggleResponse.from(setting, newBadge);
@@ -121,5 +132,11 @@ public class MyPageNotificationService {
     if (chore == notice && s.isMasterEnabled() != chore) {
       s.changeMasterEnabled(chore);
     }
+  }
+
+  public boolean isChoreAlarmEffectivelyOn(Long userId) {
+    return userNotificationSettingRepository.findByUserId(userId)
+            .map(s -> s.isMasterEnabled() && s.isChoreEnabled())
+            .orElse(false);
   }
 }
