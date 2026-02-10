@@ -28,11 +28,13 @@ public interface ChoreRepository extends JpaRepository<Chore, Long> {
             Sort sort);
 
     @Query("""
-select c.title
-from Chore c
-where c.user.id = :userId
-  and c.isDeleted = false
-  and c.registrationType in :types
+    select distinct c.title
+    from ChoreInstance ci
+    join ci.chore c
+    where c.user.id = :userId
+      and c.registrationType in :types
+      and c.isDeleted = false
+      and ci.choreStatus = 'PENDING'
 """)
     List<String> findActiveTitlesByUserIdAndRegistrationTypes(@Param("userId") Long userId, @Param("types") List<RegistrationType> category);
 }
