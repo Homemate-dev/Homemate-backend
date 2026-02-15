@@ -42,9 +42,8 @@ public class NotificationService {
                 Sort.by(Sort.Order.desc("scheduledAt"))
         );
 
-        User user = userRepository.getReferenceById(userId);
-        List<ChoreNotification> list = choreNotificationRepository.findByUserAndIsCancelledFalseAndScheduledAtBefore(
-                user,
+        List<ChoreNotification> list = choreNotificationRepository.findChoreNotifications(
+                userId,
                 LocalDateTime.now(),
                 pageable
         );
