@@ -17,13 +17,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/chore")
+@RequestMapping("/chores")
 @RequiredArgsConstructor
 public class ChoreController {
 
     private final ChoreService choreService;
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<ApiResponse<ChoreDto.Response>> createChore(
         @AuthenticationPrincipal UserPrincipal user,
         @Valid @RequestBody ChoreDto.CreateRequest request) {
@@ -34,7 +34,7 @@ public class ChoreController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{choreInstanceId}")
+    @PutMapping("/instances/{choreInstanceId}")
     public ResponseEntity<ApiResponse<ChoreDto.Response>> updateChore(
         @AuthenticationPrincipal UserPrincipal user,
         @PathVariable Long choreInstanceId,
@@ -46,7 +46,7 @@ public class ChoreController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PatchMapping("/{choreInstanceId}")
+    @PatchMapping("/instances/{choreInstanceId}/complete")
     public ResponseEntity<ApiResponse<ChoreInstanceDto.Response>> completeChore(
         @AuthenticationPrincipal UserPrincipal user,
         @PathVariable Long choreInstanceId) {
@@ -68,7 +68,7 @@ public class ChoreController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/instance/{choreInstanceId}")
+    @GetMapping("/instances/{choreInstanceId}")
     public ResponseEntity<ChoreDto.Response> getChoreInstance(
         @AuthenticationPrincipal UserPrincipal user,
         @PathVariable Long choreInstanceId) {
@@ -112,7 +112,7 @@ public class ChoreController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/instance/{choreInstanceId}")
+    @DeleteMapping("/instances/{choreInstanceId}")
     public ResponseEntity<Void> deleteChoreInstance(
             @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long choreInstanceId,
@@ -123,13 +123,13 @@ public class ChoreController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/today-rate/{today}")
-    public ResponseEntity<Map<String, Double>> getTodayCompleteRate(
+    @GetMapping("/completion-rate/{date}")
+    public ResponseEntity<Map<String, Double>> getCompletionRate(
         @AuthenticationPrincipal UserPrincipal user,
-        @PathVariable LocalDate today
+        @PathVariable LocalDate date
     ) {
 
-        double rate = choreService.getTodayCompleteRate(user.id(), today);
+        double rate = choreService.getTodayCompleteRate(user.id(), date);
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("rate", rate));
     }
@@ -151,3 +151,4 @@ public class ChoreController {
         return ResponseEntity.status(HttpStatus.OK).body(chores);
     }
 }
+
