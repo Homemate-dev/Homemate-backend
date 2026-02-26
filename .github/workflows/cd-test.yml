@@ -38,7 +38,7 @@ jobs:
         id: meta
         run: |
           SHA=${GITHUB_SHA::7}
-          echo "img=${{ secrets.DOCKER_USERNAME }}/homemate" >> $GITHUB_OUTPUT
+          echo "img=${{ secrets.DOCKER_USERNAME_ORG }}/homemate" >> $GITHUB_OUTPUT
           echo "tag_test=test" >> $GITHUB_OUTPUT
           echo "tag_sha=test-${SHA}" >> $GITHUB_OUTPUT
 
