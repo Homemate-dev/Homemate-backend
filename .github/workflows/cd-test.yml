@@ -38,9 +38,10 @@ jobs:
         id: meta
         run: |
           SHA=${GITHUB_SHA::7}
+          TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
           echo "img=${{ secrets.DOCKER_USERNAME_ORG }}/homemate" >> $GITHUB_OUTPUT
           echo "tag_test=test" >> $GITHUB_OUTPUT
-          echo "tag_sha=test-${SHA}" >> $GITHUB_OUTPUT
+          echo "tag_rollback=test-${TIMESTAMP}-${SHA}" >> $GITHUB_OUTPUT
 
       - name: Build & push image
         uses: docker/build-push-action@v6
@@ -49,7 +50,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.meta.outputs.img }}:${{ steps.meta.outputs.tag_test }}
-            ${{ steps.meta.outputs.img }}:${{ steps.meta.outputs.tag_sha }}
+            ${{ steps.meta.outputs.img }}:${{ steps.meta.outputs.tag_rollback }}
 
   deploy:
     runs-on: ubuntu-latest
