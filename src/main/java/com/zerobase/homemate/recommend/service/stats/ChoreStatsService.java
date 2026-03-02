@@ -1,14 +1,11 @@
 package com.zerobase.homemate.recommend.service.stats;
 
 
-import com.zerobase.homemate.entity.Categories;
 import com.zerobase.homemate.entity.Mission;
 import com.zerobase.homemate.entity.enums.Category;
 import com.zerobase.homemate.entity.enums.CategoryType;
 import com.zerobase.homemate.entity.enums.MissionType;
 import com.zerobase.homemate.entity.enums.Season;
-import com.zerobase.homemate.exception.CustomException;
-import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.repository.CategoriesRepository;
 import com.zerobase.homemate.repository.CategoryChoreRepository;
@@ -23,7 +20,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor

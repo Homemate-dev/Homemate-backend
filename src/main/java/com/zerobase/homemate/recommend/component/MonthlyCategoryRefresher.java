@@ -14,7 +14,7 @@ public class MonthlyCategoryRefresher {
 
     private final MonthlyCategoryService monthlyCategoryService;
 
-    @Scheduled(cron = "0 0 0 1 * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
     @Transactional
     public void refreshMonthlyCategory(){
         monthlyCategoryService.refreshMonthlyCategories();
