@@ -25,12 +25,14 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class MissionService {
 
     private final MissionRepository missionRepository;
@@ -104,6 +106,11 @@ public class MissionService {
         Map<Long, UserMission> userMissionByMissionId = userMissions.stream()
             .collect(Collectors.toMap(um -> um.getMission().getId(),
                 Function.identity()));
+
+        log.info("[MissionCheck] choreId={}, registrationType={}, yearMonth={}",
+                choreInstance.getId(),
+                choreInstance.getChore().getRegistrationType(),
+                nowYm);
 
         Map<Long, MissionProgress> progressByUserMissionId =
             missionProgressRepository.findByUserMissionInAndChoreInstance(
@@ -179,6 +186,11 @@ public class MissionService {
         String choreTitle = choreInstance.getTitleSnapshot();
         Space choreSpace = choreInstance.getChore().getSpace();
 
+        log.info("[MissionQualify] type={}, title={}, regType={}",
+                type,
+                mission.getTitle(),
+                choreRegistrationType);
+
         return switch (type) {
             case COMPLETE_ANY_CHORE -> true;
             case COMPLETE_CHORE -> (choreRegistrationType == RegistrationType.CATEGORY
@@ -186,8 +198,11 @@ public class MissionService {
                 && qualifiesChoreTitle(missionTitle, choreTitle);
             case COMPLETE_CHORE_WITH_SPACE -> choreRegistrationType == RegistrationType.SPACE
                 && missionSpace.equals(choreSpace);
-            case COMPLETE_CHORE_RECOMMENDED -> choreRegistrationType == RegistrationType.CATEGORY;
-            default -> false;
+            case COMPLETE_CHORE_RECOMMENDED -> {
+                boolean result = choreRegistrationType == RegistrationType.RECOMMEND;
+                log.info("[MissionQualify] COMPLETE_CHORE_RECOMMENDED result={}", result);
+                yield result;
+            }default -> false;
         };
     }
 
