@@ -89,7 +89,8 @@ public class MissionService {
                 List.of(
                     UserActionType.COMPLETE_CHORE,
                     UserActionType.COMPLETE_ANY_CHORE,
-                    UserActionType.COMPLETE_CHORE_WITH_SPACE
+                    UserActionType.COMPLETE_CHORE_WITH_SPACE,
+                        UserActionType.COMPLETE_CHORE_RECOMMENDED
                 )
             );
 
@@ -185,6 +186,7 @@ public class MissionService {
                 && qualifiesChoreTitle(missionTitle, choreTitle);
             case COMPLETE_CHORE_WITH_SPACE -> choreRegistrationType == RegistrationType.SPACE
                 && missionSpace.equals(choreSpace);
+            case COMPLETE_CHORE_RECOMMENDED -> choreRegistrationType == RegistrationType.CATEGORY;
             default -> false;
         };
     }
