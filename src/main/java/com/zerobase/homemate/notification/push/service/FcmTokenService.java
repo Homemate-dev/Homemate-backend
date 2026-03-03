@@ -3,6 +3,8 @@ package com.zerobase.homemate.notification.push.service;
 import com.zerobase.homemate.entity.FcmToken;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.entity.enums.DeviceType;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
 import com.zerobase.homemate.notification.push.dto.FcmTokenDto;
 import com.zerobase.homemate.repository.FcmTokenRepository;
 import com.zerobase.homemate.repository.UserRepository;
@@ -10,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,7 +25,8 @@ public class FcmTokenService {
 
     @Transactional
     public FcmTokenDto.Response registerToken(Long userId, FcmTokenDto.Request request) {
-        User user = userRepository.getReferenceById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         String requestToken = request.getToken();
         DeviceType deviceType = request.getDeviceType();
 
@@ -47,15 +51,14 @@ public class FcmTokenService {
 
                     return existing;
                 })
-                .orElseGet(() -> {
-                    FcmToken newToken = FcmToken.builder()
-                            .user(user)
-                            .token(requestToken)
-                            .deviceType(deviceType)
-                            .build();
-                    newToken.activate();
-                    return newToken;
-                });
+                .orElseGet(() -> FcmToken.builder()
+                        .user(user)
+                        .token(requestToken)
+                        .deviceType(deviceType)
+                        .isActive(true)
+                        .lastUsedAt(LocalDateTime.now())
+                        .build()
+                );
 
         FcmToken saved = fcmTokenRepository.save(token);
 

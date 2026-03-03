@@ -42,9 +42,8 @@ public class NotificationService {
                 Sort.by(Sort.Order.desc("scheduledAt"))
         );
 
-        User user = userRepository.getReferenceById(userId);
-        List<ChoreNotification> list = choreNotificationRepository.findByUserAndIsCancelledFalseAndScheduledAtBefore(
-                user,
+        List<ChoreNotification> list = choreNotificationRepository.findChoreNotifications(
+                userId,
                 LocalDateTime.now(),
                 pageable
         );
@@ -82,8 +81,7 @@ public class NotificationService {
         }
 
         // 각 Notice에 해당하는 NoticeRead가 있는지 찾아서 매핑
-        User user = userRepository.getReferenceById(userId);
-        List<NoticeRead> noticeReads = noticeReadRepository.findByUserAndNoticeIn(user, notices);
+        List<NoticeRead> noticeReads = noticeReadRepository.findNoticeReadHistory(userId, notices);
         Map<Long, NoticeRead> noticeReadMap = noticeReads.stream()
                 .collect(Collectors.toMap(e -> e.getNotice().getId(), Function.identity()));
 
