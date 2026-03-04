@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
 
+    private static final int MAX_NOTIFICATION_SIZE = 30;
     private final LocalDateTime baseDateTime = LocalDateTime.now().withHour(12).withMinute(0).withSecond(0).withNano(0);
 
     @Mock
@@ -87,20 +88,17 @@ class NotificationServiceTest {
     void getChoreNotifications_Success() {
         // given
         Long userId = 1L;
-        User user = users.stream().filter(u -> userId.equals(u.getId())).findFirst().get();
-        int MAX_NOTIFICATION_SIZE = 30;
 
         List<ChoreNotification> list = choreNotifications.stream()
                 .filter(e -> e.getUser().getId().equals(userId)
-                        && e.getIsCancelled().equals(false)
-                        && e.getScheduledAt().isBefore(baseDateTime)
+                             && e.getIsCancelled().equals(false)
+                             && e.getScheduledAt().isBefore(baseDateTime)
                 )
                 .sorted(Comparator.comparing(ChoreNotification::getScheduledAt).reversed())
                 .limit(MAX_NOTIFICATION_SIZE)
                 .toList();
 
-        when(userRepository.getReferenceById(userId)).thenReturn(user);
-        when(choreNotificationRepository.findByUserAndIsCancelledFalseAndScheduledAtBefore(eq(user), any(LocalDateTime.class), any(Pageable.class)))
+        when(choreNotificationRepository.findChoreNotifications(eq(userId), any(LocalDateTime.class), any(Pageable.class)))
                 .thenReturn(list);
 
         // when
@@ -159,8 +157,6 @@ class NotificationServiceTest {
     void getNotices_Success() {
         // given
         Long userId = 1L;
-        User user = users.stream().filter(u -> userId.equals(u.getId())).findFirst().get();
-        int MAX_NOTIFICATION_SIZE = 30;
 
         List<Notice> list = notices.stream()
                 .filter(e -> e.getScheduledAt().isBefore(baseDateTime)
@@ -174,8 +170,7 @@ class NotificationServiceTest {
 
         when(noticeRepository.findByScheduledAtBefore(any(LocalDateTime.class), any(Pageable.class)))
                 .thenReturn(list);
-        when(userRepository.getReferenceById(userId)).thenReturn(user);
-        when(noticeReadRepository.findByUserAndNoticeIn(user, list))
+        when(noticeReadRepository.findNoticeReadHistory(userId, list))
                 .thenReturn(readList);
 
         // when
