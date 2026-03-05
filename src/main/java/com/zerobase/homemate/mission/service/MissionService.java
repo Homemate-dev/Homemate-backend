@@ -198,11 +198,8 @@ public class MissionService {
                 && qualifiesChoreTitle(missionTitle, choreTitle);
             case COMPLETE_CHORE_WITH_SPACE -> choreRegistrationType == RegistrationType.SPACE
                 && missionSpace.equals(choreSpace);
-            case COMPLETE_CHORE_RECOMMENDED -> {
-                boolean result = choreRegistrationType == RegistrationType.RECOMMEND;
-                log.info("[MissionQualify] COMPLETE_CHORE_RECOMMENDED result={}", result);
-                yield result;
-            }default -> false;
+            case COMPLETE_CHORE_RECOMMENDED -> choreRegistrationType == RegistrationType.CATEGORY;
+                default -> false;
         };
     }
 
