@@ -3,6 +3,7 @@ package com.zerobase.homemate.repository;
 import com.zerobase.homemate.entity.FcmToken;
 import com.zerobase.homemate.entity.User;
 import com.zerobase.homemate.notification.push.dto.TokenWithIdDto;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,12 +24,12 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
                 t.id, t.token
             )
             FROM FcmToken t
-            JOIN UserNotificationSetting s ON s.user = t.user
-            WHERE s.noticeEnabled= true
+            JOIN t.user u
+            JOIN UserNotificationSetting s ON s.user = u
+            WHERE s.noticeEnabled = true
               AND t.isActive = true
               AND t.id > :lastId
             ORDER BY t.id
-            LIMIT :limit
             """)
-    List<TokenWithIdDto> findIdAndTokenBatch(@Param("lastId") long lastId, @Param("limit") int limit);
+    List<TokenWithIdDto> findIdAndTokenBatch(@Param("lastId") long lastId, Pageable pageable);
 }

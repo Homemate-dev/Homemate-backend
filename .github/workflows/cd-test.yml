@@ -31,16 +31,17 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          username: ${{ secrets.DOCKER_USERNAME_ORG }}
+          password: ${{ secrets.DOCKER_TOKEN_ORG }}
 
       - name: Extract image tags
         id: meta
         run: |
           SHA=${GITHUB_SHA::7}
-          echo "img=${{ secrets.DOCKER_USERNAME }}/homemate" >> $GITHUB_OUTPUT
-          echo "tag_latest=latest" >> $GITHUB_OUTPUT
-          echo "tag_sha=${SHA}" >> $GITHUB_OUTPUT
+          TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+          echo "img=${{ secrets.DOCKER_USERNAME_ORG }}/homemate" >> $GITHUB_OUTPUT
+          echo "tag_test=test" >> $GITHUB_OUTPUT
+          echo "tag_rollback=test-${TIMESTAMP}-${SHA}" >> $GITHUB_OUTPUT
 
       - name: Build & push image
         uses: docker/build-push-action@v6
@@ -48,8 +49,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ steps.meta.outputs.img }}:${{ steps.meta.outputs.tag_latest }}
-            ${{ steps.meta.outputs.img }}:${{ steps.meta.outputs.tag_sha }}
+            ${{ steps.meta.outputs.img }}:${{ steps.meta.outputs.tag_test }}
+            ${{ steps.meta.outputs.img }}:${{ steps.meta.outputs.tag_rollback }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -70,14 +71,14 @@ jobs:
             cd /home/ubuntu/test-server
 
             # Docker Hub 로그인
-            echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            echo "${{ secrets.DOCKER_TOKEN_ORG }}" | docker login -u "${{ secrets.DOCKER_USERNAME_ORG }}" --password-stdin
 
             # 최신 이미지 당겨서 교체
-            docker compose -f docker-compose.test.yml pull
-            docker compose -f docker-compose.test.yml up -d
+            docker compose pull
+            docker compose up -d
 
             # 상태/로그 간단 점검
-            docker compose -f docker-compose.test.yml ps
+            docker compose ps
             sleep 2
 
             docker logs --tail=100 homemate-app || true

@@ -51,7 +51,7 @@ class FcmTokenServiceTest {
         ReflectionTestUtils.setField(request, "token", token);
         ReflectionTestUtils.setField(request, "deviceType", deviceType);
 
-        when(userRepository.getReferenceById(userId)).thenReturn(user);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(fcmTokenRepository.findByToken(token)).thenReturn(Optional.empty());
 
         ArgumentCaptor<FcmToken> captor = ArgumentCaptor.forClass(FcmToken.class);
@@ -97,7 +97,7 @@ class FcmTokenServiceTest {
         ReflectionTestUtils.setField(request, "token", token);
         ReflectionTestUtils.setField(request, "deviceType", deviceType);
 
-        when(userRepository.getReferenceById(userId)).thenReturn(user);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(fcmTokenRepository.findByToken(token)).thenReturn(Optional.of(spyExisting));
         when(fcmTokenRepository.save(spyExisting)).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -138,7 +138,7 @@ class FcmTokenServiceTest {
         ReflectionTestUtils.setField(request, "token", token);
         ReflectionTestUtils.setField(request, "deviceType", deviceType);
 
-        when(userRepository.getReferenceById(userId)).thenReturn(newUser);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(newUser));
         when(fcmTokenRepository.findByToken(token)).thenReturn(Optional.of(spyExisting));
         when(fcmTokenRepository.save(spyExisting)).thenAnswer(invocation -> invocation.getArgument(0));
 
