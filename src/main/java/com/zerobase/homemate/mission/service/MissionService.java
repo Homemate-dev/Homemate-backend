@@ -198,7 +198,7 @@ public class MissionService {
                 && qualifiesChoreTitle(missionTitle, choreTitle);
             case COMPLETE_CHORE_WITH_SPACE -> choreRegistrationType == RegistrationType.SPACE
                 && missionSpace.equals(choreSpace);
-            case COMPLETE_CHORE_RECOMMENDED -> choreRegistrationType == RegistrationType.CATEGORY;
+            case COMPLETE_CHORE_RECOMMENDED -> choreRegistrationType == RegistrationType.CATEGORY || choreRegistrationType == RegistrationType.SPACE;
                 default -> false;
         };
     }
