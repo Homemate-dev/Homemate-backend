@@ -24,8 +24,8 @@ public class NotionFetchService {
     private static final String NOTION_API_VERSION = "2025-09-03";
     private static final int MAX_RETRY_COUNT = 3;
 
-    @Value("${notion.api.secret}")
-    private String notionApiToken;
+    @Value("${notion.api.notice.secret}")
+    private String notionNoticeApiToken;
 
     private final ObjectMapper objectMapper;
     private final RestClient restClient;
@@ -77,7 +77,7 @@ public class NotionFetchService {
 
         JsonNode titleProperty = restClient.get()
                 .uri(pageUrl)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionApiToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionNoticeApiToken)
                 .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
                 .retrieve()
                 .body(JsonNode.class);
@@ -92,7 +92,7 @@ public class NotionFetchService {
 
         JsonNode body = restClient.get()
                 .uri(pageUrl)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionApiToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionNoticeApiToken)
                 .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
                 .retrieve()
                 .body(JsonNode.class);
@@ -122,7 +122,7 @@ public class NotionFetchService {
 
         JsonNode body = restClient.get()
                 .uri(pageUrl)
-                .header(HttpHeaders.AUTHORIZATION, notionApiToken)
+                .header(HttpHeaders.AUTHORIZATION, notionNoticeApiToken)
                 .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
                 .retrieve()
                 .body(JsonNode.class);

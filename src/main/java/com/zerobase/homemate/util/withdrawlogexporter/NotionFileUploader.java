@@ -29,9 +29,9 @@ public class NotionFileUploader {
 
     private final RestClient restClient;
 
-    @Value("${notion.api.secret}")
-    private String notionApiToken;
-    @Value("${notion.api.database}")
+    @Value("${notion.api.withdraw-log.secret}")
+    private String notionLogApiToken;
+    @Value("${notion.api.withdraw-log.database-id}")
     private String databaseId;
 
     public void uploadFile(File file) {
@@ -61,7 +61,7 @@ public class NotionFileUploader {
     private String getUploadUrl() {
         JsonNode response = restClient.post()
                 .uri(NOTION_API_FILE_UPLOAD_URL)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionApiToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionLogApiToken)
                 .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
                 .contentType(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -76,7 +76,7 @@ public class NotionFileUploader {
 
         JsonNode response = restClient.post()
                 .uri(uploadUrl)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionApiToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionLogApiToken)
                 .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(body)
@@ -91,7 +91,7 @@ public class NotionFileUploader {
 
         restClient.post()
                 .uri(NOTION_API_PAGE_URL)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionApiToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + notionLogApiToken)
                 .header(NOTION_API_VERSION_HEADER, NOTION_API_VERSION)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
