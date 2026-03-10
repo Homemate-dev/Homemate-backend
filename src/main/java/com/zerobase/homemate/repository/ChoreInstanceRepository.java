@@ -66,7 +66,7 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
                        ci.deletedAt = CURRENT_TIMESTAMP
                  WHERE ci.chore = :chore
             """)
-    void bulkSoftDeleteAfterByChore(@Param("chore") Chore chore);
+    void bulkSoftDeleteByChore(@Param("chore") Chore chore);
 
     @Query("""
                 select new com.zerobase.homemate.chore.dto.ChoreStatusCountDto(

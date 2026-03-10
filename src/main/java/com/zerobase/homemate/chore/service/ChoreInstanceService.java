@@ -97,7 +97,9 @@ public class ChoreInstanceService {
 
     @Transactional(readOnly = true)
     public List<LocalDate> getCalendarMarkedDates(Long userId, LocalDate startDate, LocalDate endDate) {
-        validateDateParams(startDate, endDate);
+        if (startDate.isAfter(endDate)) {
+            throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
+        }
 
         return choreInstanceRepository.findDatesHavingInstances(
             userId,
@@ -107,9 +109,4 @@ public class ChoreInstanceService {
         );
     }
 
-    public void validateDateParams(LocalDate startDate, LocalDate endDate) {
-        if (startDate.isAfter(endDate)) {
-            throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
-        }
-    }
 }

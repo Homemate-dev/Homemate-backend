@@ -2,12 +2,9 @@ package com.zerobase.homemate.chore.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
 import com.zerobase.homemate.chore.dto.ChoreCompletionRateResponse;
-import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.chore.service.ChoreInstanceService;
-import com.zerobase.homemate.chore.service.ChoreService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/chore-instances")
 @RequiredArgsConstructor
 public class ChoreInstanceController {
 
-    private final ChoreService choreService;
     private final ChoreInstanceService choreInstanceService;
 
     @GetMapping("/{choreInstanceId}")
@@ -41,22 +36,9 @@ public class ChoreInstanceController {
             @AuthenticationPrincipal UserPrincipal user,
             @RequestParam LocalDate date
     ) {
-        List<ChoreInstanceDto.Response> responses =
-                choreInstanceService.getChoreInstancesByDate(user.id(), date);
+        List<ChoreInstanceDto.Response> responses = choreInstanceService.getChoreInstancesByDate(user.id(), date);
 
         return ResponseEntity.status(HttpStatus.OK).body(responses);
-    }
-
-    @PutMapping("/{choreInstanceId}")
-    public ResponseEntity<ApiResponse<ChoreDto.Response>> updateChoreInstance(
-            @AuthenticationPrincipal UserPrincipal user,
-            @PathVariable Long choreInstanceId,
-            @Valid @RequestBody ChoreDto.UpdateRequest request
-    ) {
-        ApiResponse<ChoreDto.Response> response = choreService.updateChores(user.id(),
-                choreInstanceId, request);
-
-        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PatchMapping("/{choreInstanceId}/complete")
