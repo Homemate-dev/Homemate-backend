@@ -1,6 +1,7 @@
 package com.zerobase.homemate.chore.service;
 
 import com.zerobase.homemate.badge.service.BadgeService;
+import com.zerobase.homemate.chore.dto.ChoreCompletionRateResponse;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.Chore;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.EnumSet;
 import java.util.List;
 
 @Service
@@ -72,5 +74,42 @@ public class ChoreInstanceService {
         }
 
         choreInstance.softDelete();
+    }
+
+    @Transactional(readOnly = true)
+    public ChoreCompletionRateResponse getChoreCompletionRate(Long userId, LocalDate date) {
+        List<ChoreInstance> choreInstanceList = choreInstanceRepository.findChoreInstancesByDate(userId, date);
+
+        if (choreInstanceList.isEmpty()) {
+            return new ChoreCompletionRateResponse(0.0);
+        }
+
+        long totalCount = choreInstanceList.size();
+        long completedCount = choreInstanceList.stream()
+                .filter(ci -> ci.getChoreStatus() == ChoreStatus.COMPLETED)
+                .count();
+
+        double rate = (double) completedCount / totalCount * 100;
+        double roundedRate = Math.round(rate * 100.0) / 100.0;
+
+        return new ChoreCompletionRateResponse(roundedRate);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LocalDate> getCalendarMarkedDates(Long userId, LocalDate startDate, LocalDate endDate) {
+        validateDateParams(startDate, endDate);
+
+        return choreInstanceRepository.findDatesHavingInstances(
+            userId,
+            startDate,
+            endDate,
+            EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED)
+        );
+    }
+
+    public void validateDateParams(LocalDate startDate, LocalDate endDate) {
+        if (startDate.isAfter(endDate)) {
+            throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.zerobase.homemate.chore.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
+import com.zerobase.homemate.chore.dto.ChoreCompletionRateResponse;
 import com.zerobase.homemate.chore.dto.ChoreDto;
 import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
@@ -84,19 +85,18 @@ public class ChoreInstanceController {
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate
     ) {
-        List<LocalDate> dates =
-                choreService.getCalendarMarkedDates(user.id(), startDate, endDate);
+        List<LocalDate> response = choreInstanceService.getCalendarMarkedDates(user.id(), startDate, endDate);
 
-        return ResponseEntity.status(HttpStatus.OK).body(dates);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/completion-rate")
-    public ResponseEntity<Map<String, Double>> getCompletionRate(
+    public ResponseEntity<ChoreCompletionRateResponse> getCompletionRate(
             @AuthenticationPrincipal UserPrincipal user,
             @RequestParam LocalDate date
     ) {
-        double rate = choreService.getTodayCompleteRate(user.id(), date);
+        ChoreCompletionRateResponse response = choreInstanceService.getChoreCompletionRate(user.id(), date);
 
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("rate", rate));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
