@@ -1,0 +1,78 @@
+package com.zerobase.homemate.notification.push.service;
+
+import com.zerobase.homemate.entity.FcmToken;
+import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.enums.DeviceType;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.notification.push.dto.FcmTokenDto;
+import com.zerobase.homemate.repository.FcmTokenRepository;
+import com.zerobase.homemate.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+
+@Service
+@RequiredArgsConstructor
+public class FcmTokenService {
+
+    private final UserRepository userRepository;
+    private final FcmTokenRepository fcmTokenRepository;
+
+    @Transactional
+    public FcmTokenDto.Response registerToken(Long userId, FcmTokenDto.Request request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        String requestToken = request.getToken();
+        DeviceType deviceType = request.getDeviceType();
+
+        FcmToken token = fcmTokenRepository.findByToken(requestToken)
+                .map(existing -> {
+                    // 사용자 변경(예: 동일 토큰이 다른 계정으로 넘어온 경우) 시 갱신
+                    if (!user.equals(existing.getUser())) {
+                        existing.changeUser(user);
+                    }
+
+                    // 디바이스 타입 변경 시 갱신
+                    if (!Objects.equals(existing.getDeviceType(), deviceType)) {
+                        existing.changeDeviceType(deviceType);
+                    }
+
+                    // 활성화 및 lastUsed 갱신
+                    if (!Boolean.TRUE.equals(existing.getIsActive())) {
+                        existing.activate();
+                    } else {
+                        existing.refreshLastUsed();
+                    }
+
+                    return existing;
+                })
+                .orElseGet(() -> FcmToken.builder()
+                        .user(user)
+                        .token(requestToken)
+                        .deviceType(deviceType)
+                        .isActive(true)
+                        .lastUsedAt(LocalDateTime.now())
+                        .build()
+                );
+
+        FcmToken saved = fcmTokenRepository.save(token);
+
+        return FcmTokenDto.Response.fromEntity(saved);
+    }
+
+    @Transactional
+    public void deactivateToken(FcmTokenDto.Request request) {
+        fcmTokenRepository.findByToken(request.getToken()).ifPresent(FcmToken::deactivate);
+    }
+
+    @Transactional
+    public void deleteAllToken(User user) {
+        List<FcmToken> list = fcmTokenRepository.findAllByUserAndIsActiveTrue(user);
+        list.forEach(FcmToken::deactivate);
+    }
+}

@@ -1,0 +1,270 @@
+package com.zerobase.homemate.mypage.notification.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+
+import com.zerobase.homemate.badge.service.BadgeService;
+import com.zerobase.homemate.entity.User;
+import com.zerobase.homemate.entity.UserNotificationSetting;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupRequest;
+import com.zerobase.homemate.mypage.notification.model.NotificationType;
+import com.zerobase.homemate.repository.UserNotificationSettingRepository;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class MyPageNotificationServiceTest {
+  @Mock
+  UserNotificationSettingRepository settingsRepo;
+
+  @Mock
+  BadgeService badgeService;
+
+  @InjectMocks
+  MyPageNotificationService sut;
+
+  @Test
+  @DisplayName("최초 알림 시간 설정 여부 조회 성공: 설정이 있으면 firstSetupCompleted/시간 반환")
+  void getFirstSetupStatus_ok() {
+    // given
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().build())
+        .firstSetupCompleted(false)
+        .masterEnabled(true)
+        .choreEnabled(true)
+        .noticeEnabled(true)
+        .notificationTime(LocalTime.of(9, 0))
+        .build();
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    // when
+    var res = sut.getFirstSetupStatus(userId);
+
+    // then
+    assertThat(res.firstSetupCompleted()).isFalse();
+    assertThat(res.notificationTime()).isEqualTo("09:00");
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("최초 알림 시간 설정 여부 조회 실패: 설정이 없을 시 404 예외 발생")
+  void getFirstSetupStatus_notFound() {
+    // given
+    long userId = 99L;
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> sut.getFirstSetupStatus(userId))
+        .isInstanceOf(CustomException.class)
+        .extracting("errorCode")
+        .isEqualTo(ErrorCode.USER_NOTIFICATION_SETTING_NOT_FOUND);
+
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("completeFirstSetup: 첫 설정 성공")
+  void completeFirstSetup_ok() {
+    // given
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().build())
+        .firstSetupCompleted(false)
+        .masterEnabled(true)
+        .choreEnabled(true)
+        .noticeEnabled(true)
+        .notificationTime(LocalTime.of(9,0))
+        .build();
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    var req = new FirstSetupRequest(LocalTime.of(18, 0)); // DTO 타입에 맞게
+
+    // when
+    var res = sut.completeFirstSetup(userId, req.notificationTime());
+
+    // then
+    assertThat(res.firstSetupCompleted()).isTrue();
+    assertThat(res.notificationTime()).isEqualTo(LocalTime.of(18,0));
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().flush();
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("completeFirstSetup: 이미 완료면 409 예외")
+  void completeFirstSetup_alreadyCompleted() {
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().build())
+        .firstSetupCompleted(true)
+        .notificationTime(LocalTime.of(9,0))
+        .build();
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    var req = new FirstSetupRequest(LocalTime.of(12, 30));
+
+    assertThatThrownBy(() -> sut.completeFirstSetup(userId, req.notificationTime()))
+        .isInstanceOf(CustomException.class)
+        .extracting("errorCode")
+        .isEqualTo(ErrorCode.FIRST_SETUP_ALREADY_COMPLETED);
+  }
+
+  @Test
+  @DisplayName("알림 시간 조회 성공")
+  void getTime_ok() {
+    long userId = 10L;
+    var entity = UserNotificationSetting.builder()
+        .user(User.builder().id(userId).build())
+        .firstSetupCompleted(true)
+        .masterEnabled(true).choreEnabled(true).noticeEnabled(true)
+        .notificationTime(LocalTime.of(18, 0))
+        .updatedAt(LocalDateTime.now())
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(entity));
+
+    var res = sut.getNotificationTime(userId);
+
+    assertThat(res.notificationTime()).isEqualTo(LocalTime.of(18, 0));
+    assertThat(res.updatedAt()).isNotNull();
+
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림 시간 수정 성공")
+  void updateNotificationTime_change_ok() {
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().build())
+        .firstSetupCompleted(true)
+        .masterEnabled(true)
+        .choreEnabled(true)
+        .noticeEnabled(true)
+        .notificationTime(LocalTime.of(9, 0))
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    var res = sut.updateNotificationTime(userId, LocalTime.of(18, 0));
+
+    assertThat(res.notificationTime()).isEqualTo(LocalTime.of(18, 0));
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().flush();
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림(전체) ON")
+  void toggleMaster_on() {
+    // given
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().id(userId).build())
+        .firstSetupCompleted(false)
+        .masterEnabled(false)
+        .choreEnabled(false)
+        .noticeEnabled(false)
+        .notificationTime(LocalTime.of(9, 0))
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    // when
+    var res = sut.toggleNotification(userId, NotificationType.MASTER,  true);
+
+    // then
+    assertThat(settings.isMasterEnabled()).isTrue();
+    assertThat(settings.isChoreEnabled()).isTrue();
+    assertThat(settings.isNoticeEnabled()).isTrue();
+
+    assertThat(res.masterEnabled()).isTrue();
+    assertThat(res.choreEnabled()).isTrue();
+    assertThat(res.noticeEnabled()).isTrue();
+
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().flush();
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("chore ON, master 동기화(둘 다 true)")
+  void toggleChore_on_syncMasterToTrue() {
+    // given: master=false, chore=false, notice=true
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().id(userId).build())
+        .firstSetupCompleted(true)
+        .masterEnabled(false)
+        .choreEnabled(false)
+        .noticeEnabled(true)
+        .notificationTime(LocalTime.of(9, 0))
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    // when
+    var res = sut.toggleNotification(userId, NotificationType.CHORE, true);
+
+    // then
+    assertThat(settings.isChoreEnabled()).isTrue();
+    assertThat(settings.isNoticeEnabled()).isTrue();
+    assertThat(settings.isMasterEnabled()).isTrue();
+
+    assertThat(res.masterEnabled()).isTrue();
+    assertThat(res.choreEnabled()).isTrue();
+    assertThat(res.noticeEnabled()).isTrue();
+
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().flush();
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("notice OFF, master 동기화 X")
+  void toggleNotice_off_syncMasterToFalse() {
+    // given: master=true, chore=true, notice=true
+    long userId = 10L;
+    var settings = UserNotificationSetting.builder()
+        .user(User.builder().id(userId).build())
+        .firstSetupCompleted(true)
+        .masterEnabled(true)
+        .choreEnabled(true)
+        .noticeEnabled(true)
+        .notificationTime(LocalTime.of(9, 0))
+        .build();
+
+    given(settingsRepo.findByUserId(userId)).willReturn(Optional.of(settings));
+
+    // when
+    var res = sut.toggleNotification(userId, NotificationType.NOTICE, false);
+
+    // then
+    assertThat(settings.isChoreEnabled()).isTrue();
+    assertThat(settings.isNoticeEnabled()).isFalse();
+    assertThat(settings.isMasterEnabled()).isTrue();
+
+    assertThat(res.masterEnabled()).isTrue();
+    assertThat(res.choreEnabled()).isTrue();
+    assertThat(res.noticeEnabled()).isFalse();
+
+    then(settingsRepo).should().findByUserId(userId);
+    then(settingsRepo).should().flush();
+    then(settingsRepo).shouldHaveNoMoreInteractions();
+  }
+}

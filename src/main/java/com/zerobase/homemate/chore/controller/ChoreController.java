@@ -1,0 +1,153 @@
+package com.zerobase.homemate.chore.controller;
+
+import com.zerobase.homemate.auth.security.UserPrincipal;
+import com.zerobase.homemate.chore.dto.ChoreDto;
+import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto.Response;
+import com.zerobase.homemate.chore.service.ChoreService;
+import jakarta.validation.Valid;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/chore")
+@RequiredArgsConstructor
+public class ChoreController {
+
+    private final ChoreService choreService;
+
+    @PostMapping()
+    public ResponseEntity<ApiResponse<ChoreDto.Response>> createChore(
+        @AuthenticationPrincipal UserPrincipal user,
+        @Valid @RequestBody ChoreDto.CreateRequest request) {
+
+        ApiResponse<ChoreDto.Response> response =
+            choreService.createChores(user.id(), request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{choreInstanceId}")
+    public ResponseEntity<ApiResponse<ChoreDto.Response>> updateChore(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable Long choreInstanceId,
+        @Valid @RequestBody ChoreDto.UpdateRequest request) {
+
+        ApiResponse<ChoreDto.Response> response = choreService.updateChores(user.id(),
+            choreInstanceId, request);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PatchMapping("/{choreInstanceId}")
+    public ResponseEntity<ApiResponse<ChoreInstanceDto.Response>> completeChore(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable Long choreInstanceId) {
+
+        ApiResponse<ChoreInstanceDto.Response> response =
+            choreService.completeChore(user.id(), choreInstanceId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{choreId}")
+    public ResponseEntity<ChoreDto.Response> getChore(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long choreId) {
+
+        ChoreDto.Response response =
+                choreService.getChoreByChoreId(user.id(), choreId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/instance/{choreInstanceId}")
+    public ResponseEntity<ChoreDto.Response> getChoreInstance(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable Long choreInstanceId) {
+
+        ChoreDto.Response response =
+                choreService.getChoreByInstanceId(user.id(), choreInstanceId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/instances")
+    public ResponseEntity<List<Response>> getChoreInstancesByDate(
+        @AuthenticationPrincipal UserPrincipal user,
+        @RequestParam LocalDate date) {
+
+        List<ChoreInstanceDto.Response> responses =
+            choreService.getChoreInstancesByDate(user.id(), date);
+
+        return ResponseEntity.status(HttpStatus.OK).body(responses);
+    }
+
+    @GetMapping("/calendar")
+    public ResponseEntity<List<LocalDate>> getCalendarMarks(
+        @AuthenticationPrincipal UserPrincipal user,
+        @RequestParam LocalDate startDate,
+        @RequestParam LocalDate endDate) {
+
+        List<LocalDate> dates =
+            choreService.getCalendarMarkedDates(user.id(), startDate, endDate);
+
+        return ResponseEntity.status(HttpStatus.OK).body(dates);
+    }
+
+    @DeleteMapping("/{choreId}")
+    public ResponseEntity<Void> deleteChore(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable Long choreId) {
+
+        choreService.deleteChore(user.id(), choreId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/instance/{choreInstanceId}")
+    public ResponseEntity<Void> deleteChoreInstance(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long choreInstanceId,
+            @RequestParam boolean applyToAfter) {
+
+        choreService.deleteChoreInstance(user.id(), choreInstanceId, applyToAfter);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/today-rate/{today}")
+    public ResponseEntity<Map<String, Double>> getTodayCompleteRate(
+        @AuthenticationPrincipal UserPrincipal user,
+        @PathVariable LocalDate today
+    ) {
+
+        double rate = choreService.getTodayCompleteRate(user.id(), today);
+
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("rate", rate));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ChoreDto.Response>> getChoreList(
+        @AuthenticationPrincipal UserPrincipal user,
+        @RequestParam String filter,
+        @RequestParam(required = false) String space,
+        @RequestParam(required = false) String repeat,
+        @RequestParam(required = false) Integer repeatInterval,
+        @RequestParam(required = false) String status
+    ) {
+
+        List<ChoreDto.Response> chores =
+            choreService.getChoreList(user.id(), filter, space,
+                    repeat, repeatInterval, status);
+
+        return ResponseEntity.status(HttpStatus.OK).body(chores);
+    }
+}

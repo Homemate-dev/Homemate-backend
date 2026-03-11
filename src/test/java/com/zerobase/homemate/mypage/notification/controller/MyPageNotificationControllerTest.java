@@ -1,0 +1,270 @@
+package com.zerobase.homemate.mypage.notification.controller;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.zerobase.homemate.auth.security.UserPrincipal;
+import com.zerobase.homemate.exception.CustomException;
+import com.zerobase.homemate.exception.ErrorCode;
+import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupResponse;
+import com.zerobase.homemate.mypage.notification.dto.FirstSetupStatusDto.FirstSetupStatusResponse;
+import com.zerobase.homemate.mypage.notification.dto.NotificationSettingDto.ToggleResponse;
+import com.zerobase.homemate.mypage.notification.dto.NotificationTimeDto.NotiTimeResponse;
+import com.zerobase.homemate.mypage.notification.model.NotificationType;
+import com.zerobase.homemate.mypage.notification.service.MyPageNotificationService;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+@WebMvcTest(MyPageNotificationController.class)
+class MyPageNotificationControllerTest {
+  @Autowired
+  MockMvc mockMvc;
+
+  @MockitoBean
+  MyPageNotificationService myPageNotificationService;
+
+  @Test
+  @DisplayName("최초 알림 시간 설정 여부 조회 성공")
+  void getStatus_ok() throws Exception {
+    // given
+    long userId = 1L;
+    var resp = new FirstSetupStatusResponse(false, LocalTime.of(9, 0));
+    given(myPageNotificationService.getFirstSetupStatus(userId)).willReturn(resp);
+
+    UserPrincipal principal = new UserPrincipal(userId, "nick", "ROLE_USER");
+    Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+    // when & then
+    mockMvc.perform(get("/users/me/notification-settings/first-setup-status")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.firstSetupCompleted").value(false))
+        .andExpect(jsonPath("$.notificationTime").value("09:00"));
+
+    then(myPageNotificationService).should().getFirstSetupStatus(userId);
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("POST 첫 설정 성공")
+  void firstSetup_ok() throws Exception {
+    // given
+    long userId = 1L;
+    var resp = new FirstSetupResponse(
+        true,
+        true,
+        LocalTime.of(18,0),
+        LocalDateTime.now()
+    );
+    given(myPageNotificationService.completeFirstSetup(
+        eq(userId),eq(LocalTime.of(18, 0)))).willReturn(resp);
+
+    UserPrincipal principal = new UserPrincipal(userId, "nick", "ROLE_USER");
+    Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+    // when & then
+    mockMvc.perform(post("/users/me/notification-settings/first-setup")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{ \"notificationTime\": \"18:00\" }"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.firstSetupCompleted").value(true))
+        .andExpect(jsonPath("$.masterEnabled").value(true))
+        .andExpect(jsonPath("$.notificationTime").value("18:00"))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should()
+        .completeFirstSetup(eq(userId), eq(LocalTime.of(18, 0)));
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("POST 첫 설정: 이미 완료 -> 409 CONFLICT")
+  void firstSetup_alreadyCompleted_conflict() throws Exception {
+    // given
+    long userId = 1L;
+    given(myPageNotificationService.completeFirstSetup(eq(userId), any(LocalTime.class)
+    )).willThrow(new CustomException(ErrorCode.FIRST_SETUP_ALREADY_COMPLETED));
+
+    UserPrincipal principal = new UserPrincipal(userId, "nick", "ROLE_USER");
+    Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+    // when & then
+    mockMvc.perform(post("/users/me/notification-settings/first-setup")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{ \"notificationTime\": \"18:00\" }"))
+        .andExpect(status().isConflict());
+
+    then(myPageNotificationService).should()
+        .completeFirstSetup(eq(userId), any(LocalTime.class));
+  }
+
+  @Test
+  @DisplayName("GET 알림 시간 조회 성공")
+  void getTime_ok() throws Exception {
+    long userId = 1L;
+    var resp = new NotiTimeResponse(LocalTime.of(18,0), LocalDateTime.now());
+
+    given(myPageNotificationService.getNotificationTime(userId)).willReturn(resp);
+
+    Authentication auth = new UsernamePasswordAuthenticationToken(
+        new UserPrincipal(userId, "nick", "ROLE_USER"), null, List.of());
+
+    mockMvc.perform(get("/users/me/notification-settings/time")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.notificationTime").value("18:00"))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should().getNotificationTime(userId);
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("PATCH 알림 시간 수정 성공")
+  void updateTime_ok() throws Exception {
+    long userId = 1L;
+    var resp = new NotiTimeResponse(LocalTime.of(18, 0), LocalDateTime.now());
+    given(myPageNotificationService.updateNotificationTime(eq(userId), eq(LocalTime.of(18, 0))))
+        .willReturn(resp);
+
+    Authentication auth = new UsernamePasswordAuthenticationToken(
+        new UserPrincipal(userId, "nick", "ROLE_USER"), null, List.of());
+
+    mockMvc.perform(
+            patch("/users/me/notification-settings/time")
+                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"notificationTime\":\"18:00\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.notificationTime").value("18:00"))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService)
+        .should()
+        .updateNotificationTime(eq(userId), eq(LocalTime.of(18, 0)));
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림(전체) ON")
+  void toggleMaster_on() throws Exception {
+    // given
+    long userId = 1L;
+    var resp = new ToggleResponse(
+        true, true, true,
+        LocalDateTime.of(2025, 9, 19, 7, 10, 0),
+            null
+    );
+    given(myPageNotificationService.toggleNotification(userId, NotificationType.MASTER, true))
+        .willReturn(resp);
+
+    var principal = new UserPrincipal(userId, "nick", "ROLE_USER");
+    var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+    // when & then
+    mockMvc.perform(
+            patch("/users/me/notification-settings/master")
+                .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"enabled\": true}")
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.masterEnabled").value(true))
+        .andExpect(jsonPath("$.choreEnabled").value(true))
+        .andExpect(jsonPath("$.noticeEnabled").value(true))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should().toggleNotification(userId, NotificationType.MASTER, true);
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림(chore) ON")
+  void toggleChore_on_ok() throws Exception {
+    // given
+    long userId = 1L;
+    var resp = new ToggleResponse(
+        true, true, true,
+        LocalDateTime.of(2025, 9, 19, 7, 10, 0),
+            null
+    );
+    given(myPageNotificationService.toggleNotification(userId, NotificationType.CHORE, true))
+        .willReturn(resp);
+
+    var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
+    var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+    // when & then
+    mockMvc.perform(patch("/users/me/notification-settings/chore")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"enabled\": true}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.masterEnabled").value(true))
+        .andExpect(jsonPath("$.choreEnabled").value(true))
+        .andExpect(jsonPath("$.noticeEnabled").value(true))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should()
+        .toggleNotification(eq(1L), eq(NotificationType.CHORE), eq(true));
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+
+  @Test
+  @DisplayName("알림(notice) OFF")
+  void toggleNotice_off_ok() throws Exception {
+    // given
+    long userId = 1L;
+    var resp = new ToggleResponse(
+        true, true, false,
+        LocalDateTime.of(2025, 9, 19, 7, 10, 0), null
+    );
+    given(myPageNotificationService.toggleNotification(userId, NotificationType.NOTICE, false))
+        .willReturn(resp);
+
+    var principal = new UserPrincipal(1L, "nick", "ROLE_USER");
+    var auth = new UsernamePasswordAuthenticationToken(principal, null, List.of());
+
+    // when & then
+    mockMvc.perform(patch("/users/me/notification-settings/notice")
+            .with(SecurityMockMvcRequestPostProcessors.authentication(auth))
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"enabled\": false}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.masterEnabled").value(true))
+        .andExpect(jsonPath("$.choreEnabled").value(true))
+        .andExpect(jsonPath("$.noticeEnabled").value(false))
+        .andExpect(jsonPath("$.updatedAt").exists());
+
+    then(myPageNotificationService).should()
+        .toggleNotification(eq(1L), eq(NotificationType.NOTICE), eq(false));
+    then(myPageNotificationService).shouldHaveNoMoreInteractions();
+  }
+}
