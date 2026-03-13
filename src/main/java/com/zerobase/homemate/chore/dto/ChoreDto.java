@@ -53,21 +53,6 @@ public class ChoreDto {
         private Boolean recommendYn;
     }
 
-    @NoArgsConstructor
-    @SuperBuilder
-    @Getter
-    @Setter
-    public static class CreateRequest extends Request { }
-
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @SuperBuilder
-    @Getter
-    @Setter
-    public static class UpdateRequest extends Request {
-        private Boolean applyToAfter;
-    }
-
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder

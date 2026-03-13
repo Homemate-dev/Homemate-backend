@@ -23,10 +23,9 @@ public class ChoreController {
     @GetMapping("/{choreId}")
     public ResponseEntity<ChoreDto.Response> getChore(
             @AuthenticationPrincipal UserPrincipal user,
-            @PathVariable Long choreId) {
-
-        ChoreDto.Response response =
-                choreService.getChoreByChoreId(user.id(), choreId);
+            @PathVariable Long choreId
+    ) {
+        ChoreDto.Response response = choreService.getChore(user.id(), choreId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -40,10 +39,7 @@ public class ChoreController {
             @RequestParam(required = false) Integer repeatInterval,
             @RequestParam(required = false) String status
     ) {
-
-        List<ChoreDto.Response> chores =
-                choreService.getChoreList(user.id(), filter, space,
-                        repeat, repeatInterval, status);
+        List<ChoreDto.Response> chores = choreService.getChoreList(user.id(), filter, space, repeat, repeatInterval, status);
 
         return ResponseEntity.status(HttpStatus.OK).body(chores);
     }
@@ -51,28 +47,29 @@ public class ChoreController {
     @PostMapping
     public ResponseEntity<ApiResponse<ChoreDto.Response>> createChore(
             @AuthenticationPrincipal UserPrincipal user,
-            @Valid @RequestBody ChoreDto.CreateRequest request) {
-
-        ApiResponse<ChoreDto.Response> response =
-                choreService.createChores(user.id(), request);
+            @Valid @RequestBody ChoreDto.Request request
+    ) {
+        ApiResponse<ChoreDto.Response> response = choreService.createChores(user.id(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{choreId}")
-    public ResponseEntity<ApiResponse<ChoreDto.Response>> updateChore(
+    public ResponseEntity<ChoreDto.Response> updateChore(
             @AuthenticationPrincipal UserPrincipal user,
-            @PathVariable Long choreId
+            @PathVariable Long choreId,
+            @Valid @RequestBody ChoreDto.Request request
     ) {
+        ChoreDto.Response response = choreService.updateChores(user.id(), choreId, request);
 
-        return null;
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping("/{choreId}")
     public ResponseEntity<Void> deleteChore(
             @AuthenticationPrincipal UserPrincipal user,
-            @PathVariable Long choreId) {
-
+            @PathVariable Long choreId
+    ) {
         choreService.deleteChore(user.id(), choreId);
 
         return ResponseEntity.noContent().build();

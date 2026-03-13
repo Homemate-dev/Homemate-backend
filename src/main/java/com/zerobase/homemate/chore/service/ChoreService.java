@@ -31,28 +31,124 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 @Slf4j
 public class ChoreService {
-
     private final ChoreRepository choreRepository;
     private final ChoreInstanceRepository choreInstanceRepository;
-    private final ChoreInstanceGenerator choreInstanceGenerator;
     private final UserRepository userRepository;
-    private final MissionService missionService;
-    private final ApplicationEventPublisher eventPublisher;
-
     private final UserNotificationSettingRepository userNotificationSettingRepository;
+
+    private final MissionService missionService;
     private final RedisChoreStatsService redisChoreStatsService;
     private final BadgeService badgeService;
 
+    private final ChoreInstanceGenerator choreInstanceGenerator;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Transactional(readOnly = true)
+    public ChoreDto.Response getChore(Long userId, Long choreId) {
+
+        Chore chore = choreRepository.findById(choreId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
+
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        if (chore.getIsDeleted()) {
+            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        }
+
+        return ChoreDto.Response.fromEntity(chore);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChoreDto.Response> getChoreList(
+            Long userId, String filter, String space,
+            String repeat, Integer repeatInterval, String status) {
+
+        if (filter == null) {
+            throw new CustomException(ErrorCode.VALIDATION_ERROR);
+        }
+
+        ChoreFilterType filterType = parseEnum(filter, ChoreFilterType.class);
+        Space spaceType =
+                (space != null) ? parseEnum(space, Space.class) : null;
+        RepeatType repeatType =
+                (repeat != null) ? parseEnum(repeat, RepeatType.class) : null;
+        ChoreStatus choreStatus = (status != null) ?
+                parseEnum(status, ChoreStatus.class) : null;
+
+        Sort sort = Sort.by("startDate", "createdAt");
+
+        List<Chore> chores = switch (filterType) {
+            case ALL -> {
+                if (spaceType != null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+
+                if (repeatType != null) {
+                    yield choreRepository.
+                            findByUserIdAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
+                                    userId, repeatType, repeatInterval, sort);
+                } else {
+                    yield choreRepository.findByUserIdAndIsDeletedIsFalse(userId, sort);
+                }
+            }
+            case SPACE -> {
+                if (spaceType == null) {
+                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
+                }
+
+                if (repeatType != null) {
+                    yield choreRepository.
+                            findByUserIdAndSpaceAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
+                                    userId, spaceType, repeatType, repeatInterval, sort);
+                } else {
+                    yield choreRepository.
+                            findByUserIdAndSpaceAndIsDeletedIsFalse(userId, spaceType, sort);
+                }
+            }
+        };
+
+        if (choreStatus != null) {
+            if (chores.isEmpty()) {
+                return List.of();
+            }
+
+            List<Long> choreIds = chores.stream().map(Chore::getId).toList();
+
+            Map<Long, ChoreStatusCountDto> countMap =
+                    choreInstanceRepository.countPendingCompletedByChoreIds(choreIds)
+                            .stream()
+                            .collect(java.util.stream.Collectors.toMap(
+                                    ChoreStatusCountDto::choreId,
+                                    dto -> dto
+                            ));
+
+            chores = chores.stream()
+                    .filter(chore -> {
+                        ChoreStatusCountDto c = countMap.get(chore.getId());
+
+                        if (c == null) return false;
+
+                        return switch (choreStatus) {
+                            case PENDING -> c.pendingCount() > 0;
+                            case COMPLETED -> (c.completedCount() > 0) && (c.pendingCount() == 0);
+                            default -> false;
+                        };
+                    })
+                    .toList();
+        }
+
+        return chores.stream().map(ChoreDto.Response::fromEntity).toList();
+    }
+
     @Transactional
-    public ApiResponse<ChoreDto.Response> createChores(Long userId,
-                                                       ChoreDto.CreateRequest request) {
+    public ApiResponse<ChoreDto.Response> createChores(Long userId, ChoreDto.Request request) {
 
         if (request.getNotificationYn() && request.getNotificationTime() == null) {
             throw new CustomException(ErrorCode.VALIDATION_ERROR);
@@ -144,118 +240,52 @@ public class ChoreService {
     }
 
     @Transactional
-    public ApiResponse<ChoreDto.Response> updateChores(Long userId, Long choreInstanceId,
-                                                       ChoreDto.UpdateRequest request) {
+    public ChoreDto.Response updateChores(Long userId, Long choreId, ChoreDto.Request request) {
+        Chore chore = choreRepository.findByIdAndUserId(choreId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
-        ChoreInstance choreInstance =
-                choreInstanceRepository.findById(choreInstanceId)
-                        .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
-        Chore chore = choreInstance.getChore();
-
-        if (!chore.getUser().getId().equals(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
-        } else if (choreInstance.getChoreStatus() != ChoreStatus.PENDING) {
-            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
-        } else if (request.getNotificationYn()
-                   && request.getNotificationTime() == null) {
+        if (request.getNotificationYn() && request.getNotificationTime() == null) {
             throw new CustomException(ErrorCode.VALIDATION_ERROR);
-        } else if (isStartAfterEnd(request.getStartDate(),
-                request.getEndDate())) {
+        } else if (isStartAfterEnd(request.getStartDate(), request.getEndDate())) {
             throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
         }
 
-        boolean isRepeatChanged =
-                !Objects.equals(chore.getRepeatType(), request.getRepeatType()) ||
-                !Objects.equals(chore.getRepeatInterval(),
-                        request.getRepeatInterval());
-        boolean startDateChanged =
-                !chore.getStartDate().equals(request.getStartDate());
-        boolean endDateChanged =
-                !chore.getEndDate().equals(request.getEndDate());
-
-        if (isRepeatChanged || startDateChanged || endDateChanged) {
-            return updateChoreInstance(chore, choreInstance, request);
-        } else {
-            return updateChoreOnly(chore, choreInstance, request);
-        }
-    }
-
-    private ApiResponse<ChoreDto.Response> updateChoreInstance(Chore chore,
-                                                               ChoreInstance choreInstance, ChoreDto.UpdateRequest request) {
-
-        if (request.getApplyToAfter()) {
-            List<ChoreInstance> futureInstances = choreInstanceRepository
-                    .findByChoreIdAndDueDateGreaterThanEqualAndChoreStatus(
-                            chore.getId(),
-                            choreInstance.getDueDate(),
-                            ChoreStatus.PENDING
-                    );
-            futureInstances.forEach(ChoreInstance::cancelChore);
-        } else {
-            choreInstance.cancelChore();
-        }
-
-        return createChores(chore.getUser().getId(),
-                ChoreDto.CreateRequest.builder()
-                        .title(request.getTitle())
-                        .notificationYn(request.getNotificationYn())
-                        .notificationTime(request.getNotificationTime())
-                        .space(request.getSpace())
-                        .repeatType(request.getRepeatType())
-                        .repeatInterval(request.getRepeatInterval())
-                        .startDate(request.getStartDate())
-                        .endDate(request.getEndDate())
-                        .recommendYn(request.getRecommendYn())
-                        .build());
-    }
-
-    private ApiResponse<ChoreDto.Response> updateChoreOnly(Chore chore,
-                                                           ChoreInstance choreInstance, ChoreDto.UpdateRequest request) {
-
-        if (!request.getNotificationYn()) {
-            chore.setNotificationTime(null);
-        } else {
-            chore.setNotificationTime(request.getNotificationTime());
-        }
-
-        List<ChoreInstance> futureInstances = choreInstanceRepository
-                .findByChoreIdAndDueDateGreaterThanEqualAndChoreStatus(
-                        chore.getId(),
-                        choreInstance.getDueDate(),
-                        ChoreStatus.PENDING
-                );
-
-        futureInstances.forEach(instance -> {
-                    instance.setTitleSnapshot(request.getTitle());
-                    instance.setNotificationTime(
-                            request.getNotificationYn() ? request.getNotificationTime() : null);
-                }
-        );
-
+        // 1. Chore 업데이트
         chore.setTitle(request.getTitle());
         chore.setNotificationYn(request.getNotificationYn());
+        chore.setNotificationTime(request.getNotificationTime());
         chore.setSpace(request.getSpace());
+        chore.setRepeatType(request.getRepeatType());
+        chore.setRepeatInterval(request.getRepeatInterval());
+        chore.setStartDate(request.getStartDate());
 
-        return ApiResponse.<ChoreDto.Response>builder()
-                .data(ChoreDto.Response.fromEntity(chore))
-                .build();
-    }
+        LocalDate endDate = request.getRepeatType() == RepeatType.NONE ? request.getStartDate() : request.getEndDate();
+        chore.setEndDate(endDate);
 
-    private boolean isStartAfterEnd(LocalDate startDate, LocalDate endDate) {
-        return startDate.isAfter(endDate);
-    }
+        RegistrationType registrationType = request.getRecommendYn() ? RegistrationType.RECOMMEND : RegistrationType.MANUAL;
+        chore.setRegistrationType(registrationType);
 
-    public ChoreDto.Response getChoreByChoreId(Long userId, Long choreId) {
+        // 2. 기존 ChoreInstance 취소
+        List<ChoreInstance> pendingInstances = choreInstanceRepository.findByChoreAndChoreStatus(chore, ChoreStatus.PENDING);
+        pendingInstances.forEach(ChoreInstance::cancelChore);
 
-        Chore chore = choreRepository.findById(choreId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
+        // 3. 새로운 ChoreInstance 생성
+        List<ChoreInstance> newInstances = choreInstanceGenerator.generateInstances(chore);
+        choreInstanceRepository.saveAll(newInstances);
 
-        if (!chore.getUser().getId().equals(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
+        LocalTime notificationTime = request.getNotificationTime();
+        if (notificationTime == null) {
+            notificationTime = userNotificationSettingRepository.findByUser(chore.getUser())
+                    .map(UserNotificationSetting::getNotificationTime)
+                    .orElseGet(() -> LocalTime.of(19, 0));
         }
 
-        if (chore.getIsDeleted()) {
-            throw new CustomException(ErrorCode.CHORE_ALREADY_DELETED);
+        for (ChoreInstance instance : newInstances) {
+            eventPublisher.publishEvent(ChoreInstanceCreatedEvent.create(userId,
+                    instance,
+                    notificationTime,
+                    chore.getRepeatType()
+            ));
         }
 
         return ChoreDto.Response.fromEntity(chore);
@@ -263,7 +293,6 @@ public class ChoreService {
 
     @Transactional
     public void deleteChore(Long userId, Long choreId) {
-
         Chore chore = choreRepository.findById(choreId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
@@ -276,88 +305,11 @@ public class ChoreService {
         }
 
         chore.softDelete();
-        choreInstanceRepository.bulkSoftDeleteAfterByChore(chore);
+        choreInstanceRepository.bulkSoftDeleteByChore(chore);
     }
 
-    public List<ChoreDto.Response> getChoreList(
-            Long userId, String filter, String space,
-            String repeat, Integer repeatInterval, String status) {
-
-        if (filter == null) {
-            throw new CustomException(ErrorCode.VALIDATION_ERROR);
-        }
-
-        ChoreFilterType filterType = parseEnum(filter, ChoreFilterType.class);
-        Space spaceType =
-                (space != null) ? parseEnum(space, Space.class) : null;
-        RepeatType repeatType =
-                (repeat != null) ? parseEnum(repeat, RepeatType.class) : null;
-        ChoreStatus choreStatus = (status != null) ?
-                parseEnum(status, ChoreStatus.class) : null;
-
-        Sort sort = Sort.by("startDate", "createdAt");
-
-        List<Chore> chores = switch (filterType) {
-            case ALL -> {
-                if (spaceType != null) {
-                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
-                }
-
-                if (repeatType != null) {
-                    yield choreRepository.
-                            findByUserIdAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
-                                    userId, repeatType, repeatInterval, sort);
-                } else {
-                    yield choreRepository.findByUserIdAndIsDeletedIsFalse(userId, sort);
-                }
-            }
-            case SPACE -> {
-                if (spaceType == null) {
-                    throw new CustomException(ErrorCode.VALIDATION_ERROR);
-                }
-
-                if (repeatType != null) {
-                    yield choreRepository.
-                            findByUserIdAndSpaceAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
-                                    userId, spaceType, repeatType, repeatInterval, sort);
-                } else {
-                    yield choreRepository.
-                            findByUserIdAndSpaceAndIsDeletedIsFalse(userId, spaceType, sort);
-                }
-            }
-        };
-
-        if (choreStatus != null) {
-            if (chores.isEmpty()) {
-                return List.of();
-            }
-
-            List<Long> choreIds = chores.stream().map(Chore::getId).toList();
-
-            Map<Long, ChoreStatusCountDto> countMap =
-                    choreInstanceRepository.countPendingCompletedByChoreIds(choreIds)
-                            .stream()
-                            .collect(java.util.stream.Collectors.toMap(
-                                    ChoreStatusCountDto::choreId,
-                                    dto -> dto
-                            ));
-
-            chores = chores.stream()
-                    .filter(chore -> {
-                        ChoreStatusCountDto c = countMap.get(chore.getId());
-
-                        if (c == null) return false;
-
-                        return switch (choreStatus) {
-                            case PENDING -> c.pendingCount() > 0;
-                            case COMPLETED -> (c.completedCount() > 0) && (c.pendingCount() == 0);
-                            default -> false;
-                        };
-                    })
-                    .toList();
-        }
-
-        return chores.stream().map(ChoreDto.Response::fromEntity).toList();
+    private boolean isStartAfterEnd(LocalDate startDate, LocalDate endDate) {
+        return startDate.isAfter(endDate);
     }
 
     private <E extends Enum<E>> E parseEnum(String raw, Class<E> enumType) {
