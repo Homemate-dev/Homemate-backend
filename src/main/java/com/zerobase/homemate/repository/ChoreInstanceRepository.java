@@ -35,13 +35,10 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
             """)
     List<ChoreInstance> findChoreInstancesByDate(
             @Param("userId") Long userId,
-            @Param("date") LocalDate date);
-
-    List<ChoreInstance> findByChoreIdAndDueDateGreaterThanEqualAndChoreStatus(
-            Long choreId,
-            LocalDate dueDate,
-            ChoreStatus choreStatus
+            @Param("date") LocalDate date
     );
+
+    List<ChoreInstance> findByChoreAndChoreStatus(Chore chore, ChoreStatus choreStatus);
 
     @Query("""
                 SELECT ci.dueDate
@@ -57,7 +54,8 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
             @Param("userId") Long userId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end,
-            @Param("included") Collection<ChoreStatus> included);
+            @Param("included") Collection<ChoreStatus> included
+    );
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
@@ -66,7 +64,9 @@ public interface ChoreInstanceRepository extends JpaRepository<ChoreInstance, Lo
                        ci.deletedAt = CURRENT_TIMESTAMP
                  WHERE ci.chore = :chore
             """)
-    void bulkSoftDeleteByChore(@Param("chore") Chore chore);
+    void bulkSoftDeleteByChore(
+            @Param("chore") Chore chore
+    );
 
     @Query("""
                 select new com.zerobase.homemate.chore.dto.ChoreStatusCountDto(

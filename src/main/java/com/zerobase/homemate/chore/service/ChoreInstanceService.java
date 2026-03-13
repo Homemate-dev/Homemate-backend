@@ -102,10 +102,10 @@ public class ChoreInstanceService {
         }
 
         return choreInstanceRepository.findDatesHavingInstances(
-            userId,
-            startDate,
-            endDate,
-            EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED)
+                userId,
+                startDate,
+                endDate,
+                EnumSet.of(ChoreStatus.PENDING, ChoreStatus.COMPLETED)
         );
     }
 

@@ -7,17 +7,13 @@ import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.mission.dto.MissionDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalTime;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import lombok.experimental.SuperBuilder;
+import java.time.LocalTime;
+import java.util.List;
 
 public class ChoreDto {
 
@@ -76,21 +72,21 @@ public class ChoreDto {
 
         public static Response fromEntity(Chore chore) {
             return Response.builder()
-                .id(chore.getId())
-                .title(chore.getTitle())
-                .notificationYn(chore.getNotificationYn())
-                .notificationTime(chore.getNotificationTime())
-                .repeatType(chore.getRepeatType())
-                .space(chore.getSpace())
-                .repeatInterval(chore.getRepeatInterval())
-                .startDate(chore.getStartDate())
-                .endDate(chore.getEndDate())
-                .isDeleted(chore.getIsDeleted())
-                .registrationType(chore.getRegistrationType())
-                .createdAt(chore.getCreatedAt())
-                .updatedAt(chore.getUpdatedAt())
-                .deletedAt(chore.getDeletedAt())
-                .build();
+                    .id(chore.getId())
+                    .title(chore.getTitle())
+                    .notificationYn(chore.getNotificationYn())
+                    .notificationTime(chore.getNotificationTime())
+                    .repeatType(chore.getRepeatType())
+                    .space(chore.getSpace())
+                    .repeatInterval(chore.getRepeatInterval())
+                    .startDate(chore.getStartDate())
+                    .endDate(chore.getEndDate())
+                    .isDeleted(chore.getIsDeleted())
+                    .registrationType(chore.getRegistrationType())
+                    .createdAt(chore.getCreatedAt())
+                    .updatedAt(chore.getUpdatedAt())
+                    .deletedAt(chore.getDeletedAt())
+                    .build();
         }
     }
 
