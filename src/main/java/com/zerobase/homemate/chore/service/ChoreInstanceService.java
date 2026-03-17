@@ -46,9 +46,13 @@ public class ChoreInstanceService {
     }
 
     @Transactional
-    public ChoreDto.ApiResponse<ChoreInstanceDto.Response> patchCompletionStatus(Long userId, Long choreInstanceId) {
+    public ChoreDto.ApiResponse<ChoreInstanceDto.Response> completeInstance(Long userId, Long choreInstanceId) {
         ChoreInstance choreInstance = choreInstanceRepository.findByIdAndChore_User_Id(choreInstanceId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
+
+        if (choreInstance.getChoreStatus() != ChoreStatus.PENDING) {
+            throw new CustomException(ErrorCode.CHORE_INSTANCE_STATUS_CONFLICT);
+        }
 
         choreInstance.completeChore();
         List<MissionDto.Response> missionResponse = missionService.applyChoreCompletionByStatus(userId, choreInstance, false);
@@ -62,6 +66,20 @@ public class ChoreInstanceService {
                 .data(ChoreInstanceDto.Response.fromEntity(choreInstance))
                 .missionResults(missionResponse)
                 .build();
+    }
+
+    @Transactional
+    public ChoreInstanceDto.Response undoInstanceCompletion(Long userId, Long choreInstanceId) {
+        ChoreInstance choreInstance = choreInstanceRepository.findByIdAndChore_User_Id(choreInstanceId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
+
+        if (choreInstance.getChoreStatus() != ChoreStatus.COMPLETED) {
+            throw new CustomException(ErrorCode.CHORE_INSTANCE_STATUS_CONFLICT);
+        }
+
+        choreInstance.cancelChoreCompletion();
+
+        return ChoreInstanceDto.Response.fromEntity(choreInstance);
     }
 
     @Transactional

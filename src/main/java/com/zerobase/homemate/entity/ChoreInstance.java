@@ -72,7 +72,7 @@ public class ChoreInstance {
         this.completedAt = LocalDateTime.now();
     }
 
-    public void cancelCompleteChore() {
+    public void cancelChoreCompletion() {
         this.choreStatus = ChoreStatus.PENDING;
         this.completedAt = null;
     }

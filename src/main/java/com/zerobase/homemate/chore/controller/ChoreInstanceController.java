@@ -46,7 +46,17 @@ public class ChoreInstanceController {
             @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long choreInstanceId
     ) {
-        ApiResponse<ChoreInstanceDto.Response> response = choreInstanceService.patchCompletionStatus(user.id(), choreInstanceId);
+        ApiResponse<ChoreInstanceDto.Response> response = choreInstanceService.completeInstance(user.id(), choreInstanceId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PatchMapping("/{choreInstanceId}/incomplete")
+    public ResponseEntity<ChoreInstanceDto.Response> incompleteChoreInstance(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long choreInstanceId
+    ) {
+        ChoreInstanceDto.Response response = choreInstanceService.undoInstanceCompletion(user.id(), choreInstanceId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
