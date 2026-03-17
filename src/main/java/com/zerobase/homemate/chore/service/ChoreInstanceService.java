@@ -83,6 +83,16 @@ public class ChoreInstanceService {
     }
 
     @Transactional
+    public ChoreInstanceDto.Response updateChoreInstance(Long userId, Long choreInstanceId, ChoreInstanceDto.Request request) {
+        ChoreInstance choreInstance = choreInstanceRepository.findByIdAndChore_User_Id(choreInstanceId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));
+
+        choreInstance.updateByDto(request);
+
+        return ChoreInstanceDto.Response.fromEntity(choreInstance);
+    }
+
+    @Transactional
     public void deleteChoreInstance(Long userId, Long choreInstanceId) {
         ChoreInstance choreInstance = choreInstanceRepository.findByIdAndChore_User_Id(choreInstanceId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_INSTANCE_NOT_FOUND));

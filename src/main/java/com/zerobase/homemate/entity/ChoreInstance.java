@@ -1,5 +1,6 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -62,6 +63,12 @@ public class ChoreInstance {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chore_id", updatable = false)
     private Chore chore;
+
+    public void updateByDto(ChoreInstanceDto.Request dto) {
+        titleSnapshot = dto.getTitleSnapshot();
+        dueDate = dto.getDueDate();
+        notificationTime = dto.getNotificationTime();
+    }
 
     public void cancelChore() {
         this.choreStatus = ChoreStatus.CANCELLED;

@@ -5,6 +5,7 @@ import com.zerobase.homemate.chore.dto.ChoreCompletionRateResponse;
 import com.zerobase.homemate.chore.dto.ChoreDto.ApiResponse;
 import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.chore.service.ChoreInstanceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,18 @@ public class ChoreInstanceController {
 
         return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
+
+    @PutMapping("/{choreInstanceId}")
+    public ResponseEntity<ChoreInstanceDto.Response> updateChoreInstance(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long choreInstanceId,
+            @RequestBody @Valid ChoreInstanceDto.Request request
+    ) {
+        ChoreInstanceDto.Response response = choreInstanceService.updateChoreInstance(user.id(), choreInstanceId, request);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 
     @PatchMapping("/{choreInstanceId}/complete")
     public ResponseEntity<ApiResponse<ChoreInstanceDto.Response>> completeChoreInstance(
