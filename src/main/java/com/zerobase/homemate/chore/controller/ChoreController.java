@@ -49,7 +49,7 @@ public class ChoreController {
             @AuthenticationPrincipal UserPrincipal user,
             @Valid @RequestBody ChoreDto.Request request
     ) {
-        ApiResponse<ChoreDto.Response> response = choreService.createChores(user.id(), request);
+        ApiResponse<ChoreDto.Response> response = choreService.createChore(user.id(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -60,7 +60,7 @@ public class ChoreController {
             @PathVariable Long choreId,
             @Valid @RequestBody ChoreDto.Request request
     ) {
-        ChoreDto.Response response = choreService.updateChores(user.id(), choreId, request);
+        ChoreDto.Response response = choreService.updateChore(user.id(), choreId, request);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

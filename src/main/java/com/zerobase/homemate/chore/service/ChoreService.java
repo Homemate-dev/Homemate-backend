@@ -67,20 +67,21 @@ public class ChoreService {
 
     @Transactional(readOnly = true)
     public List<ChoreDto.Response> getChoreList(
-            Long userId, String filter, String space,
-            String repeat, Integer repeatInterval, String status) {
-
+            Long userId,
+            String filter,
+            String space,
+            String repeat,
+            Integer repeatInterval,
+            String status
+    ) {
         if (filter == null) {
             throw new CustomException(ErrorCode.VALIDATION_ERROR);
         }
 
         ChoreFilterType filterType = parseEnum(filter, ChoreFilterType.class);
-        Space spaceType =
-                (space != null) ? parseEnum(space, Space.class) : null;
-        RepeatType repeatType =
-                (repeat != null) ? parseEnum(repeat, RepeatType.class) : null;
-        ChoreStatus choreStatus = (status != null) ?
-                parseEnum(status, ChoreStatus.class) : null;
+        Space spaceType = (space != null) ? parseEnum(space, Space.class) : null;
+        RepeatType repeatType = (repeat != null) ? parseEnum(repeat, RepeatType.class) : null;
+        ChoreStatus choreStatus = (status != null) ? parseEnum(status, ChoreStatus.class) : null;
 
         Sort sort = Sort.by("startDate", "createdAt");
 
@@ -93,7 +94,11 @@ public class ChoreService {
                 if (repeatType != null) {
                     yield choreRepository.
                             findByUserIdAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
-                                    userId, repeatType, repeatInterval, sort);
+                                    userId,
+                                    repeatType,
+                                    repeatInterval,
+                                    sort
+                            );
                 } else {
                     yield choreRepository.findByUserIdAndIsDeletedIsFalse(userId, sort);
                 }
@@ -106,7 +111,12 @@ public class ChoreService {
                 if (repeatType != null) {
                     yield choreRepository.
                             findByUserIdAndSpaceAndRepeatTypeAndRepeatIntervalAndIsDeletedIsFalse(
-                                    userId, spaceType, repeatType, repeatInterval, sort);
+                                    userId,
+                                    spaceType,
+                                    repeatType,
+                                    repeatInterval,
+                                    sort
+                            );
                 } else {
                     yield choreRepository.
                             findByUserIdAndSpaceAndIsDeletedIsFalse(userId, spaceType, sort);
@@ -148,12 +158,11 @@ public class ChoreService {
     }
 
     @Transactional
-    public ApiResponse<ChoreDto.Response> createChores(Long userId, ChoreDto.Request request) {
+    public ApiResponse<ChoreDto.Response> createChore(Long userId, ChoreDto.Request request) {
 
         if (request.getNotificationYn() && request.getNotificationTime() == null) {
             throw new CustomException(ErrorCode.VALIDATION_ERROR);
-        } else if (isStartAfterEnd(request.getStartDate(),
-                request.getEndDate())) {
+        } else if (isStartAfterEnd(request.getStartDate(), request.getEndDate())) {
             throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
         } else if (!userRepository.existsById(userId)) {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
@@ -161,20 +170,17 @@ public class ChoreService {
 
         User userReference = userRepository.getReferenceById(userId);
 
-        LocalDate endDate;
-        if (request.getRepeatType() == RepeatType.NONE) {
-            endDate = request.getStartDate();
-        } else {
-            endDate = request.getEndDate();
-        }
+        LocalDate endDate = request.getRepeatType() == RepeatType.NONE ?
+                request.getStartDate() :
+                request.getEndDate();
 
         if (request.getNotificationYn()) {
-            userNotificationSettingRepository.
-                    enableUserNotificationSetting(userId);
+            userNotificationSettingRepository.enableUserNotificationSetting(userId);
         }
 
-        RegistrationType registrationType =
-                request.getRecommendYn() ? RegistrationType.RECOMMEND : RegistrationType.MANUAL;
+        RegistrationType registrationType = request.getRecommendYn() ?
+                RegistrationType.RECOMMEND :
+                RegistrationType.MANUAL;
 
         Chore chore = Chore.builder()
                 .user(userReference)
@@ -191,22 +197,21 @@ public class ChoreService {
                 .build();
 
         Chore savedChore = choreRepository.save(chore);
-        List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(
-                savedChore);
+        List<ChoreInstance> instances = choreInstanceGenerator.generateInstances(savedChore);
         choreInstanceRepository.saveAll(instances);
 
-        List<MissionDto.Response> userMission =
-                missionService.increaseMissionCountForAction(
-                                userId, UserActionType.CREATE_CHORE_MANUAL)
-                        .stream().filter(MissionDto.Response::isCompleted).toList();
+        List<MissionDto.Response> userMission = missionService.increaseMissionCountForAction(
+                        userId,
+                        UserActionType.CREATE_CHORE_MANUAL)
+                .stream()
+                .filter(MissionDto.Response::isCompleted)
+                .toList();
 
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new CustomException(ErrorCode.USER_NOT_FOUND)
-        );
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (!userMission.isEmpty()) {
             for (MissionDto.Response mission : userMission) {
-
                 log.info("Mission Done with CREATE_CHORE_MANUAL - user : {}, mission : {}", userId, mission.getId());
 
                 badgeService.evaluateBadgesMission(user);
@@ -240,7 +245,7 @@ public class ChoreService {
     }
 
     @Transactional
-    public ChoreDto.Response updateChores(Long userId, Long choreId, ChoreDto.Request request) {
+    public ChoreDto.Response updateChore(Long userId, Long choreId, ChoreDto.Request request) {
         Chore chore = choreRepository.findByIdAndUserId(choreId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHORE_NOT_FOUND));
 
@@ -259,10 +264,14 @@ public class ChoreService {
         chore.setRepeatInterval(request.getRepeatInterval());
         chore.setStartDate(request.getStartDate());
 
-        LocalDate endDate = request.getRepeatType() == RepeatType.NONE ? request.getStartDate() : request.getEndDate();
+        LocalDate endDate = request.getRepeatType() == RepeatType.NONE ?
+                request.getStartDate() :
+                request.getEndDate();
         chore.setEndDate(endDate);
 
-        RegistrationType registrationType = request.getRecommendYn() ? RegistrationType.RECOMMEND : RegistrationType.MANUAL;
+        RegistrationType registrationType = request.getRecommendYn() ?
+                RegistrationType.RECOMMEND :
+                RegistrationType.MANUAL;
         chore.setRegistrationType(registrationType);
 
         // 2. 기존 ChoreInstance 취소
