@@ -17,9 +17,6 @@ import java.time.LocalTime;
 
 public class ChoreInstanceDto {
 
-    private ChoreInstanceDto() {
-    }
-
     @NoArgsConstructor
     @AllArgsConstructor
     @Getter

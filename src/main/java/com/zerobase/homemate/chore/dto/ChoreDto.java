@@ -8,7 +8,6 @@ import com.zerobase.homemate.mission.dto.MissionDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,10 +18,8 @@ public class ChoreDto {
 
     @AllArgsConstructor
     @NoArgsConstructor
-    @SuperBuilder
     @Getter
-    @Setter
-    public abstract static class Request {
+    public static class Request {
         @NotBlank(message = "집안일 제목은 필수입니다")
         private String title;
 
