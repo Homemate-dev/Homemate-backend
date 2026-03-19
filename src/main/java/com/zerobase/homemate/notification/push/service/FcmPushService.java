@@ -9,6 +9,7 @@ import com.zerobase.homemate.repository.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -49,7 +50,7 @@ public class FcmPushService {
         long lastId = 0L;
 
         while (true) {
-            List<TokenWithIdDto> list = fcmTokenRepository.findIdAndTokenBatch(lastId, DB_BATCH_SIZE);
+            List<TokenWithIdDto> list = fcmTokenRepository.findIdAndTokenBatch(lastId, PageRequest.of(0, DB_BATCH_SIZE));
 
             List<String> sendBuffer = new ArrayList<>(FCM_BATCH_SIZE);
             for (TokenWithIdDto t : list) {

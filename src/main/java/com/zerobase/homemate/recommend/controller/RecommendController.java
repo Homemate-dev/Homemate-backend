@@ -1,6 +1,7 @@
 package com.zerobase.homemate.recommend.controller;
 
 import com.zerobase.homemate.auth.security.UserPrincipal;
+import com.zerobase.homemate.recommend.dto.MonthlyRecommendResponse;
 import com.zerobase.homemate.recommend.dto.SpaceChoreResponse;
 import com.zerobase.homemate.recommend.dto.TopItemDto;
 import com.zerobase.homemate.recommend.service.RecommendService;
@@ -33,5 +34,10 @@ public class RecommendController {
             @AuthenticationPrincipal UserPrincipal user
     ){
         return choreStatsService.getTopCategories(user.id());
+    }
+
+    @GetMapping("/monthly")
+    public ResponseEntity<List<MonthlyRecommendResponse>> getMonthlyCategories(){
+        return ResponseEntity.ok(recommendService.getMonthlyCategories());
     }
 }
