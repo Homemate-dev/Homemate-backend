@@ -7,26 +7,19 @@ import com.zerobase.homemate.entity.enums.Space;
 import com.zerobase.homemate.mission.dto.MissionDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalTime;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import lombok.experimental.SuperBuilder;
+import java.time.LocalTime;
+import java.util.List;
 
 public class ChoreDto {
 
     @AllArgsConstructor
     @NoArgsConstructor
-    @SuperBuilder
     @Getter
-    @Setter
-    public abstract static class Request {
+    public static class Request {
         @NotBlank(message = "집안일 제목은 필수입니다")
         private String title;
 
@@ -53,21 +46,6 @@ public class ChoreDto {
         private Boolean recommendYn;
     }
 
-    @NoArgsConstructor
-    @SuperBuilder
-    @Getter
-    @Setter
-    public static class CreateRequest extends Request { }
-
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @SuperBuilder
-    @Getter
-    @Setter
-    public static class UpdateRequest extends Request {
-        private Boolean applyToAfter;
-    }
-
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
@@ -91,21 +69,21 @@ public class ChoreDto {
 
         public static Response fromEntity(Chore chore) {
             return Response.builder()
-                .id(chore.getId())
-                .title(chore.getTitle())
-                .notificationYn(chore.getNotificationYn())
-                .notificationTime(chore.getNotificationTime())
-                .repeatType(chore.getRepeatType())
-                .space(chore.getSpace())
-                .repeatInterval(chore.getRepeatInterval())
-                .startDate(chore.getStartDate())
-                .endDate(chore.getEndDate())
-                .isDeleted(chore.getIsDeleted())
-                .registrationType(chore.getRegistrationType())
-                .createdAt(chore.getCreatedAt())
-                .updatedAt(chore.getUpdatedAt())
-                .deletedAt(chore.getDeletedAt())
-                .build();
+                    .id(chore.getId())
+                    .title(chore.getTitle())
+                    .notificationYn(chore.getNotificationYn())
+                    .notificationTime(chore.getNotificationTime())
+                    .repeatType(chore.getRepeatType())
+                    .space(chore.getSpace())
+                    .repeatInterval(chore.getRepeatInterval())
+                    .startDate(chore.getStartDate())
+                    .endDate(chore.getEndDate())
+                    .isDeleted(chore.getIsDeleted())
+                    .registrationType(chore.getRegistrationType())
+                    .createdAt(chore.getCreatedAt())
+                    .updatedAt(chore.getUpdatedAt())
+                    .deletedAt(chore.getDeletedAt())
+                    .build();
         }
     }
 

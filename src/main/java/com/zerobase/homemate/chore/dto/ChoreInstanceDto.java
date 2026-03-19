@@ -4,15 +4,31 @@ import com.zerobase.homemate.entity.ChoreInstance;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.RepeatType;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 public class ChoreInstanceDto {
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    public static class Request {
+        @NotBlank(message = "집안일 제목은 필수입니다")
+        private String titleSnapshot;
+
+        @NotNull(message = "수행 일자는 필수입니다")
+        private LocalDate dueDate;
+
+        private LocalTime notificationTime;
+    }
 
     @AllArgsConstructor
     @NoArgsConstructor
@@ -34,19 +50,19 @@ public class ChoreInstanceDto {
 
         public static ChoreInstanceDto.Response fromEntity(ChoreInstance choreInstance) {
             return Response.builder()
-                .id(choreInstance.getId())
-                .choreId(choreInstance.getChore().getId())
-                .titleSnapshot(choreInstance.getTitleSnapshot())
-                .dueDate(choreInstance.getDueDate())
-                .notificationTime(choreInstance.getNotificationTime())
-                .choreStatus(choreInstance.getChoreStatus())
-                .repeatType(choreInstance.getChore().getRepeatType())
-                .repeatInterval(choreInstance.getChore().getRepeatInterval())
-                .registrationType(choreInstance.getChore().getRegistrationType())
-                .completedAt(choreInstance.getCompletedAt())
-                .createdAt(choreInstance.getCreatedAt())
-                .updatedAt(choreInstance.getUpdatedAt())
-                .build();
+                    .id(choreInstance.getId())
+                    .choreId(choreInstance.getChore().getId())
+                    .titleSnapshot(choreInstance.getTitleSnapshot())
+                    .dueDate(choreInstance.getDueDate())
+                    .notificationTime(choreInstance.getNotificationTime())
+                    .choreStatus(choreInstance.getChoreStatus())
+                    .repeatType(choreInstance.getChore().getRepeatType())
+                    .repeatInterval(choreInstance.getChore().getRepeatInterval())
+                    .registrationType(choreInstance.getChore().getRegistrationType())
+                    .completedAt(choreInstance.getCompletedAt())
+                    .createdAt(choreInstance.getCreatedAt())
+                    .updatedAt(choreInstance.getUpdatedAt())
+                    .build();
         }
     }
 }

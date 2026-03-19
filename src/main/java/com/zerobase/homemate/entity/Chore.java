@@ -4,18 +4,14 @@ import com.zerobase.homemate.entity.enums.RegistrationType;
 import com.zerobase.homemate.entity.enums.RepeatType;
 import com.zerobase.homemate.entity.enums.Space;
 import jakarta.persistence.*;
-import java.time.LocalTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,9 +44,11 @@ public class Chore {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "repeat_type", nullable = false)
+    @Setter
     private RepeatType repeatType;
 
     @Column(name = "repeat_interval")
+    @Setter
     private Integer repeatInterval;
 
     @Setter
@@ -87,6 +85,7 @@ public class Chore {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "registration_type", nullable = false)
+    @Setter
     private RegistrationType registrationType;
 
     @OneToMany(mappedBy = "chore", cascade = CascadeType.ALL)

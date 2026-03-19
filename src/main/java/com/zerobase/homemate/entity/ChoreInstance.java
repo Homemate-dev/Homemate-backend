@@ -1,25 +1,22 @@
 package com.zerobase.homemate.entity;
 
+import com.zerobase.homemate.chore.dto.ChoreInstanceDto;
 import com.zerobase.homemate.entity.enums.ChoreStatus;
 import jakarta.persistence.*;
-import java.time.LocalTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "chore_instance",
         indexes = {
-            @Index(name = "idx_ci_chore_status_dueDate",
-                columnList = "chore_id, chore_status, due_date")
+                @Index(name = "idx_ci_chore_status_dueDate",
+                        columnList = "chore_id, chore_status, due_date")
         })
 @Getter
 @Builder
@@ -67,6 +64,12 @@ public class ChoreInstance {
     @JoinColumn(name = "chore_id", updatable = false)
     private Chore chore;
 
+    public void updateByDto(ChoreInstanceDto.Request dto) {
+        titleSnapshot = dto.getTitleSnapshot();
+        dueDate = dto.getDueDate();
+        notificationTime = dto.getNotificationTime();
+    }
+
     public void cancelChore() {
         this.choreStatus = ChoreStatus.CANCELLED;
     }
@@ -76,7 +79,7 @@ public class ChoreInstance {
         this.completedAt = LocalDateTime.now();
     }
 
-    public void cancelCompleteChore() {
+    public void cancelChoreCompletion() {
         this.choreStatus = ChoreStatus.PENDING;
         this.completedAt = null;
     }
